@@ -9,10 +9,14 @@ import 'translation.dart';
 class Topic implements Indexable {
   final Symbol name;
 
-  IconData icon;
+  final IconData icon;
+
+  FloatingActionButton buildFloatingActionButton(BuildContext context) {
+    return null; // No button
+  }
 
   Topic({this.name, this.icon});
 
-  Widget buildWidget(BuildContext context) => Text(TL8(name));
+  Widget buildTabContent(BuildContext context) => Center(child: Text(TL8(name)));
 }
 

@@ -1,6 +1,7 @@
 
+import 'entities/dish.dart';
 import 'indexable.dart';
-import 'ingredient.dart';
+import 'entities/ingredient.dart';
 import 'measurement_type.dart';
 import 'unit.dart';
 
@@ -12,6 +13,9 @@ abstract class DataCollection<I, T> {
 
   /// Get a named item, or the otherwise value if absent
   T get(I index, [T otherwise = null]); // ignore: avoid_init_to_null
+
+  /// Get a named item, or throw
+  T fetch(I index);
 
   /// Get all items as a map
   Map<I, T> getAll();
@@ -37,11 +41,11 @@ abstract class DataCollection<I, T> {
 }
 
 class Database {
-  Database({this.dimensions, this.measurementTypes, this.ingredients, this.dishes, this.contentStatistics});
+  Database({this.dimensions, this.measurementTypes, this.ingredients, this.dishes, this.compositionStatistics});
 
   final DataCollection<Symbol, Dimension> dimensions;
   final DataCollection<Symbol, MeasurementType> measurementTypes;
-  final DataCollection<Symbol, MeasurementType> contentStatistics;
+  final DataCollection<Symbol, MeasurementType> compositionStatistics;
   final DataCollection<Symbol, Ingredient> ingredients;
   final DataCollection<Symbol, Dish> dishes;
 }
@@ -85,8 +89,14 @@ class MockDataCollection<I, T> implements DataCollection<I, T> {
   }
 
   @override
+  T fetch(I index) {
+    if (map.containsKey(index)) return map[index];
+    throw RangeError("No item with index ${index}");
+  }
+
+  @override
   void put(I index, T value) {
-    // TODO: implement put
+    map[index] = value;
   }
 
   @override
@@ -104,7 +114,6 @@ class MockDataCollection<I, T> implements DataCollection<I, T> {
   Map<I, T> getAll() {
     return Map.of(map);
   }
-
 }
 
 class MockDatabase implements Database {
@@ -122,13 +131,32 @@ class MockDatabase implements Database {
     Ingredient(
       name: #Cabbage,
       compositionStats: {
-        _measurementTypes.get(#carbs): Mass.grams(6),
+        _measurementTypes.fetch(#Carbs): Mass.grams(6),
       },
     ),
     Ingredient(
       name: #Tahini,
       compositionStats: {
-        _measurementTypes.get(#Carbs): Mass.grams(0),
+        _measurementTypes.fetch(#Carbs): Mass.grams(0),
+      },
+    ),
+    Ingredient(
+      name: #PeriPeri,
+      compositionStats: {
+        _measurementTypes.fetch(#Carbs): Mass.grams(12),
+      },
+    ),
+    Ingredient(
+      name: #Bread,
+      compositionStats: {
+        _measurementTypes.fetch(#Carbs): Mass.grams(60),
+        _measurementTypes.fetch(#Fat): Mass.grams(20),
+      },
+    ),
+    Ingredient(
+      name: #Butter,
+      compositionStats: {
+        _measurementTypes.fetch(#Fat): Mass.grams(80),
       },
     ),
   });
@@ -137,23 +165,30 @@ class MockDatabase implements Database {
     Dish(
       name: #Salad,
       ingredients: {
-        _ingredients.get(#cabbage): Mass.grams(200),
+        _ingredients.fetch(#Cabbage): Mass.grams(200),
+      },
+    ),
+    Dish(
+      name: #Toast,
+      ingredients: {
+        _ingredients.fetch(#Bread): Mass.grams(200),
+        _ingredients.fetch(#Butter): Mass.grams(20),
       },
     ),
   });
 
-  static final _contentStatistics = MockDataCollection.fromIndexables({
-    MeasurementType(name: #Carbs, units: _dimensions.get(#FractionByMass)),
-    MeasurementType(name: #Fat, units: _dimensions.get(#FractionByMass)),
-    MeasurementType(name: #Fibre, units: _dimensions.get(#FractionByMass)),
-    MeasurementType(name: #Protein, units: _dimensions.get(#FractionByMass)),
-    MeasurementType(name: #Sugar, units: _dimensions.get(#FractionByMass)),
+  static final _compositionStatistics = MockDataCollection.fromIndexables({
+    MeasurementType(name: #Carbs, units: _dimensions.fetch(#FractionByMass)),
+    MeasurementType(name: #Fat, units: _dimensions.fetch(#FractionByMass)),
+    MeasurementType(name: #Fibre, units: _dimensions.fetch(#FractionByMass)),
+    MeasurementType(name: #Protein, units: _dimensions.fetch(#FractionByMass)),
+    MeasurementType(name: #Sugar, units: _dimensions.fetch(#FractionByMass)),
   });
 
   static final _measurementTypes = MockDataCollection.fromIndexables({
-    MeasurementType(name: #BodyMass, units: _dimensions.get(#Mass)),
-    MeasurementType(name: #BloodGlucose, units: _dimensions.get(#MolesByVolume)),
-  }..addAll(_contentStatistics.map.values));
+    MeasurementType(name: #BodyMass, units: _dimensions.fetch(#Mass)),
+    MeasurementType(name: #BloodGlucose, units: _dimensions.fetch(#MolesByVolume)),
+  }..addAll(_compositionStatistics.map.values));
 
   @override
   DataCollection<Symbol, Dimension> get dimensions => _dimensions;
@@ -168,6 +203,6 @@ class MockDatabase implements Database {
   DataCollection<Symbol, Dish> get dishes => _dishes;
 
   @override
-  DataCollection<Symbol, MeasurementType<Dimensions>> get contentStatistics => _contentStatistics;
+  DataCollection<Symbol, MeasurementType<Dimensions>> get compositionStatistics => _compositionStatistics;
 
 }

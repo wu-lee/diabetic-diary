@@ -1,9 +1,8 @@
-import 'package:diabetic_diary/measurement_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'database.dart';
-import 'index_topic.dart';
-import 'ingredient.dart';
+import 'entities/dish.dart';
+import 'entities/ingredient.dart';
 import 'topic.dart';
 import 'translation.dart';
 
@@ -27,12 +26,12 @@ import 'translation.dart';
  and an aggregate list of composition statistics
  logged meals are kinds of record
 
- ingredients have names, and a list of measurement types
+ ingredients have names, and a list of composition statistics
 
  dishes are kinds of ingredient
  dishes have names, a list of ingredients, and an aggregate list of measurement types
 
- a composition statistic has a name, a dimension, and a quantity
+ a composition statistic has a name, a measurement type, and a quantity
 
  a dimension has a name and a list of allowed units with their relative sizes
  one of these units is the base unit
@@ -61,23 +60,7 @@ import 'translation.dart';
 
  */
 
-final DB = MockDatabase();
-
-final topics = [
-  Topic(name: #Overview),
-  IndexTopic(
-    name: #Dishes,
-    items: DB.dishes.getAll().values.toList(),
-  ),
-  IndexTopic(
-    name: #Ingredients,
-    items: DB.ingredients.getAll().values.toList(),
-  ),
-  IndexTopic<MeasurementType>(
-    name: #MeasurementTypes,
-    items: DB.measurementTypes.getAll().values.toList(),
-  ),
-];
+final db = MockDatabase();
 
 
 class HomePage extends StatefulWidget {
@@ -100,16 +83,28 @@ class HomePage extends StatefulWidget {
 
 
 class _HomePageState extends State<HomePage> {
-  int _counter = 0;
+  static const int _initialTopic = 0;
+  Topic _currentTopic = topics[_initialTopic];
 
-  void _incrementCounter() {
+  static final topics = [
+    Topic(name: #Overview),
+    DishTopic(
+      entities: db.dishes
+          .getAll()
+          .values
+          .toList(),
+    ),
+    IngredientTopic(
+      entities: db.ingredients
+          .getAll()
+          .values
+          .toList(),
+    ),
+  ];
+
+  void _setTopic(Topic topic) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _currentTopic = topic;
     });
   }
 
@@ -117,26 +112,37 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      initialIndex: 1,
+      initialIndex: _initialTopic,
       length: topics.length,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(TL8(widget.title)),
-          bottom: TabBar(
-            tabs: topics.map((topic) => Tab(
-              icon: Icon(topic.icon),
-              text: TL8(topic.name),
-            )
-            ).toList(),
-          ),
-        ),
-        body: TabBarView(
-          children: topics.map((topic) => Center(
-            child: topic.buildWidget(context),
-          )
-          ).toList(),
-        ),
-      ),
+      child: StatefulBuilder(
+        builder: (context, setBuilderState) {
+          final TabController tabController = DefaultTabController.of(context);
+          tabController.addListener(() {
+            if (tabController.indexIsChanging) {
+              setBuilderState(() { _currentTopic = topics[tabController.index]; });
+            }
+          });
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(TL8(widget.title)),
+              bottom: TabBar(
+                tabs: topics.map((topic) =>
+                  Tab(
+                    icon: Icon(topic.icon),
+                    text: TL8(topic.name),
+                  )
+                ).toList(),
+              ),
+            ),
+            body: TabBarView(
+              children: topics.map((topic) => topic.buildTabContent(context))
+                  .toList(),
+            ),
+            floatingActionButton: _currentTopic.buildFloatingActionButton(context),
+          );
+        },
+      )
     );
   }
 }
+
