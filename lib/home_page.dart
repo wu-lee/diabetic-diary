@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
   Topic _currentTopic = topics[_initialTopic];
 
   static final topics = [
-    Topic(name: #Overview),
+    Topic(name: #Overview, icon: Icons.follow_the_signs),
     DishTopic(
       entities: db.dishes
           .getAll()

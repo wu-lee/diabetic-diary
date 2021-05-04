@@ -40,7 +40,7 @@ class IngredientTopic implements EntityTopic<Ingredient> {
   final Symbol name = #Ingredient;
 
   @override
-  final IconData icon = Icons.bathtub;
+  final IconData icon = Icons.shopping_cart;
 
   @override
   FloatingActionButton buildFloatingActionButton(BuildContext context) {

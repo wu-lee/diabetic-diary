@@ -28,7 +28,7 @@ class DishTopic implements EntityTopic<Dish> {
   final Symbol name = #Dish;
 
   @override
-  final IconData icon = Icons.food_bank;
+  final IconData icon = Icons.restaurant;
 
   @override
   FloatingActionButton buildFloatingActionButton(BuildContext context) {
