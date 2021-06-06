@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../database.dart';
 import '../home_page.dart';
 import '../indexable.dart';
 import '../measurement_type.dart';
@@ -10,26 +11,32 @@ import 'ingredient.dart';
 
 /// The screen for inspecting a Ingredient
 class IngredientCreateScreen extends StatefulWidget {
-  const IngredientCreateScreen({Key key}) : super(key: key);
+  final DataCollection<Symbol, MeasurementType> measurementTypes;
+  final DataCollection<Symbol, Ingredient> ingredients;
+
+  const IngredientCreateScreen({Key key, this.measurementTypes, this.ingredients}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _IngredientCreateState();
+    return _IngredientCreateState(measurementTypes: measurementTypes, ingredients: ingredients);
   }
 }
 
 class _IngredientCreateState extends State<IngredientCreateScreen> {
   final Map<MeasurementType<Dimensions>, Quantity<Dimensions>> compositionStats = {};
   final titleController = new TextEditingController();
+  final DataCollection<Symbol, MeasurementType> measurementTypes;
+  final DataCollection<Symbol, Ingredient> ingredients;
 
-  _IngredientCreateState();
+
+  _IngredientCreateState({this.ingredients, this.measurementTypes});
 
   Future<bool> addIngredient() async {
     final ingredient = Ingredient(
       compositionStats: compositionStats,
       name: Symbol(titleController.text),
     );
-    db.ingredients.put(ingredient.name, ingredient);
+    ingredients.put(ingredient.name, ingredient);
     return true;
   }
 
@@ -136,7 +143,7 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                     ),
                     Expanded(
                       child: ListView(
-                        children: db.measurementTypes.getAll().values.map(
+                        children: measurementTypes.getAll().values.map(
                           (e) => Container(
                             child: Row(
                               children: [

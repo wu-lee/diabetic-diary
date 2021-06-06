@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../database.dart';
 import '../home_page.dart';
 import '../indexable.dart';
 import '../measurement_type.dart';
@@ -10,27 +11,32 @@ import 'ingredient.dart';
 
 /// The screen for inspecting a Dish
 class DishCreateScreen extends StatefulWidget {
-  const DishCreateScreen({Key key}) : super(key: key);
+  final DataCollection<Symbol, Dish> dishes;
+  final DataCollection<Symbol, Ingredient> ingredients;
+
+  const DishCreateScreen({Key key, this.dishes, this.ingredients}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _DishCreateState();
+    return _DishCreateState(dishes: dishes, ingredients: ingredients);
   }
 }
 
 class _DishCreateState extends State<DishCreateScreen> {
-  final Map<Ingredient, Quantity<Dimensions>> ingredients = {};
+  final Map<Ingredient, Quantity<Dimensions>> ingredientAmounts = {};
   Map<MeasurementType<Dimensions>, Quantity<Dimensions>> compositionStats = {};
   final titleController = new TextEditingController();
+  final DataCollection<Symbol, Dish> dishes;
+  final DataCollection<Symbol, Ingredient> ingredients;
 
-  _DishCreateState();
+  _DishCreateState({this.dishes, this.ingredients});
 
   Future<bool> addDish() async {
     final dish = Dish(
-      ingredients: ingredients,
+      ingredients: ingredientAmounts,
       name: Symbol(titleController.text),
     );
-    db.dishes.put(dish.name, dish);
+    dishes.put(dish.name, dish);
     return true;
   }
 
@@ -97,7 +103,7 @@ class _DishCreateState extends State<DishCreateScreen> {
             print("add ingredient");
             setState(() {
               ingredients
-                  .add(MapEntry(db.ingredients.get(#Cabbage), Mass.grams(10)));
+                  .add(MapEntry(ingredients.get(#Cabbage), Mass.grams(10)));
               compositionStats = Ingredient.aggregate(ingredients);
             });
           / *Navigator.push(
@@ -128,7 +134,7 @@ class _DishCreateState extends State<DishCreateScreen> {
                 fit: FlexFit.tight,
                 child: buildEntityList(
                   title: 'Ingredients',
-                  entities: ingredients.entries,
+                  entities: ingredientAmounts.entries,
                   context: context
                 ),
               ),
@@ -146,7 +152,7 @@ class _DishCreateState extends State<DishCreateScreen> {
                     ),
                     Expanded(
                       child: ListView(
-                        children: db.ingredients.getAll().values.map(
+                        children: ingredients.getAll().values.map(
                           (e) => Container(
                             child: Row(
                               children: [
@@ -157,10 +163,10 @@ class _DishCreateState extends State<DishCreateScreen> {
                                   child: Icon(Icons.add),
                                   color: Colors.blue,
                                   onPressed: () {
-                                    final amount = Mass.grams(10) + (ingredients[e] ?? Mass.grams(0));
+                                    final amount = Mass.grams(10) + (ingredientAmounts[e] ?? Mass.grams(0));
                                     setState(() {
-                                      ingredients[e] = amount;
-                                      compositionStats = Ingredient.aggregate(ingredients.entries);
+                                      ingredientAmounts[e] = amount;
+                                      compositionStats = Ingredient.aggregate(ingredientAmounts.entries);
                                     });
                                   },
                                 ),

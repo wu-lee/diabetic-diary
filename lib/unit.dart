@@ -3,13 +3,25 @@ import 'package:diabetic_diary/indexable.dart';
 
 /// Represents a measurement dimension, in the sense of dimensional analysis of quantities
 class Dimensions implements Indexable {
+  static final index = Map<Symbol, Dimensions>();
 
   final Map<Dimension, int> elements;
 
   /// Unit labels mapped to the multipliers they represent
   final Map <String, num> units;
 
-  const Dimensions({this.elements, this.units = const {}});
+  const Dimensions._init({this.elements, this.units = const {}});
+
+  factory Dimensions({Map<Dimension, int> elements, Map<String, num> units}) {
+    return indexDimension(Dimensions._init(elements: elements, units: units));
+  }
+
+  static Dimension indexDimension(Dimensions dim) {
+    if (index.containsKey(dim.name))
+      throw Exception("A Dimension called ${dim.name} already indexed");
+    index[dim.name] = dim;
+    return dim;
+  }
 
 /* Commented, we want to allow static keys of this class, so no == for us
   bool operator== (Object that) => that is Dimensions && elements == that.elements;

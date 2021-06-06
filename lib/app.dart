@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'database.dart';
 import 'home_page.dart';
 
 class App extends StatelessWidget {
 
   final String title;
+  final Database db;
 
-  App({this.title});
+  App({this.title, this.db});
 
   // The root of this application.
   @override
@@ -25,7 +27,7 @@ class App extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: HomePage(),
+      home: HomePage(db: db),
     );
   }
 }

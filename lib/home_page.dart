@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'database.dart';
+import 'database/hive_database.dart';
 import 'database/mock_database.dart';
 import 'entities/dish.dart';
 import 'entities/ingredient.dart';
@@ -8,64 +9,11 @@ import 'topic.dart';
 import 'translation.dart';
 
 
-/*
- records have a timestamp, possibly with a precision, possibly with a note, tags
-
- blood glucose measurements are kinds of record
- they have a timestamp and a concentration
- a concentration is a dimensioned quantity
-
- body mass measurements are kinds of record
- they have a timestamp and a mass
- mass is a dimensioned quantity
-
- blood pressure measurements are kinds of record
- they have a timestamp and a systolic, diastolic, and heart rate
- these are dimensioned quantities
-
- logged meals have a timestamp, an optional description, tags, and a list of ingredients,
- and an aggregate list of composition statistics
- logged meals are kinds of record
-
- ingredients have names, and a list of composition statistics
-
- dishes are kinds of ingredient
- dishes have names, a list of ingredients, and an aggregate list of measurement types
-
- a composition statistic has a name, a measurement type, and a quantity
-
- a dimension has a name and a list of allowed units with their relative sizes
- one of these units is the base unit
-
- a quantity has a dimension, units and an amount
-
- dimensions are one of
- - mass
- - fraction by mass
- - volume
- - fraction by volume
- - energy
- - energy by mass
- - mMol/dL
- - pressure
- - frequency AKA rate
-
- measurement types are one of
- - fat
- - saturated fat
- - energy
- - carbohydrates
- - fibre
- - protein
- - salt
-
- */
-
-final db = MockDatabase();
-
 
 class HomePage extends StatefulWidget {
-  HomePage({Key key}) : super(key: key);
+  final Database db;
+
+  HomePage({Key key, this.db}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -79,48 +27,40 @@ class HomePage extends StatefulWidget {
   final Symbol title = #HomePage;
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _HomePageState createState() => _HomePageState(
+      initialTopicIndex: 0,
+      topics: [
+        Topic(name: #Overview, icon: Icons.follow_the_signs),
+        DishTopic(entities: db.dishes, ingredients: db.ingredients),
+        IngredientTopic(entities: db.ingredients, measurementTypes: db.measurementTypes),
+      ],
+    );
 }
 
-
 class _HomePageState extends State<HomePage> {
-  static const int _initialTopic = 0;
-  Topic _currentTopic = topics[_initialTopic];
+  int currentTopicIndex;
+  final List<Topic> topics;
 
-  static final topics = [
-    Topic(name: #Overview, icon: Icons.follow_the_signs),
-    DishTopic(
-      entities: db.dishes
-          .getAll()
-          .values
-          .toList(),
-    ),
-    IngredientTopic(
-      entities: db.ingredients
-          .getAll()
-          .values
-          .toList(),
-    ),
-  ];
+  _HomePageState({@required this.topics, @required int initialTopicIndex}) :
+      currentTopicIndex = initialTopicIndex;
 
-  void _setTopic(Topic topic) {
+  void _setTopic(int topicIndex) async {
     setState(() {
-      _currentTopic = topic;
+      currentTopicIndex = topicIndex;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      initialIndex: _initialTopic,
+      initialIndex: currentTopicIndex,
       length: topics.length,
       child: StatefulBuilder(
         builder: (context, setBuilderState) {
           final TabController tabController = DefaultTabController.of(context);
           tabController.addListener(() {
             if (tabController.indexIsChanging) {
-              setBuilderState(() { _currentTopic = topics[tabController.index]; });
+              setBuilderState(() { currentTopicIndex = tabController.index; });
             }
           });
           return Scaffold(
@@ -139,7 +79,7 @@ class _HomePageState extends State<HomePage> {
               children: topics.map((topic) => topic.buildTabContent(context))
                   .toList(),
             ),
-            floatingActionButton: _currentTopic.buildFloatingActionButton(context),
+            floatingActionButton: topics[currentTopicIndex].buildFloatingActionButton(context),
           );
         },
       )

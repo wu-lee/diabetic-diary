@@ -1,3 +1,4 @@
+import 'package:diabetic_diary/database.dart';
 import 'package:flutter/material.dart';
 
 import '../entity_topic.dart';
@@ -50,22 +51,18 @@ class IngredientTopic implements EntityTopic<Ingredient> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => IngredientCreateScreen(),
+            builder: (context) => IngredientCreateScreen(
+              measurementTypes: measurementTypes,
+              ingredients: entities,
+            ),
           ),
-        ).then((_) { updateEntities(db.ingredients.getAll().values); });
+        );
       },
       tooltip: 'Add Ingredient',
     );
   }
 
-  @override
-  final List<Ingredient> entities;
-
-  IngredientTopic({this.entities});
-
-  void updateEntities(Iterable<Ingredient> newEntities) {
-    entities..clear()..addAll(newEntities);
-  }
+  IngredientTopic({@required this.entities, @required this.measurementTypes});
 
   Widget buildRow(Ingredient entity, BuildContext context) {
     return Row(
@@ -90,11 +87,19 @@ class IngredientTopic implements EntityTopic<Ingredient> {
   }
 
   @override
-  Widget buildTabContent(BuildContext context) => ListView.builder(
+  Widget buildTabContent(BuildContext context) {
+    final ingredients = entities.getAll().values.toList();
+    return ListView.builder(
       padding: EdgeInsets.all(16.0),
-      itemCount: entities.length,
+      itemCount: ingredients.length,
       itemBuilder: (context, ix) {
-        return buildRow(entities[ix], context);
+        return buildRow(ingredients[ix], context);
       }
   );
+  }
+
+  @override
+  final DataCollection<Symbol, Ingredient> entities;
+
+  final DataCollection<Symbol, MeasurementType> measurementTypes;
 }

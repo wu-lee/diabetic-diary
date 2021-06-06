@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../database.dart';
 import '../entity_topic.dart';
 import '../home_page.dart';
 import '../indexable.dart';
@@ -38,22 +39,15 @@ class DishTopic implements EntityTopic<Dish> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DishCreateScreen(),
+            builder: (context) => DishCreateScreen(dishes: entities, ingredients: ingredients),
           ),
-        ).then((_) { updateEntities(db.dishes.getAll().values); });
+        );
       },
       tooltip: 'Add Dish',
     );
   }
 
-  @override
-  final List<Dish> entities;
-
-  DishTopic({this.entities});
-
-  void updateEntities(Iterable<Dish> newEntities) {
-    entities..clear()..addAll(newEntities);
-  }
+  DishTopic({@required this.entities, @required this.ingredients});
 
   Widget buildRow(Dish entity, BuildContext context) {
     return Row(
@@ -77,10 +71,19 @@ class DishTopic implements EntityTopic<Dish> {
   }
 
   @override
-  Widget buildTabContent(BuildContext context) => ListView.builder(
+  Widget buildTabContent(BuildContext context) {
+    final dishes = entities.getAll().values.toList();
+    return ListView.builder(
       padding: EdgeInsets.all(8),
-      itemCount: entities.length,
+      itemCount: dishes.length,
       itemBuilder: (context, ix) {
-        return buildRow(entities[ix], context);
-      });
+        return buildRow(dishes[ix], context);
+      }
+    );
+  }
+
+  @override
+  final DataCollection<Symbol, Dish> entities;
+
+  final DataCollection<Symbol, Ingredient> ingredients;
 }
