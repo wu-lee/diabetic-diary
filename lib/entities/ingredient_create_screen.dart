@@ -23,7 +23,7 @@ class IngredientCreateScreen extends StatefulWidget {
 }
 
 class _IngredientCreateState extends State<IngredientCreateScreen> {
-  final Map<MeasurementType<Dimensions>, Quantity<Dimensions>> compositionStats = {};
+  final Map<MeasurementType<Dimensions>, Quantity> compositionStats = {};
   final titleController = new TextEditingController();
   final DataCollection<Symbol, MeasurementType> measurementTypes;
   final DataCollection<Symbol, Ingredient> ingredients;
@@ -34,9 +34,9 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
   Future<bool> addIngredient() async {
     final ingredient = Ingredient(
       compositionStats: compositionStats,
-      name: Symbol(titleController.text),
+      id: Symbol(titleController.text),
     );
-    ingredients.put(ingredient.name, ingredient);
+    ingredients.put(ingredient.id, ingredient);
     return true;
   }
 
@@ -59,7 +59,7 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                 EdgeInsets.symmetric(vertical: 3, horizontal: 10),
                 child: Row(
                   children: [
-                    Expanded(child: Text(TL8(e.key.name))),
+                    Expanded(child: Text(TL8(e.key.id))),
                     Text('${e.value.format()}'),
                   ],
                 ),
@@ -147,14 +147,15 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                           (e) => Container(
                             child: Row(
                               children: [
-                                Expanded(child: Text(TL8(e.name))),
+                                Expanded(child: Text(TL8(e.id))),
                                 MaterialButton(
                                   shape: CircleBorder(),
                                   textColor: Colors.white,
                                   child: Icon(Icons.add),
                                   color: Colors.blue,
                                   onPressed: () {
-                                    final amount = Mass.grams(10) + (compositionStats[e] ?? Mass.grams(0));
+                                    final mass = Dimensions(id: #FIXME); // FIXME
+                                    final amount = mass.of(10, #g); // FIXME + (compositionStats[e] ?? Dimensions(id: #FIXME).units(#g).of(1));
                                     setState(() {
                                       compositionStats[e] = amount;
                                     });

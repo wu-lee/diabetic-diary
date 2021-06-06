@@ -30,7 +30,7 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState(
       initialTopicIndex: 0,
       topics: [
-        Topic(name: #Overview, icon: Icons.follow_the_signs),
+        Topic(id: #Overview, icon: Icons.follow_the_signs),
         DishTopic(entities: db.dishes, ingredients: db.ingredients),
         IngredientTopic(entities: db.ingredients, measurementTypes: db.measurementTypes),
       ],
@@ -70,7 +70,7 @@ class _HomePageState extends State<HomePage> {
                 tabs: topics.map((topic) =>
                   Tab(
                     icon: Icon(topic.icon),
-                    text: TL8(topic.name),
+                    text: TL8(topic.id),
                   )
                 ).toList(),
               ),

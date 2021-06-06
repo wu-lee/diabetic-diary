@@ -1,4 +1,6 @@
 
+import 'package:flutter/foundation.dart';
+
 import 'entities/dish.dart';
 import 'indexable.dart';
 import 'entities/ingredient.dart';
@@ -43,11 +45,66 @@ abstract class DataCollection<I, T> {
 class Database {
   Database({this.dimensions, this.measurementTypes, this.ingredients, this.dishes, this.compositionStatistics});
 
-  final DataCollection<Symbol, Dimension> dimensions;
+  final DataCollection<Symbol, Dimensions> dimensions;
   final DataCollection<Symbol, MeasurementType> measurementTypes;
   final DataCollection<Symbol, MeasurementType> compositionStatistics;
   final DataCollection<Symbol, Ingredient> ingredients;
   final DataCollection<Symbol, Dish> dishes;
+
+  /// Sets up an empty database
+  static void initialiseData(Database db) {
+    // FIXME check the version and check it hasn't been initialised
+    schemas[0].init(db);
+  }
+
+  static final schemas = [
+    DbSchema(
+      init: (Database db) {
+        const
+          Mass = Dimensions(
+            id: #Mass,
+            units: {#ug: 0.000001, #mg: 0.001, #g: 1, #kg: 1000},
+          ),
+          FractionByMass = Dimensions(
+            id: #FractionByMass,
+            units: {
+              #per_mg: 0.001,
+              #per_cg: 0.01,
+              #per_g: 1,
+              #per_Dg: 100,
+              #per_kg: 1000
+            },
+          ),
+          Carbs = MeasurementType(id: #Carbs, units: FractionByMass),
+          Fat = MeasurementType(id: #Fat, units: FractionByMass),
+          Fibre = MeasurementType(id: #Fibre, units: FractionByMass),
+          Protein = MeasurementType(id: #Protein, units: FractionByMass),
+          Sugar = MeasurementType(id: #Sugar, units: FractionByMass),
+          Salt = MeasurementType(id: #Salt, units: FractionByMass)
+/*          Tahini = Ingredient(
+            id: #Tahini,
+            compositionStats: {
+              Carbs: Mass.of(0, #g),
+            },
+          ),
+          Salad = Dish(
+            id: #Salad,
+            ingredients: {
+              Tahini: Mass.of(200, #g),
+            },
+          ),*/
+        ;
+        db.dimensions..add(Mass)..add(FractionByMass);
+        db.compositionStatistics..add(Carbs)..add(Fat)..add(Fibre)..add(
+            Protein)..add(Sugar)..add(Salt);
+      }
+    )
+  ];
 }
 
+class DbSchema {
+  final void Function(Database db) init;
+
+  const DbSchema({@required this.init});
+}
 

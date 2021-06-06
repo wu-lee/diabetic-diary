@@ -23,7 +23,7 @@ class _DishState extends State<DishScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(TL8(dish.name)), actions: <Widget>[
+      appBar: AppBar(title: Text(TL8(dish.id)), actions: <Widget>[
         IconButton(
           icon: const Icon(Icons.add),
           tooltip: 'FIXME settings?',
@@ -50,7 +50,7 @@ class _DishState extends State<DishScreen> {
                       padding: EdgeInsets.symmetric(vertical: 3, horizontal: 10),
                       child: Row(
                         children: [
-                          Expanded(child: Text(TL8(e.key.name))),
+                          Expanded(child: Text(TL8(e.key.id))),
                           Text('${e.value.format()}'),
                         ],
                       ),
@@ -77,7 +77,7 @@ class _DishState extends State<DishScreen> {
                       padding: EdgeInsets.symmetric(vertical: 3, horizontal: 10),
                       child: Row(
                         children: [
-                          Expanded(child: Text(TL8(e.key.name))),
+                          Expanded(child: Text(TL8(e.key.id))),
                           Text('${e.value.format()}'),
                         ],
                       ),

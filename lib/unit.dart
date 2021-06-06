@@ -1,27 +1,17 @@
 
 import 'package:diabetic_diary/indexable.dart';
+import 'package:flutter/foundation.dart';
 
 /// Represents a measurement dimension, in the sense of dimensional analysis of quantities
 class Dimensions implements Indexable {
-  static final index = Map<Symbol, Dimensions>();
 
-  final Map<Dimension, int> elements;
+  final Symbol id;
 
   /// Unit labels mapped to the multipliers they represent
-  final Map <String, num> units;
+  final Map <Symbol, num> _units;
 
-  const Dimensions._init({this.elements, this.units = const {}});
-
-  factory Dimensions({Map<Dimension, int> elements, Map<String, num> units}) {
-    return indexDimension(Dimensions._init(elements: elements, units: units));
-  }
-
-  static Dimension indexDimension(Dimensions dim) {
-    if (index.containsKey(dim.name))
-      throw Exception("A Dimension called ${dim.name} already indexed");
-    index[dim.name] = dim;
-    return dim;
-  }
+  const Dimensions({@required this.id, Map<Symbol, num> units = const {}}) :
+    _units = units;
 
 /* Commented, we want to allow static keys of this class, so no == for us
   bool operator== (Object that) => that is Dimensions && elements == that.elements;
@@ -29,11 +19,11 @@ class Dimensions implements Indexable {
 */
 
   /// Find the natural units for an amount (the next smallest in the list of defined units)
-  String naturalUnitsFor(num amount) =>
-      _naturalUnitsFor(amount, units);
+  Symbol naturalUnitsFor(num amount) =>
+      _naturalUnitsFor(amount, _units);
 
   /// Find the natural units for an amount (the next smallest in the list of defined units)
-  static String _naturalUnitsFor(num amount, Map<String, num> units) {
+  static Symbol _naturalUnitsFor(num amount, Map<Symbol, num> units) {
     final inOrder = units.entries
       .toList()
       ..sort((a,b) => b.value.compareTo(a.value));
@@ -44,6 +34,18 @@ class Dimensions implements Indexable {
     return nextSmallest.key;
   }
 
+  Units units(Symbol id) {
+    if (_units.containsKey(id))
+      return Units(this, id);
+    else
+      throw Exception("Unknown #{this.id} unit for #{id}");
+  }
+
+  Quantity of(num amount, Symbol symbol) {
+    return Quantity(amount, units(symbol));
+  }
+
+/*
   static int _combine(Dimensions a, Dimensions b, Dimension d) {
     int aPower = a.elements.containsKey(d)? a.elements[d] : 0;
     int bPower = b.elements.containsKey(d)? b.elements[d] : 0;
@@ -57,57 +59,59 @@ class Dimensions implements Indexable {
     return Dimensions(elements: d2..removeWhere((key, value) => value == 0)); // drop any dimensions of degree 0
   }
 
-  @override
-  Symbol get name => new Symbol(this.runtimeType.toString());
+ */
 }
 
-/// A special case of Dimensions, when there is just one element
-abstract class Dimension implements Dimensions {
+/// Represents a unit in a particular kind of dimensions
+class Units extends Indexable {
+  final Dimensions dims;
 
-  const Dimension();
+  Units(this.dims, Symbol id) : super(id: id);
 
-/* Commented, we want to allow static keys of this class, so no == for us
-  bool operator== (Object that) => that is Dimensions && elements == that.elements;
-  int get hashCode => elements.hashCode;
-*/
-
-  @override
-  String naturalUnitsFor(num amount) {
-    return Dimensions._naturalUnitsFor(amount, units);
+  bool operator== (Object that) {
+    if (identical(that, this)) return true;
+    if (that is Units &&
+        that.runtimeType == this.runtimeType) {
+      return dims == that.dims && id == that.id;
+    }
+    return false;
   }
+  int get hashCode => dims.hashCode ^ id.hashCode;
 
-  @override
-  Symbol get name => Symbol(this.runtimeType.toString());
-
-  // Can be shared by all Dimensions
-  Dimensions operator* (Dimensions that) => Dimensions.combine(this, that);
+  Quantity of(num amount) {
+    return Quantity(amount, this);
+  }
 }
 
 /// Represents a quantity expressed with some measurement Dimensions
-class Quantity<D extends Dimensions> {
-  final D dims;
+class Quantity {
+  final Units units;
   final num amount;
 
-  const Quantity(this.dims, this.amount);
+  const Quantity(this.amount, this.units);
 
-  Quantity<D> operator* (num n) => Quantity(this.dims, amount * n);
-  Quantity<D> operator+ (Quantity<D> that) => Quantity(dims, amount+that.amount);
+//  Quantity operator* (num n) => Quantity(this.dims, amount * n);
+//  Quantity operator+ (Quantity that) => Quantity(dims, amount+that.amount);
 
   bool operator== (Object that) {
     if (identical(that, this)) return true;
     if (that is Quantity &&
         that.runtimeType == this.runtimeType) {
-      return dims == that.dims && amount == that.amount;
+      return units == that.units && amount == that.amount;
     }
     return false;
   }
-  int get hashCode => dims.hashCode ^ amount.hashCode;
+  int get hashCode => units.hashCode ^ amount.hashCode;
 
   String format() {
-    final naturalUnits = dims.naturalUnitsFor(amount);
+    final naturalUnits = units.dims.naturalUnitsFor(amount);
     return "$amount $naturalUnits";
   }
 }
+
+
+/*
+
 
 
 class Time extends Dimension {
@@ -245,3 +249,4 @@ class Rate extends Dimension {
   static perSecond(num n) => Quantity(_instance, n);
   static perMinute(num n) => Quantity(_instance, n/60);
 }
+*/

@@ -11,14 +11,14 @@ import 'translation.dart';
 
 abstract class EntityTopic<Entity extends Indexable> implements Topic {
   @override
-  final Symbol name;
+  final Symbol id;
 
   @override
   final IconData icon;
 
   final DataCollection<Symbol, Entity> entities;
 
-  EntityTopic({this.name, this.icon, this.entities});
+  EntityTopic({this.id, this.icon, this.entities});
 }
 
 

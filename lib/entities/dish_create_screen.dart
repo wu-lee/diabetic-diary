@@ -23,8 +23,8 @@ class DishCreateScreen extends StatefulWidget {
 }
 
 class _DishCreateState extends State<DishCreateScreen> {
-  final Map<Ingredient, Quantity<Dimensions>> ingredientAmounts = {};
-  Map<MeasurementType<Dimensions>, Quantity<Dimensions>> compositionStats = {};
+  final Map<Ingredient, Quantity> ingredientAmounts = {};
+  Map<MeasurementType<Dimensions>, Quantity> compositionStats = {};
   final titleController = new TextEditingController();
   final DataCollection<Symbol, Dish> dishes;
   final DataCollection<Symbol, Ingredient> ingredients;
@@ -34,9 +34,9 @@ class _DishCreateState extends State<DishCreateScreen> {
   Future<bool> addDish() async {
     final dish = Dish(
       ingredients: ingredientAmounts,
-      name: Symbol(titleController.text),
+      id: Symbol(titleController.text),
     );
-    dishes.put(dish.name, dish);
+    dishes.put(dish.id, dish);
     return true;
   }
 
@@ -59,7 +59,7 @@ class _DishCreateState extends State<DishCreateScreen> {
                 EdgeInsets.symmetric(vertical: 3, horizontal: 10),
                 child: Row(
                   children: [
-                    Expanded(child: Text(TL8(e.key.name))),
+                    Expanded(child: Text(TL8(e.key.id))),
                     Text('${e.value.format()}'),
                   ],
                 ),
@@ -156,14 +156,15 @@ class _DishCreateState extends State<DishCreateScreen> {
                           (e) => Container(
                             child: Row(
                               children: [
-                                Expanded(child: Text(TL8(e.name))),
+                                Expanded(child: Text(TL8(e.id))),
                                 MaterialButton(
                                   shape: CircleBorder(),
                                   textColor: Colors.white,
                                   child: Icon(Icons.add),
                                   color: Colors.blue,
                                   onPressed: () {
-                                    final amount = Mass.grams(10) + (ingredientAmounts[e] ?? Mass.grams(0));
+                                    final mass = Dimensions(id: #FIXME);
+                                    final amount = Quantity(1, mass.units(#g));//  FIXME Mass.of(10, #g) + (ingredientAmounts[e] ?? Mass.of(0, #g));
                                     setState(() {
                                       ingredientAmounts[e] = amount;
                                       compositionStats = Ingredient.aggregate(ingredientAmounts.entries);

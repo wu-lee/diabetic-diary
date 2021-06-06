@@ -23,7 +23,7 @@ class _IngredientState extends State<IngredientScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(TL8(ingredient.name)), actions: <Widget>[
+      appBar: AppBar(title: Text(TL8(ingredient.id)), actions: <Widget>[
         IconButton(
           icon: const Icon(Icons.add),
           tooltip: 'FIXME',
@@ -51,7 +51,7 @@ class _IngredientState extends State<IngredientScreen> {
                       padding: EdgeInsets.symmetric(vertical: 3, horizontal: 10),
                       child: Row(
                         children: [
-                          Expanded(child: Text(TL8(e.key.name))),
+                          Expanded(child: Text(TL8(e.key.id))),
                           Text('${e.value.format()}'),
                         ],
                       ),

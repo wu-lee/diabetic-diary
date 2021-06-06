@@ -7,7 +7,7 @@ import 'indexable.dart';
 import 'translation.dart';
 
 class Topic implements Indexable {
-  final Symbol name;
+  final Symbol id;
 
   final IconData icon;
 
@@ -15,8 +15,8 @@ class Topic implements Indexable {
     return null; // No button
   }
 
-  Topic({this.name, this.icon});
+  Topic({this.id, this.icon});
 
-  Widget buildTabContent(BuildContext context) => Center(child: Text(TL8(name)));
+  Widget buildTabContent(BuildContext context) => Center(child: Text(TL8(id)));
 }
 

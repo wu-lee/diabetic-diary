@@ -13,10 +13,10 @@ import 'dish_screen.dart';
 
 /// Represents the "Dish" entity
 class Dish implements Ingredient {
-  final Symbol name;
+  final Symbol id;
   final Map<Ingredient, Quantity> ingredients;
 
-  Dish({this.ingredients, this.name});
+  Dish({this.ingredients, this.id});
 
   @override
   Map<MeasurementType, Quantity> get compositionStats =>
@@ -26,7 +26,7 @@ class Dish implements Ingredient {
 /// The "Dish" topic on the home page
 class DishTopic implements EntityTopic<Dish> {
   @override
-  final Symbol name = #Dish;
+  final Symbol id = #Dish;
 
   @override
   final IconData icon = Icons.restaurant;
@@ -55,7 +55,7 @@ class DishTopic implements EntityTopic<Dish> {
         Container(
           padding: EdgeInsets.symmetric(horizontal: 3, vertical: 5),
           child: GestureDetector(
-            child: Text(TL8(entity.name)),
+            child: Text(TL8(entity.id)),
             onTap: () {
               Navigator.push(
                 context,

@@ -1,5 +1,7 @@
-abstract class Indexable {
-  final Symbol name;
+import 'package:flutter/foundation.dart';
 
-  Indexable({this.name});
+abstract class Indexable {
+  final Symbol id;
+
+  Indexable({@required this.id});
 }

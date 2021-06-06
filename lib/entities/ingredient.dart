@@ -12,14 +12,14 @@ import 'ingredient_create_screen.dart';
 import 'ingredient_screen.dart';
 
 class Ingredient implements Indexable {
-  final Symbol name;
+  final Symbol id;
 
   // Nutritional info per 100g
   final Map<MeasurementType, Quantity> compositionStats;
 
-  const Ingredient({this.name, this.compositionStats});
+  const Ingredient({this.id, this.compositionStats});
 
-  Ingredient.compose({this.name, Map<Ingredient, Quantity> ingredients}) :
+  Ingredient.compose({this.id, Map<Ingredient, Quantity> ingredients}) :
     compositionStats = aggregate(ingredients.entries);
 
   static Map<MeasurementType, Quantity> aggregate(Iterable<MapEntry<Ingredient, Quantity>> ingredients) {
@@ -38,7 +38,7 @@ class Ingredient implements Indexable {
 /// The "Ingredient" topic on the home page
 class IngredientTopic implements EntityTopic<Ingredient> {
   @override
-  final Symbol name = #Ingredient;
+  final Symbol id = #Ingredient;
 
   @override
   final IconData icon = Icons.shopping_cart;
@@ -71,7 +71,7 @@ class IngredientTopic implements EntityTopic<Ingredient> {
           padding: EdgeInsets.symmetric(horizontal: 3, vertical: 5),
           child:
           GestureDetector(
-            child: Text(TL8(entity.name)),
+            child: Text(TL8(entity.id)),
             onTap: () {
               Navigator.push(
                 context,

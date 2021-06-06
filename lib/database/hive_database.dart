@@ -13,30 +13,14 @@ import 'mock_database.dart';
 
 class HiveDatabase implements Database {
 
-  static final _dimensions = MockDataCollection.fromIndexables({
-    Time(),
-    Distance(),
-    Volume(),
-    Mass(),
-    MolesByVolume(),
-    FractionByMass(),
-  });
+  static final _dimensions = MockDataCollection<Symbol, Dimensions>();
 
-  static final _compositionStatistics = MockDataCollection.fromIndexables({
-    MeasurementType(name: #Carbs, units: _dimensions.fetch(#FractionByMass)),
-    MeasurementType(name: #Fat, units: _dimensions.fetch(#FractionByMass)),
-    MeasurementType(name: #Fibre, units: _dimensions.fetch(#FractionByMass)),
-    MeasurementType(name: #Protein, units: _dimensions.fetch(#FractionByMass)),
-    MeasurementType(name: #Sugar, units: _dimensions.fetch(#FractionByMass)),
-  });
+  static final _compositionStatistics = MockDataCollection<Symbol, MeasurementType>();
 
-  static final _measurementTypes = MockDataCollection.fromIndexables({
-    MeasurementType(name: #BodyMass, units: _dimensions.fetch(#Mass)),
-    MeasurementType(name: #BloodGlucose, units: _dimensions.fetch(#MolesByVolume)),
-  }..addAll(_compositionStatistics.map.values));
+  static final _measurementTypes = MockDataCollection<Symbol, MeasurementType>();
 
   @override
-  DataCollection<Symbol, Dimension> get dimensions => _dimensions;
+  DataCollection<Symbol, Dimensions> get dimensions => _dimensions;
 
   @override
   DataCollection<Symbol, MeasurementType> get compositionStatistics => _compositionStatistics;
@@ -140,7 +124,7 @@ class IngredientAdapter extends TypeAdapter<Ingredient> {
     final Map<String, int> compositionStats = reader.readMap();
 
     return Ingredient(
-      name: new Symbol(name),
+      id: new Symbol(name),
       compositionStats: compositionStats.map((k, v) {
         return MapEntry(lookupMeasurement(k), makeQuantity(v));
       })
@@ -149,7 +133,7 @@ class IngredientAdapter extends TypeAdapter<Ingredient> {
 
   @override
   void write(BinaryWriter writer, Ingredient obj) {
-    writer.write(obj.name);
+    writer.write(obj.id);
     final compositionStats = obj.compositionStats.map((k,v) => MapEntry(1,1));
     writer.writeMap(compositionStats);
   }
@@ -157,8 +141,8 @@ class IngredientAdapter extends TypeAdapter<Ingredient> {
   MeasurementType<Dimensions> lookupMeasurement(String name) {
     return MeasurementType();
   }
-  Quantity<Dimensions> makeQuantity(int amount) {
-    return Quantity(Dimensions(), 1);
+  Quantity makeQuantity(int amount) {
+    return Quantity(amount, Units(Dimensions(), #FIXME)); // FIXME
   }
 }
 
@@ -172,25 +156,25 @@ class DishAdapter extends TypeAdapter<Dish> {
     final Map<Ingredient, int> ingredients = reader.readMap();
 
     return Dish(
-        name: new Symbol(name),
+        id: new Symbol(name),
         ingredients: ingredients.map((k, v) {
-          return MapEntry(lookupIngredient(k), makeQuantity(v));
+          return MapEntry(lookupIngredient(k.id), makeQuantity(v));
         })
     );
   }
 
   @override
   void write(BinaryWriter writer, Dish obj) {
-    writer.write(obj.name);
+    writer.write(obj.id);
     final ingredients = obj.ingredients.map((k,v) => MapEntry(1,1));
     writer.writeMap(ingredients);
   }
 
-  Ingredient lookupIngredient(String name) {
+  Ingredient lookupIngredient(Symbol id) {
     return Ingredient();
   }
-  Quantity<Dimensions> makeQuantity(int amount) {
-    return Quantity(Dimensions(), 1);
+  Quantity makeQuantity(int amount) {
+    return Quantity(amount, Units(Dimensions(), #FIXME)); // FIXME
   }
 }
 
