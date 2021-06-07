@@ -20,11 +20,14 @@ class Dish implements Ingredient {
 
   @override
   Map<MeasurementType, Quantity> get compositionStats =>
-      Ingredient.aggregate(ingredients.entries);
+      Ingredient.aggregate(ingredients);
+
 }
 
 /// The "Dish" topic on the home page
 class DishTopic implements EntityTopic<Dish> {
+  final Database db;
+
   @override
   final Symbol id = #Dish;
 
@@ -39,7 +42,7 @@ class DishTopic implements EntityTopic<Dish> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DishCreateScreen(dishes: entities, ingredients: ingredients),
+            builder: (context) => DishCreateScreen(db: db),
           ),
         );
       },
@@ -47,7 +50,7 @@ class DishTopic implements EntityTopic<Dish> {
     );
   }
 
-  DishTopic({@required this.entities, @required this.ingredients});
+  DishTopic({@required this.entities, @required this.db});
 
   Widget buildRow(Dish entity, BuildContext context) {
     return Row(
@@ -83,7 +86,5 @@ class DishTopic implements EntityTopic<Dish> {
   }
 
   @override
-  final DataCollection<Symbol, Dish> entities;
-
-  final DataCollection<Symbol, Ingredient> ingredients;
+  final DataCollection<Dish> entities;
 }

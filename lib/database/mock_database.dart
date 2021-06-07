@@ -8,39 +8,43 @@ import '../unit.dart';
 
 class MockDatabase implements Database {
 
-  static final _dimensions = MockDataCollection<Symbol, Dimensions>();
+  static final _dimensions = MockDataCollection<Dimensions>();
 
-  static final _ingredients = MockDataCollection<Symbol, Ingredient>();
+  static final _ingredients = MockDataCollection<Ingredient>();
 
-  static final _dishes = MockDataCollection<Symbol, Dish>();
+  static final _dishes = MockDataCollection<Dish>();
 
-  static final _compositionStatistics = MockDataCollection<Symbol, MeasurementType>();
+  static final _compositionStatistics = MockDataCollection<MeasurementType>();
 
-  static final _measurementTypes = MockDataCollection<Symbol, MeasurementType>();
+  static final _measurementTypes = MockDataCollection<MeasurementType>();
 
-  @override
-  DataCollection<Symbol, Dimensions> get dimensions => _dimensions;
-
-  @override
-  DataCollection<Symbol, MeasurementType<Dimensions>> get measurementTypes => _measurementTypes;
+  static final _config = MockDataCollection<DPair>();
 
   @override
-  DataCollection<Symbol, Ingredient> get ingredients => _ingredients;
+  DataCollection<Dimensions> get dimensions => _dimensions;
 
   @override
-  DataCollection<Symbol, Dish> get dishes => _dishes;
+  DataCollection<MeasurementType> get measurementTypes => _measurementTypes;
 
   @override
-  DataCollection<Symbol, MeasurementType<Dimensions>> get compositionStatistics => _compositionStatistics;
+  DataCollection<Ingredient> get ingredients => _ingredients;
 
+  @override
+  DataCollection<Dish> get dishes => _dishes;
+
+  @override
+  DataCollection<MeasurementType> get compositionStatistics => _compositionStatistics;
+
+  @override
+  DataCollection<DPair> get config => _config;
 }
 
-class MockDataCollection<I, T> implements DataCollection<I, T> {
-  final Map<I, T> map;
+class MockDataCollection<T extends Indexable> implements DataCollection<T> {
+  final Map<Symbol, T> map;
 
-  MockDataCollection([this.map = const {}]);
+  MockDataCollection([Map<Symbol, T> map]) : this.map = map ?? {};
 
-  static MockDataCollection<Symbol, T> fromIndexables<T extends Indexable>(Set<T> items) {
+  static MockDataCollection<T> fromIndexables<T extends Indexable>(Set<T> items) {
     return MockDataCollection(
         Map.fromEntries(
             items.map((e) => MapEntry(e.id, e))
@@ -48,13 +52,13 @@ class MockDataCollection<I, T> implements DataCollection<I, T> {
     );
   }
 
-  I add(T value) {
-    // TODO: implement add
-    throw UnimplementedError();
+  Symbol add(T value) {
+    map[value.id] = value;
+    return value.id;
   }
 
   @override
-  Map<I, T> cannedQuery(Symbol id, [List parameters]) {
+  Map<Symbol, T> cannedQuery(Symbol id, [List parameters]) {
     // TODO: implement cannedQuery
     throw UnimplementedError();
   }
@@ -63,39 +67,40 @@ class MockDataCollection<I, T> implements DataCollection<I, T> {
   int count() => map.length;
 
   @override
-  forEach(void Function(I ix, T val) visitor) {
+  forEach(void Function(Symbol ix, T val) visitor) {
     map.forEach(visitor);
   }
 
   @override
-  T get(I index, [T otherwise]) {
+  T get(Symbol index, [T otherwise]) {
     return map.containsKey(index)? map[index] : otherwise;
   }
 
   @override
-  T fetch(I index) {
+  T fetch(Symbol index) {
     if (map.containsKey(index)) return map[index];
     throw RangeError("No item with index $index");
   }
 
   @override
-  void put(I index, T value) {
+  void put(Symbol index, T value) {
     map[index] = value;
   }
 
   @override
-  void remove(I index) {
-    // TODO: implement remove
+  void remove(Symbol index) {
+    map.remove(index);
   }
 
   @override
   int removeAll() {
-    // TODO: implement removeAll
-    throw UnimplementedError();
+    int length = map.length;
+    map.clear();
+    return length;
   }
 
   @override
-  Map<I, T> getAll() {
+  Map<Symbol, T> getAll() {
     return Map.of(map);
   }
 }

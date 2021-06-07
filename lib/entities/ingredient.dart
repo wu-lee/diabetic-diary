@@ -20,23 +20,28 @@ class Ingredient implements Indexable {
   const Ingredient({this.id, this.compositionStats});
 
   Ingredient.compose({this.id, Map<Ingredient, Quantity> ingredients}) :
-    compositionStats = aggregate(ingredients.entries);
+    compositionStats = aggregate(ingredients);
 
-  static Map<MeasurementType, Quantity> aggregate(Iterable<MapEntry<Ingredient, Quantity>> ingredients) {
-    final result = ingredients.fold({},
-            (map, entry) {
-              entry.key.compositionStats.entries.forEach((entry2) {
-                map[entry2.key] = map.containsKey(entry2.key)? map[entry2.key] + entry2.value : entry2.value;
-              });
-              return map;
-            }
-    );
-    return Map.unmodifiable(result);
+  static Map<MeasurementType, Quantity> aggregate(Map<Ingredient, Quantity> ingredients) {
+    final Map<MeasurementType, Quantity> stats = {};
+    ingredients.forEach((ingredient, quantityIngredient) {
+      ingredient.compositionStats.forEach((measurement, quantityMeasurement) {
+        Quantity quantity = stats[measurement] ?? Quantity(0, measurement.units);
+        stats[measurement] = quantity.add(quantityMeasurement.amount*quantityIngredient.amount, quantity.units);
+      });
+    });
+    return Map.unmodifiable(stats);
+  }
+
+  static String format(Map<Ingredient, Quantity> ingredients) {
+    return "ingredients ${ingredients.entries.map((e) => "${TL8(e.key.id)}: ${e.value.amount} ${TL8(e.value.units.id)}").join("; ")}";
   }
 }
 
 /// The "Ingredient" topic on the home page
 class IngredientTopic implements EntityTopic<Ingredient> {
+  final Database db;
+
   @override
   final Symbol id = #Ingredient;
 
@@ -52,8 +57,7 @@ class IngredientTopic implements EntityTopic<Ingredient> {
           context,
           MaterialPageRoute(
             builder: (context) => IngredientCreateScreen(
-              measurementTypes: measurementTypes,
-              ingredients: entities,
+              db: db,
             ),
           ),
         );
@@ -62,7 +66,7 @@ class IngredientTopic implements EntityTopic<Ingredient> {
     );
   }
 
-  IngredientTopic({@required this.entities, @required this.measurementTypes});
+  IngredientTopic({@required this.entities, @required this.db});
 
   Widget buildRow(Ingredient entity, BuildContext context) {
     return Row(
@@ -99,7 +103,5 @@ class IngredientTopic implements EntityTopic<Ingredient> {
   }
 
   @override
-  final DataCollection<Symbol, Ingredient> entities;
-
-  final DataCollection<Symbol, MeasurementType> measurementTypes;
+  final DataCollection<Ingredient> entities;
 }

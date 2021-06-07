@@ -11,32 +11,30 @@ import 'ingredient.dart';
 
 /// The screen for inspecting a Dish
 class DishCreateScreen extends StatefulWidget {
-  final DataCollection<Symbol, Dish> dishes;
-  final DataCollection<Symbol, Ingredient> ingredients;
+  final Database db;
 
-  const DishCreateScreen({Key key, this.dishes, this.ingredients}) : super(key: key);
+  const DishCreateScreen({Key key, this.db}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _DishCreateState(dishes: dishes, ingredients: ingredients);
+    return _DishCreateState(db: db);
   }
 }
 
 class _DishCreateState extends State<DishCreateScreen> {
   final Map<Ingredient, Quantity> ingredientAmounts = {};
-  Map<MeasurementType<Dimensions>, Quantity> compositionStats = {};
+  Map<MeasurementType, Quantity> compositionStats = {};
   final titleController = new TextEditingController();
-  final DataCollection<Symbol, Dish> dishes;
-  final DataCollection<Symbol, Ingredient> ingredients;
+  final Database db;
 
-  _DishCreateState({this.dishes, this.ingredients});
+  _DishCreateState({this.db});
 
   Future<bool> addDish() async {
     final dish = Dish(
       ingredients: ingredientAmounts,
       id: Symbol(titleController.text),
     );
-    dishes.put(dish.id, dish);
+    db.dishes.put(dish.id, dish);
     return true;
   }
 
@@ -152,7 +150,7 @@ class _DishCreateState extends State<DishCreateScreen> {
                     ),
                     Expanded(
                       child: ListView(
-                        children: ingredients.getAll().values.map(
+                        children: db.ingredients.getAll().values.map(
                           (e) => Container(
                             child: Row(
                               children: [
@@ -163,11 +161,14 @@ class _DishCreateState extends State<DishCreateScreen> {
                                   child: Icon(Icons.add),
                                   color: Colors.blue,
                                   onPressed: () {
-                                    final mass = Dimensions(id: #FIXME);
-                                    final amount = Quantity(1, mass.units(#g));//  FIXME Mass.of(10, #g) + (ingredientAmounts[e] ?? Mass.of(0, #g));
+                                    final mass = db.dimensions.get(#Mass);
                                     setState(() {
-                                      ingredientAmounts[e] = amount;
-                                      compositionStats = Ingredient.aggregate(ingredientAmounts.entries);
+                                      final quantity = ingredientAmounts[e] ?? mass.of(0, #g);
+                                      ingredientAmounts[e] = quantity.add(1);
+                                      print(Ingredient.format(ingredientAmounts));
+                                      print(MeasurementType.format(compositionStats));
+                                      compositionStats = Ingredient.aggregate(ingredientAmounts);
+                                      print(MeasurementType.format(compositionStats));
                                     });
                                   },
                                 ),

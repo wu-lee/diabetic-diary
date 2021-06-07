@@ -31,8 +31,8 @@ class HomePage extends StatefulWidget {
       initialTopicIndex: 0,
       topics: [
         Topic(id: #Overview, icon: Icons.follow_the_signs),
-        DishTopic(entities: db.dishes, ingredients: db.ingredients),
-        IngredientTopic(entities: db.ingredients, measurementTypes: db.measurementTypes),
+        DishTopic(entities: db.dishes, db: db),
+        IngredientTopic(entities: db.ingredients, db: db),
       ],
     );
 }

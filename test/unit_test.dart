@@ -6,9 +6,9 @@ final meters = Distance.units(#m);
 final  kilometers = Distance.units(#km);
 
 void main() {
-  group('Quantity addition', () {
+  group('Quantity operations', () {
     test('Equating meters', () {
-      expect(meters.of(1), meters.of(1));
+      expect(meters.times(1), meters.times(1));
     });
 /*    test('Adding meters and kilometers', () {
       expect((meters.of(1) + kilometers.of(1)).amount, meters.of(1001).amount);

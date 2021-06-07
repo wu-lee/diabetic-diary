@@ -11,32 +11,30 @@ import 'ingredient.dart';
 
 /// The screen for inspecting a Ingredient
 class IngredientCreateScreen extends StatefulWidget {
-  final DataCollection<Symbol, MeasurementType> measurementTypes;
-  final DataCollection<Symbol, Ingredient> ingredients;
+  final Database db;
 
-  const IngredientCreateScreen({Key key, this.measurementTypes, this.ingredients}) : super(key: key);
+  const IngredientCreateScreen({Key key, this.db}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _IngredientCreateState(measurementTypes: measurementTypes, ingredients: ingredients);
+    return _IngredientCreateState(db: db);
   }
 }
 
 class _IngredientCreateState extends State<IngredientCreateScreen> {
-  final Map<MeasurementType<Dimensions>, Quantity> compositionStats = {};
+  final Map<MeasurementType, Quantity> compositionStats = {};
   final titleController = new TextEditingController();
-  final DataCollection<Symbol, MeasurementType> measurementTypes;
-  final DataCollection<Symbol, Ingredient> ingredients;
+  final Database db;
 
 
-  _IngredientCreateState({this.ingredients, this.measurementTypes});
+  _IngredientCreateState({this.db});
 
   Future<bool> addIngredient() async {
     final ingredient = Ingredient(
       compositionStats: compositionStats,
       id: Symbol(titleController.text),
     );
-    ingredients.put(ingredient.id, ingredient);
+    db.ingredients.add(ingredient);
     return true;
   }
 
@@ -100,18 +98,20 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
 /*        floatingActionButton: FloatingActionButton(
           child: Icon(Icons.add),
           onPressed: () {
-            print("add ingredient");
+            print("add XXX"); FIXME this is not used any more
             setState(() {
-              ingredients
-                  .add(MapEntry(db.ingredients.get(#Cabbage), Mass.grams(10)));
-              compositionStats = Ingredient.aggregate(ingredients);
+              final mass = db.dimensions.get(#Mass);
+              var grams = mass.units(#g);
+              db.ingredients
+                  .add(MapEntry(db.ingredients.get(#Cabbage), grams.times(10)));
+              compositionStats.addAll(Ingredient.aggregate(ingredients));
             });
-          / *Navigator.push(
+          Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => null,
             ),
-          );* /
+          );
           },
           tooltip: 'Add Ingredient',
         ),*/
@@ -143,7 +143,7 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                     ),
                     Expanded(
                       child: ListView(
-                        children: measurementTypes.getAll().values.map(
+                        children: db.compositionStatistics.getAll().values.map(
                           (e) => Container(
                             child: Row(
                               children: [
@@ -154,10 +154,10 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                                   child: Icon(Icons.add),
                                   color: Colors.blue,
                                   onPressed: () {
-                                    final mass = Dimensions(id: #FIXME); // FIXME
-                                    final amount = mass.of(10, #g); // FIXME + (compositionStats[e] ?? Dimensions(id: #FIXME).units(#g).of(1));
+                                    final mass = db.dimensions.get(#Mass);
+                                    final stat = compositionStats[e] ?? Quantity(0, mass.units(#g));
                                     setState(() {
-                                      compositionStats[e] = amount;
+                                      compositionStats[e] = stat.add(10);
                                     });
                                   },
                                 ),

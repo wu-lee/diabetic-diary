@@ -2,6 +2,8 @@
 import 'package:diabetic_diary/indexable.dart';
 import 'package:flutter/foundation.dart';
 
+import 'translation.dart';
+
 /// Represents a measurement dimension, in the sense of dimensional analysis of quantities
 class Dimensions implements Indexable {
 
@@ -36,7 +38,7 @@ class Dimensions implements Indexable {
 
   Units units(Symbol id) {
     if (_units.containsKey(id))
-      return Units(this, id);
+      return Units(id, this, _units[id]);
     else
       throw Exception("Unknown #{this.id} unit for #{id}");
   }
@@ -65,8 +67,9 @@ class Dimensions implements Indexable {
 /// Represents a unit in a particular kind of dimensions
 class Units extends Indexable {
   final Dimensions dims;
+  final num multiplier;
 
-  Units(this.dims, Symbol id) : super(id: id);
+  const Units(Symbol id, this.dims, this.multiplier) : super(id: id);
 
   bool operator== (Object that) {
     if (identical(that, this)) return true;
@@ -78,7 +81,7 @@ class Units extends Indexable {
   }
   int get hashCode => dims.hashCode ^ id.hashCode;
 
-  Quantity of(num amount) {
+  Quantity times(num amount) {
     return Quantity(amount, this);
   }
 }
@@ -93,6 +96,21 @@ class Quantity {
 //  Quantity operator* (num n) => Quantity(this.dims, amount * n);
 //  Quantity operator+ (Quantity that) => Quantity(dims, amount+that.amount);
 
+  Quantity add(num amount, [Units units]) {
+    units ??= this.units;
+    return Quantity(this.amount + amount*units.multiplier, units);
+  }
+  Quantity subtract(num amount, [Units units]) {
+    units ??= this.units;
+    return Quantity(this.amount - amount*units.multiplier, units);
+  }
+  Quantity multiply(num amount) {
+    return Quantity(this.amount * amount, units);
+  }
+  Quantity divide(num amount) {
+    return Quantity(this.amount / amount, units);
+  }
+
   bool operator== (Object that) {
     if (identical(that, this)) return true;
     if (that is Quantity &&
@@ -105,7 +123,7 @@ class Quantity {
 
   String format() {
     final naturalUnits = units.dims.naturalUnitsFor(amount);
-    return "$amount $naturalUnits";
+    return "$amount ${TL8(naturalUnits)}";
   }
 }
 
