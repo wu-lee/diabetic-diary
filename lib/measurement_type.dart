@@ -12,4 +12,7 @@ class MeasurementType implements Indexable {
   static String format(Map<MeasurementType, Quantity> measurements) {
     return "measurements ${measurements.entries.map((e) => "${TL8(e.key.id)} (${TL8(e.key.units.id)}): ${e.value.amount} ${TL8(e.value.units.id)}").join("; ")}";
   }
+
+  @override
+  String toString() => "MeasurementType(id: ${TL8(id)}, units: $units)";
 }

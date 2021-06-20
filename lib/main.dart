@@ -6,7 +6,8 @@ import 'database.dart';
 import 'database/hive_database.dart';
 
 void main() async {
-  Database db = MockDatabase();//await HiveDatabase.create();
+  //Database db = MockDatabase();
+  Database db = await HiveDatabase.create();
   Database.initialiseData(db);
   runApp(App(title: 'Diabetic Diary', db: db));
 }

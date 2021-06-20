@@ -68,23 +68,25 @@ class Database {
     DbSchema( // 0
       init: (Database db) {
         const version = 0;
-        print("Initalising $db as version $version");
+        print("Initialising $db as version $version");
         const
           Mass = Dimensions(
             id: #Mass,
             units: {#ug: 0.000001, #mg: 0.001, #g: 1, #kg: 1000},
+            components: {#Mass:1},
           ),
           FractionByMass = Dimensions(
             id: #FractionByMass,
             units: {
-              #per_mg: 0.001,
-              #per_cg: 0.01,
-              #per_g: 1,
-              #per_hg: 100,
-              #per_kg: 1000
+              #g_per_mg: 0.001,
+              #g_per_cg: 0.01,
+              #g_per_g: 1,
+              #g_per_hg: 100,
+              #g_per_kg: 1000
             },
+            components: {},
           ),
-          GramsPerHectogram = Units(#per_hg, FractionByMass, 100),
+          GramsPerHectogram = Units(#g_per_hg, FractionByMass, 100),
           Carbs = MeasurementType(id: #Carbs, units: GramsPerHectogram),
           Fat = MeasurementType(id: #Fat, units: GramsPerHectogram),
           Fibre = MeasurementType(id: #Fibre, units: GramsPerHectogram),
@@ -95,22 +97,22 @@ class Database {
           tahini = Ingredient(
             id: #Tahini,
             compositionStats: {
-              Carbs: Mass.of(1, #g),
-              Fat: Mass.of(99, #g),
+              Carbs: FractionByMass.of(1, #g_per_hg),
+              Fat: FractionByMass.of(2, #g_per_hg),
             },
           ),
           cabbage = Ingredient(
             id: #Cabbage,
             compositionStats: {
-              Carbs: Mass.of(1, #g),
-              Fibre: Mass.of(99, #g),
+              Carbs: FractionByMass.of(1, #g_per_hg),
+              Fibre: FractionByMass.of(1, #g_per_hg),
             },
           ),
           salad = Dish(
             id: #Salad,
             ingredients: {
-              tahini: Mass.of(10, #g),
-              cabbage: Mass.of(200, #g),
+              tahini: Mass.of(1, #g),
+              cabbage: Mass.of(2, #g),
             },
           );
         db.config

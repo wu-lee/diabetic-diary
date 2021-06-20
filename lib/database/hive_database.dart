@@ -9,6 +9,7 @@ import '../entities/dish.dart';
 import '../entities/ingredient.dart';
 import '../indexable.dart';
 import '../measurement_type.dart';
+import '../translation.dart';
 import '../unit.dart';
 import 'mock_database.dart';
 
@@ -65,8 +66,8 @@ class BoxDataCollection<T extends Indexable> implements DataCollection<T> {
 
   @override
   Symbol add(T value) {
-    // TODO: implement add
-    throw UnimplementedError();
+    box.put(value.id.toString(), value);
+    return value.id;
   }
 
   @override
@@ -118,11 +119,96 @@ class BoxDataCollection<T extends Indexable> implements DataCollection<T> {
   }
 }
 
+class DPairTypeAdaptor extends TypeAdapter<DPair> {
+  static const TYPE_ID = 1;
 
+  @override
+  int get typeId => TYPE_ID;
+
+  @override
+  DPair read(BinaryReader reader) {
+    final id = Symbol(reader.readString());
+    final value = reader.read();
+    return DPair(id, value);
+  }
+
+  @override
+  void write(BinaryWriter writer, DPair obj) {
+    writer.writeString(symbolToString(obj.id));
+    writer.write(obj.value);
+  }
+}
+
+class DimensionsTypeAdapter extends TypeAdapter<Dimensions> {
+  static const TYPE_ID = 2;
+
+  @override
+  int get typeId => TYPE_ID;
+
+  @override
+  Dimensions read(BinaryReader reader) {
+    final id = Symbol(reader.readString());
+    final Map<Symbol, num> components = reader.readMap();
+    final Map<Symbol, num> unitsMap = reader.readMap();
+    return Dimensions(id: id, units: unitsMap, components: components);
+  }
+
+  @override
+  void write(BinaryWriter writer, Dimensions obj) {
+    writer.writeString(symbolToString(obj.id));
+    writer.writeMap(obj.components);
+    writer.writeMap(obj.unitsMap);
+  }
+}
+
+class UnitsTypeAdapter extends TypeAdapter<Units> {
+  static const TYPE_ID = 3;
+
+  @override
+  int get typeId => TYPE_ID;
+
+  @override
+  Units read(BinaryReader reader) {
+    final id = Symbol(reader.readString());
+    final Dimensions dimensions = reader.read(DimensionsTypeAdapter.TYPE_ID);
+    final multiplier = reader.readDouble();
+    return Units(id, dimensions, multiplier);
+  }
+
+  @override
+  void write(BinaryWriter writer, Units obj) {
+    writer.writeString(symbolToString(obj.id));
+    writer.write(obj.dims, writeTypeId: false);
+    writer.writeDouble(obj.multiplier);
+  }
+}
+
+
+class QuantityTypeAdaptor extends TypeAdapter<Quantity> {
+  static const TYPE_ID = 4;
+
+  @override
+  int get typeId => TYPE_ID;
+
+  @override
+  Quantity read(BinaryReader reader) {
+    final amount = reader.readDouble();
+    final units = reader.read(UnitsTypeAdapter.TYPE_ID);
+    return Quantity(amount, units);
+  }
+
+  @override
+  void write(BinaryWriter writer, Quantity obj) {
+    writer.writeDouble(obj.amount);
+    writer.write(obj.units, writeTypeId: false);
+  }
+}
 
 class IngredientAdapter extends TypeAdapter<Ingredient> {
+  static const TYPE_ID = 5;
+
   @override
-  final typeId = 1;
+  int get typeId => TYPE_ID;
 
   @override
   Ingredient read(BinaryReader reader) {
@@ -152,9 +238,13 @@ class IngredientAdapter extends TypeAdapter<Ingredient> {
   }
 }
 
+
+
 class DishAdapter extends TypeAdapter<Dish> {
+  static const TYPE_ID = 6;
+
   @override
-  final typeId = 2;
+  int get typeId => TYPE_ID;
 
   @override
   Dish read(BinaryReader reader) {

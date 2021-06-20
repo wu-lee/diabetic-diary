@@ -16,7 +16,8 @@ class Dish implements Ingredient {
   final Symbol id;
   final Map<Ingredient, Quantity> ingredients;
 
-  Dish({this.ingredients, this.id});
+  const Dish({this.ingredients, this.id});
+
 
   @override
   Map<MeasurementType, Quantity> get compositionStats =>

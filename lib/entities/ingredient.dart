@@ -1,4 +1,5 @@
 import 'package:diabetic_diary/database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../entity_topic.dart';
@@ -19,15 +20,27 @@ class Ingredient implements Indexable {
 
   const Ingredient({this.id, this.compositionStats});
 
+  static bool _validate(final Map<MeasurementType, Quantity> compositionStats) {
+    return compositionStats.entries.any(
+            (e) => e.key.units.dims.components.isNotEmpty ||
+                e.value.units.dims.components.isNotEmpty
+    );
+  }
+
   Ingredient.compose({this.id, Map<Ingredient, Quantity> ingredients}) :
     compositionStats = aggregate(ingredients);
 
   static Map<MeasurementType, Quantity> aggregate(Map<Ingredient, Quantity> ingredients) {
     final Map<MeasurementType, Quantity> stats = {};
     ingredients.forEach((ingredient, quantityIngredient) {
+      assert(mapEquals(quantityIngredient.units.dims.components, {#Mass:1}));
       ingredient.compositionStats.forEach((measurement, quantityMeasurement) {
+        assert(measurement.units.dims == quantityMeasurement.units.dims);
         Quantity quantity = stats[measurement] ?? Quantity(0, measurement.units);
-        stats[measurement] = quantity.add(quantityMeasurement.amount*quantityIngredient.amount, quantity.units);
+        assert(quantityMeasurement.units.dims.components.isEmpty);
+        assert(mapEquals(quantityIngredient.units.dims.components, {#Mass:1}));
+        stats[measurement] = quantity
+            .addQuantity(quantityMeasurement.multiply(quantityIngredient.amount*quantityIngredient.units.multiplier/quantityMeasurement.units.multiplier));
       });
     });
     return Map.unmodifiable(stats);

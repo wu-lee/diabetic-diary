@@ -38,7 +38,7 @@ class _DishCreateState extends State<DishCreateScreen> {
     return true;
   }
 
-  Widget buildEntityList({String title, Iterable<MapEntry<Indexable, Quantity>> entities, BuildContext context}) =>
+  Widget buildEntityList({String title, Iterable<MapEntry<Indexable, Quantity>> entities, Symbol unitId, BuildContext context}) =>
     Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -58,7 +58,7 @@ class _DishCreateState extends State<DishCreateScreen> {
                 child: Row(
                   children: [
                     Expanded(child: Text(TL8(e.key.id))),
-                    Text('${e.value.format()}'),
+                    Text('${e.value.format(unitId)}'),
                   ],
                 ),
               ),
@@ -119,12 +119,13 @@ class _DishCreateState extends State<DishCreateScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Flexible(
-                flex: 1,
+                flex: 2,
                 fit: FlexFit.tight,
                 child: buildEntityList(
                   title: 'Composition Stats',
                   entities: compositionStats.entries,
-                  context: context
+                  context: context,
+                  unitId: #g_per_hg,
                 ),
               ),
               Flexible(
@@ -133,7 +134,7 @@ class _DishCreateState extends State<DishCreateScreen> {
                 child: buildEntityList(
                   title: 'Ingredients',
                   entities: ingredientAmounts.entries,
-                  context: context
+                  context: context,
                 ),
               ),
               Flexible(

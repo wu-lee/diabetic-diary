@@ -52,7 +52,7 @@ class _IngredientState extends State<IngredientScreen> {
                       child: Row(
                         children: [
                           Expanded(child: Text(TL8(e.key.id))),
-                          Text('${e.value.format()}'),
+                          Text('${e.value.format(#g_per_hg)}'),
                         ],
                       ),
                     ),

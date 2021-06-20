@@ -51,7 +51,7 @@ class _DishState extends State<DishScreen> {
                       child: Row(
                         children: [
                           Expanded(child: Text(TL8(e.key.id))),
-                          Text('${e.value.format()}'),
+                          Text('${e.value.format(#g_per_hg)}'),
                         ],
                       ),
                     ),
@@ -78,7 +78,7 @@ class _DishState extends State<DishScreen> {
                       child: Row(
                         children: [
                           Expanded(child: Text(TL8(e.key.id))),
-                          Text('${e.value.format()}'),
+                          Text('${e.value.format(#g)}'),
                         ],
                       ),
                     ),

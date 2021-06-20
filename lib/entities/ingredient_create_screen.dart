@@ -58,7 +58,7 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                 child: Row(
                   children: [
                     Expanded(child: Text(TL8(e.key.id))),
-                    Text('${e.value.format()}'),
+                    Text('${e.value.format(#g_per_hg)}'),
                   ],
                 ),
               ),
@@ -70,6 +70,7 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(MeasurementType.format(compositionStats));
     return WillPopScope(
       onWillPop: addIngredient,
       child: Scaffold(
@@ -154,8 +155,8 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                                   child: Icon(Icons.add),
                                   color: Colors.blue,
                                   onPressed: () {
-                                    final mass = db.dimensions.get(#Mass);
-                                    final stat = compositionStats[e] ?? Quantity(0, mass.units(#g));
+                                    final fbmass = db.dimensions.get(#FractionByMass);
+                                    final stat = compositionStats[e] ?? Quantity(0, fbmass.units(#g_per_hg));
                                     setState(() {
                                       compositionStats[e] = stat.add(10);
                                     });
