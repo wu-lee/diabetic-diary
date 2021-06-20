@@ -1,6 +1,4 @@
 
-import 'package:flutter/foundation.dart';
-
 import 'entities/dish.dart';
 import 'indexable.dart';
 import 'entities/ingredient.dart';
@@ -18,7 +16,10 @@ abstract class DataCollection<T extends Indexable> {
   int count();
 
   /// Get a named item, or the otherwise value if absent
-  T get(Symbol index, [T otherwise = null]); // ignore: avoid_init_to_null
+  T? maybeGet(Symbol index, [T? otherwise]);
+
+  /// Get a named item, or the otherwise value if absent
+  T get(Symbol index, T otherwise);
 
   /// Get a named item, or throw
   T fetch(Symbol index);
@@ -47,7 +48,8 @@ abstract class DataCollection<T extends Indexable> {
 }
 
 class Database {
-  Database({this.dimensions, this.measurementTypes, this.ingredients, this.dishes, this.compositionStatistics, this.config});
+  Database({required this.dimensions, required this.measurementTypes, required this.ingredients,
+    required this.dishes, required this.compositionStatistics, required this.config});
 
   final DataCollection<Dimensions> dimensions;
   final DataCollection<MeasurementType> measurementTypes;
@@ -58,7 +60,7 @@ class Database {
 
   /// Sets up an empty database
   static void initialiseData(Database db) {
-    final int version = db.config.get(#version)?.value;
+    final int? version = db.config.maybeGet(#version)?.value;
     print("Database $db version $version");
     if (version == null)
       schemas[schemas.length-1].init(db);
@@ -130,6 +132,6 @@ class Database {
 class DbSchema {
   final void Function(Database db) init;
 
-  const DbSchema({@required this.init});
+  const DbSchema({required this.init});
 }
 

@@ -2,8 +2,6 @@
 import 'dart:math';
 
 import 'package:diabetic_diary/indexable.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'translation.dart';
 
 /// Represents a measurement dimension, in the sense of dimensional analysis of quantities
@@ -16,7 +14,7 @@ class Dimensions implements Indexable {
 
   final Map<Symbol, num> components;
 
-  const Dimensions({@required this.id, Map<Symbol, num> units, @required this.components}) :
+  const Dimensions({required this.id, Map<Symbol, num>? units, required this.components}) :
     this.unitsMap = units ?? const {};
 
 /* Commented, we want to allow static keys of this class, so no == for us
@@ -41,8 +39,9 @@ class Dimensions implements Indexable {
   }
 
   Units units(Symbol id) {
-    if (unitsMap.containsKey(id))
-      return Units(id, this, unitsMap[id]);
+    final units = unitsMap[id];
+    if (units != null)
+      return Units(id, this, units);
     else
       throw Exception("Unknown ${TL8(this.id)} unit: ${TL8(id)}");
   }
@@ -107,7 +106,7 @@ class Quantity {
 //  Quantity operator+ (Quantity that) => Quantity(dims, amount+that.amount);
 
   // Add an amount in a an optionally different unit
-  Quantity add(num amount, [Units units]) {
+  Quantity add(num amount, [Units? units]) {
     if (units == null)
       units = this.units;
     else
@@ -117,7 +116,7 @@ class Quantity {
   Quantity addQuantity(Quantity q) {
     return add(q.amount, q.units);
   }
-  Quantity subtract(num amount, [Units units]) {
+  Quantity subtract(num amount, [Units? units]) {
     if (units == null)
       units = this.units;
     else
@@ -145,7 +144,7 @@ class Quantity {
   }
   int get hashCode => units.hashCode ^ amount.hashCode;
 
-  String format([Symbol unitsId]) {
+  String format([Symbol? unitsId]) {
     if (unitsId == null) {
       final Units inUnits = this.units.dims.naturalUnitsFor(amount);
       return "${amount.toStringAsFixed(0)} ${TL8(inUnits.id)}";

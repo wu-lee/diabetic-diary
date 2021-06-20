@@ -12,7 +12,7 @@ import 'translation.dart';
 class HomePage extends StatefulWidget {
   final Database db;
 
-  HomePage({Key key, this.db}) : super(key: key);
+  HomePage({Key? key, required this.db}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   int currentTopicIndex;
   final List<Topic> topics;
 
-  _HomePageState({@required this.topics, @required int initialTopicIndex}) :
+  _HomePageState({required this.topics, required int initialTopicIndex}) :
       currentTopicIndex = initialTopicIndex;
 
   void _setTopic(int topicIndex) async {
@@ -56,8 +56,8 @@ class _HomePageState extends State<HomePage> {
       length: topics.length,
       child: StatefulBuilder(
         builder: (context, setBuilderState) {
-          final TabController tabController = DefaultTabController.of(context);
-          tabController.addListener(() {
+          final TabController? tabController = DefaultTabController.of(context);
+          tabController?.addListener(() {
             if (tabController.indexIsChanging) {
               setBuilderState(() { currentTopicIndex = tabController.index; });
             }

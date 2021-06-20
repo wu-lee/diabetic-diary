@@ -7,7 +7,7 @@ import 'ingredient.dart';
 class IngredientScreen extends StatefulWidget {
   final Ingredient ingredient;
 
-  const IngredientScreen({Key key, this.ingredient}) : super(key: key);
+  const IngredientScreen({Key? key, required this.ingredient}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {

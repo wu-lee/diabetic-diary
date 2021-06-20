@@ -18,7 +18,7 @@ abstract class EntityTopic<Entity extends Indexable> implements Topic {
 
   final DataCollection<Entity> entities;
 
-  EntityTopic({this.id, this.icon, this.entities});
+  EntityTopic({required this.id, required this.icon, required this.entities});
 }
 
 

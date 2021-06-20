@@ -16,7 +16,7 @@ class Dish implements Ingredient {
   final Symbol id;
   final Map<Ingredient, Quantity> ingredients;
 
-  const Dish({this.ingredients, this.id});
+  const Dish({required this.ingredients, required this.id});
 
 
   @override
@@ -51,7 +51,7 @@ class DishTopic implements EntityTopic<Dish> {
     );
   }
 
-  DishTopic({@required this.entities, @required this.db});
+  DishTopic({required this.entities, required this.db});
 
   Widget buildRow(Dish entity, BuildContext context) {
     return Row(

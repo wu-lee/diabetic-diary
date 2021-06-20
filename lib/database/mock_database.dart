@@ -42,7 +42,7 @@ class MockDatabase implements Database {
 class MockDataCollection<T extends Indexable> implements DataCollection<T> {
   final Map<Symbol, T> map;
 
-  MockDataCollection([Map<Symbol, T> map]) : this.map = map ?? {};
+  MockDataCollection([Map<Symbol, T>? map]) : this.map = map ?? {};
 
   static MockDataCollection<T> fromIndexables<T extends Indexable>(Set<T> items) {
     return MockDataCollection(
@@ -58,7 +58,7 @@ class MockDataCollection<T extends Indexable> implements DataCollection<T> {
   }
 
   @override
-  Map<Symbol, T> cannedQuery(Symbol id, [List parameters]) {
+  Map<Symbol, T> cannedQuery(Symbol id, [List? parameters]) {
     // TODO: implement cannedQuery
     throw UnimplementedError();
   }
@@ -72,14 +72,24 @@ class MockDataCollection<T extends Indexable> implements DataCollection<T> {
   }
 
   @override
-  T get(Symbol index, [T otherwise]) {
+  T get(Symbol index, T otherwise) {
+    if (map.containsKey(index))
+      return map[index] ?? otherwise;
+    else
+      return otherwise;
+  }
+
+  @override
+  T? maybeGet(Symbol index, [T? otherwise]) {
     return map.containsKey(index)? map[index] : otherwise;
   }
 
   @override
   T fetch(Symbol index) {
-    if (map.containsKey(index)) return map[index];
-    throw RangeError("No item with index $index");
+    final value = map[index];
+    if (value == null)
+      throw RangeError("No item with index $index");
+    return value;
   }
 
   @override

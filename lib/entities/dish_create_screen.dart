@@ -13,7 +13,7 @@ import 'ingredient.dart';
 class DishCreateScreen extends StatefulWidget {
   final Database db;
 
-  const DishCreateScreen({Key key, this.db}) : super(key: key);
+  const DishCreateScreen({Key? key, required this.db}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -27,7 +27,7 @@ class _DishCreateState extends State<DishCreateScreen> {
   final titleController = new TextEditingController();
   final Database db;
 
-  _DishCreateState({this.db});
+  _DishCreateState({required this.db});
 
   Future<bool> addDish() async {
     final dish = Dish(
@@ -38,7 +38,8 @@ class _DishCreateState extends State<DishCreateScreen> {
     return true;
   }
 
-  Widget buildEntityList({String title, Iterable<MapEntry<Indexable, Quantity>> entities, Symbol unitId, BuildContext context}) =>
+  Widget buildEntityList({required String title, required Iterable<MapEntry<Indexable, Quantity>> entities,
+    required Symbol unitId, required BuildContext context}) =>
     Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -135,6 +136,7 @@ class _DishCreateState extends State<DishCreateScreen> {
                   title: 'Ingredients',
                   entities: ingredientAmounts.entries,
                   context: context,
+                  unitId: #g_per_hg,
                 ),
               ),
               Flexible(
@@ -162,7 +164,7 @@ class _DishCreateState extends State<DishCreateScreen> {
                                   child: Icon(Icons.add),
                                   color: Colors.blue,
                                   onPressed: () {
-                                    final mass = db.dimensions.get(#Mass);
+                                    final mass = db.dimensions.fetch(#Mass);
                                     setState(() {
                                       final quantity = ingredientAmounts[e] ?? mass.of(0, #g);
                                       ingredientAmounts[e] = quantity.add(1);

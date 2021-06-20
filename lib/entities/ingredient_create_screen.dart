@@ -13,7 +13,7 @@ import 'ingredient.dart';
 class IngredientCreateScreen extends StatefulWidget {
   final Database db;
 
-  const IngredientCreateScreen({Key key, this.db}) : super(key: key);
+  const IngredientCreateScreen({Key? key, required this.db}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -27,7 +27,7 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
   final Database db;
 
 
-  _IngredientCreateState({this.db});
+  _IngredientCreateState({required this.db});
 
   Future<bool> addIngredient() async {
     final ingredient = Ingredient(
@@ -38,7 +38,7 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
     return true;
   }
 
-  Widget buildEntityList({String title, Iterable<MapEntry<Indexable, Quantity>> entities, BuildContext context}) =>
+  Widget buildEntityList({required String title, required Iterable<MapEntry<Indexable, Quantity>> entities, required BuildContext context}) =>
     Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -155,7 +155,7 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                                   child: Icon(Icons.add),
                                   color: Colors.blue,
                                   onPressed: () {
-                                    final fbmass = db.dimensions.get(#FractionByMass);
+                                    final fbmass = db.dimensions.fetch(#FractionByMass);
                                     final stat = compositionStats[e] ?? Quantity(0, fbmass.units(#g_per_hg));
                                     setState(() {
                                       compositionStats[e] = stat.add(10);

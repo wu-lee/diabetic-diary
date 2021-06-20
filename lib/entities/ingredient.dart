@@ -18,7 +18,7 @@ class Ingredient implements Indexable {
   // Nutritional info per 100g
   final Map<MeasurementType, Quantity> compositionStats;
 
-  const Ingredient({this.id, this.compositionStats});
+  const Ingredient({required this.id, required this.compositionStats});
 
   static bool _validate(final Map<MeasurementType, Quantity> compositionStats) {
     return compositionStats.entries.any(
@@ -27,7 +27,7 @@ class Ingredient implements Indexable {
     );
   }
 
-  Ingredient.compose({this.id, Map<Ingredient, Quantity> ingredients}) :
+  Ingredient.compose({required this.id, required Map<Ingredient, Quantity> ingredients}) :
     compositionStats = aggregate(ingredients);
 
   static Map<MeasurementType, Quantity> aggregate(Map<Ingredient, Quantity> ingredients) {
@@ -79,7 +79,7 @@ class IngredientTopic implements EntityTopic<Ingredient> {
     );
   }
 
-  IngredientTopic({@required this.entities, @required this.db});
+  IngredientTopic({required this.entities, required this.db});
 
   Widget buildRow(Ingredient entity, BuildContext context) {
     return Row(

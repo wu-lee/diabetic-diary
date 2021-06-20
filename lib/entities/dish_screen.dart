@@ -7,7 +7,7 @@ import 'dish.dart';
 class DishScreen extends StatefulWidget {
   final Dish dish;
 
-  const DishScreen({Key key, this.dish}) : super(key: key);
+  const DishScreen({Key? key, required this.dish}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -27,6 +27,7 @@ class _DishState extends State<DishScreen> {
         IconButton(
           icon: const Icon(Icons.add),
           tooltip: 'FIXME settings?',
+          onPressed: () => {},
         ),
       ]),
       body: ListView(

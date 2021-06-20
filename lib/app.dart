@@ -8,7 +8,7 @@ class App extends StatelessWidget {
   final String title;
   final Database db;
 
-  App({this.title, this.db});
+  App({required this.title, required this.db});
 
   // The root of this application.
   @override

@@ -12,10 +12,10 @@ class Topic implements Indexable {
   final IconData icon;
 
   FloatingActionButton buildFloatingActionButton(BuildContext context) {
-    return null; // No button
+    throw UnimplementedError();
   }
 
-  Topic({this.id, this.icon});
+  Topic({required this.id, required this.icon});
 
   Widget buildTabContent(BuildContext context) => Center(child: Text(TL8(id)));
 }
