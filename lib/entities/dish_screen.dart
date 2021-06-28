@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 
+import '../database.dart';
 import '../translation.dart';
 import 'dish.dart';
 
 /// The screen for inspecting a Dish
 class DishScreen extends StatefulWidget {
   final Dish dish;
+  final Database db;
 
-  const DishScreen({Key? key, required this.dish}) : super(key: key);
+  const DishScreen({Key? key, required this.dish, required this.db}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _DishState(dish);
+    return _DishState(dish, db);
   }
 }
 
 class _DishState extends State<DishScreen> {
   final Dish dish;
+  final Database db;
 
-  _DishState(this.dish);
+  _DishState(this.dish, this.db);
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +55,7 @@ class _DishState extends State<DishScreen> {
                       child: Row(
                         children: [
                           Expanded(child: Text(TL8(e.key.id))),
-                          Text('${e.value.format(#g_per_hg)}'),
+                          Text('${db.formatQuantity(e.value, #g_per_hg)}'),
                         ],
                       ),
                     ),
@@ -79,7 +82,7 @@ class _DishState extends State<DishScreen> {
                       child: Row(
                         children: [
                           Expanded(child: Text(TL8(e.key.id))),
-                          Text('${e.value.format(#g)}'),
+                          Text('${db.formatQuantity(e.value, #g)}'),
                         ],
                       ),
                     ),

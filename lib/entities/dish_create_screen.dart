@@ -59,7 +59,7 @@ class _DishCreateState extends State<DishCreateScreen> {
                 child: Row(
                   children: [
                     Expanded(child: Text(TL8(e.key.id))),
-                    Text('${e.value.format(unitId)}'),
+                    Text('${db.formatQuantity(e.value)}'),
                   ],
                 ),
               ),
@@ -152,33 +152,36 @@ class _DishCreateState extends State<DishCreateScreen> {
                       ),
                     ),
                     Expanded(
-                      child: ListView(
-                        children: db.ingredients.getAll().values.map(
-                          (e) => Container(
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(TL8(e.id))),
-                                MaterialButton(
-                                  shape: CircleBorder(),
-                                  textColor: Colors.white,
-                                  child: Icon(Icons.add),
-                                  color: Colors.blue,
-                                  onPressed: () {
-                                    final mass = db.dimensions.fetch(#Mass);
-                                    setState(() {
-                                      final quantity = ingredientAmounts[e] ?? mass.of(0, #g);
-                                      ingredientAmounts[e] = quantity.add(1);
-                                      print(Ingredient.format(ingredientAmounts));
-                                      print(MeasurementType.format(compositionStats));
-                                      compositionStats = Ingredient.aggregate(ingredientAmounts);
-                                      print(MeasurementType.format(compositionStats));
-                                    });
-                                  },
-                                ),
-                              ],
+                      child: FutureBuilder<Map<Symbol, Ingredient>>(
+                        future: db.ingredients.getAll(),
+                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Ingredient>> snapshot) => ListView(
+                          children: (snapshot.data?.values ?? []).map(
+                            (e) => Container(
+                              child: Row(
+                                children: [
+                                  Expanded(child: Text(TL8(e.id))),
+                                  MaterialButton(
+                                    shape: CircleBorder(),
+                                    textColor: Colors.white,
+                                    child: Icon(Icons.add),
+                                    color: Colors.blue,
+                                    onPressed: () async {
+                                      final grams = await db.units.fetch(#g);
+                                      setState(() {
+                                        final quantity = ingredientAmounts[e] ?? Quantity(0, grams);
+                                        ingredientAmounts[e] = quantity.add(1);
+                                        print(Ingredient.format(ingredientAmounts));
+                                        print(MeasurementType.format(compositionStats));
+                                        compositionStats = Ingredient.aggregate(ingredientAmounts);
+                                        print(MeasurementType.format(compositionStats));
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ).toList(),
+                          ).toList(),
+                        ),
                       ),
                     ),
                   ],

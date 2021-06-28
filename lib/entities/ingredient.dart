@@ -20,25 +20,26 @@ class Ingredient implements Indexable {
 
   const Ingredient({required this.id, required this.compositionStats});
 
+  /*
   static bool _validate(final Map<MeasurementType, Quantity> compositionStats) {
     return compositionStats.entries.any(
             (e) => e.key.units.dims.components.isNotEmpty ||
                 e.value.units.dims.components.isNotEmpty
     );
   }
-
+*/
   Ingredient.compose({required this.id, required Map<Ingredient, Quantity> ingredients}) :
     compositionStats = aggregate(ingredients);
 
   static Map<MeasurementType, Quantity> aggregate(Map<Ingredient, Quantity> ingredients) {
     final Map<MeasurementType, Quantity> stats = {};
     ingredients.forEach((ingredient, quantityIngredient) {
-      assert(mapEquals(quantityIngredient.units.dims.components, {#Mass:1}));
+      assert(quantityIngredient.units.dimensionId == #Mass);
       ingredient.compositionStats.forEach((measurement, quantityMeasurement) {
-        assert(measurement.units.dims == quantityMeasurement.units.dims);
+        assert(measurement.units.dimensionId == quantityMeasurement.units.dimensionId);
         Quantity quantity = stats[measurement] ?? Quantity(0, measurement.units);
-        assert(quantityMeasurement.units.dims.components.isEmpty);
-        assert(mapEquals(quantityIngredient.units.dims.components, {#Mass:1}));
+        assert(quantityMeasurement.units.dimensionId == #FractionByMass);
+        assert(quantityIngredient.units.dimensionId == #Mass);
         stats[measurement] = quantity
             .addQuantity(quantityMeasurement.multiply(quantityIngredient.amount*quantityIngredient.units.multiplier/quantityMeasurement.units.multiplier));
       });
@@ -93,7 +94,7 @@ class IngredientTopic implements EntityTopic<Ingredient> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => IngredientScreen(ingredient: entity),
+                  builder: (context) => IngredientScreen(ingredient: entity, db: db),
                 ),
               );
             },
@@ -105,16 +106,21 @@ class IngredientTopic implements EntityTopic<Ingredient> {
 
   @override
   Widget buildTabContent(BuildContext context) {
-    final ingredients = entities.getAll().values.toList();
-    return ListView.builder(
-      padding: EdgeInsets.all(16.0),
-      itemCount: ingredients.length,
-      itemBuilder: (context, ix) {
-        return buildRow(ingredients[ix], context);
-      }
-  );
+    return FutureBuilder<Map<Symbol, Ingredient>>(
+      future: entities.getAll(),
+      builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Ingredient>> snapshot) {
+        final ingredients = snapshot.data?.values.toList() ?? [];
+        return ListView.builder(
+          padding: EdgeInsets.all(16.0),
+          itemCount: ingredients.length,
+          itemBuilder: (context, ix) {
+            return buildRow(ingredients[ix], context);
+          },
+        );
+      },
+    );
   }
 
   @override
-  final DataCollection<Ingredient> entities;
+  final AsyncDataCollection<Ingredient> entities;
 }

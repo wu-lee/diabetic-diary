@@ -9,46 +9,21 @@ class Dimensions implements Indexable {
 
   final Symbol id;
 
-  /// Unit labels mapped to the multipliers they represent
-  final Map <Symbol, num> unitsMap;
+  /// Components are the basis values which are combined to define a dimensioned value
+  ///
+  /// The map is between a dimension symbol and an exponent to which that dimension is
+  /// raised.
+  ///
+  /// For example, dimensions of speed would have components of distance (^1)
+  /// and time (^-1)
+  final Map<Symbol, int> components;
 
-  final Map<Symbol, num> components;
-
-  const Dimensions({required this.id, Map<Symbol, num>? units, required this.components}) :
-    this.unitsMap = units ?? const {};
+  const Dimensions({required this.id, required this.components});
 
 /* Commented, we want to allow static keys of this class, so no == for us
   bool operator== (Object that) => that is Dimensions && elements == that.elements;
   int get hashCode => elements.hashCode;
 */
-
-  /// Find the natural units for an amount (the next smallest in the list of defined units)
-  Units naturalUnitsFor(num amount) =>
-      units(_naturalUnitsFor(amount, unitsMap));
-
-  /// Find the natural units for an amount (the next smallest in the list of defined units)
-  static Symbol _naturalUnitsFor(num amount, Map<Symbol, num> units) {
-    final inOrder = units.entries
-      .toList()
-      ..sort((a,b) => b.value.compareTo(a.value));
-    final nextSmallest = inOrder
-      .firstWhere((element) => (element.value < amount),
-        orElse: () => inOrder.first
-      );
-    return nextSmallest.key;
-  }
-
-  Units units(Symbol id) {
-    final units = unitsMap[id];
-    if (units != null)
-      return Units(id, this, units);
-    else
-      throw Exception("Unknown ${TL8(this.id)} unit: ${TL8(id)}");
-  }
-
-  Quantity of(num amount, Symbol symbol) {
-    return Quantity(amount, units(symbol));
-  }
 
 /*
   static int _combine(Dimensions a, Dimensions b, Dimension d) {
@@ -65,34 +40,33 @@ class Dimensions implements Indexable {
   }
 
  */
-
-  @override
-  String toString() => "Dimensions(id: ${TL8(id)}, units: ${unitsMap.entries.map((e)=> "${TL8(e.key)} x${e.value}").join("; ")})";
 }
 
 /// Represents a unit in a particular kind of dimensions
 class Units extends Indexable {
-  final Dimensions dims;
+//  final Dimensions dims;
+  final Symbol id;
+  final Symbol dimensionId;
   final num multiplier;
 
-  const Units(Symbol id, this.dims, this.multiplier) : super(id: id);
+  const Units(this.id, this.dimensionId, this.multiplier) : super(id: id);
 
   bool operator== (Object that) {
     if (identical(that, this)) return true;
     if (that is Units &&
         that.runtimeType == this.runtimeType) {
-      return dims == that.dims && id == that.id;
+      return dimensionId == that.dimensionId && id == that.id && multiplier == that.multiplier;
     }
     return false;
   }
-  int get hashCode => dims.hashCode ^ id.hashCode;
+  int get hashCode => dimensionId.hashCode ^ id.hashCode ^ multiplier.hashCode;
 
   Quantity times(num amount) {
     return Quantity(amount, this);
   }
 
   @override
-  String toString() => "Units(id: ${TL8(id)}, dims: ${TL8(dims.id)}, multiplier: $multiplier)";
+  String toString() => "Units(id: ${TL8(id)}, dims: ${TL8(dimensionId)}, multiplier: $multiplier)";
 }
 
 /// Represents a quantity expressed with some measurement Dimensions
@@ -110,7 +84,7 @@ class Quantity {
     if (units == null)
       units = this.units;
     else
-      assert(units.dims == this.units.dims);
+      assert(units.dimensionId == this.units.dimensionId);
     return Quantity(this.amount + amount*units.multiplier, units);
   }
   Quantity addQuantity(Quantity q) {
@@ -120,7 +94,7 @@ class Quantity {
     if (units == null)
       units = this.units;
     else
-      assert(units.dims == this.units.dims);
+      assert(units.dimensionId == this.units.dimensionId);
     return Quantity(this.amount - amount*units.multiplier, units);
   }
   Quantity subtractQuantity(Quantity q) {
@@ -137,25 +111,12 @@ class Quantity {
     if (identical(that, this)) return true;
     if (that is Quantity &&
         that.runtimeType == this.runtimeType) {
-      return units.dims == that.units.dims &&
+      return units.dimensionId == that.units.dimensionId &&
           amount*units.multiplier == that.amount*units.multiplier;
     }
     return false;
   }
   int get hashCode => units.hashCode ^ amount.hashCode;
-
-  String format([Symbol? unitsId]) {
-    if (unitsId == null) {
-      final Units inUnits = this.units.dims.naturalUnitsFor(amount);
-      return "${amount.toStringAsFixed(0)} ${TL8(inUnits.id)}";
-    }
-    else {
-      final Units inUnits = units.dims.units(unitsId);
-      final abs = amount.abs();
-      var formatted = amount.toStringAsFixed(abs < 1? 2 : abs < 10? 1 : 0);
-      return "$formatted ${TL8(inUnits.id)}";
-    }
-  }
 
   @override
   String toString() => "Quantity(amount: $amount, units: $units)";

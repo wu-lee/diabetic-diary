@@ -16,7 +16,7 @@ abstract class EntityTopic<Entity extends Indexable> implements Topic {
   @override
   final IconData icon;
 
-  final DataCollection<Entity> entities;
+  final AsyncDataCollection<Entity> entities;
 
   EntityTopic({required this.id, required this.icon, required this.entities});
 }

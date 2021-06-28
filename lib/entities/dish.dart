@@ -64,7 +64,7 @@ class DishTopic implements EntityTopic<Dish> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => DishScreen(dish: entity),
+                  builder: (context) => DishScreen(dish: entity, db: db),
                 ),
               );
             },
@@ -76,16 +76,21 @@ class DishTopic implements EntityTopic<Dish> {
 
   @override
   Widget buildTabContent(BuildContext context) {
-    final dishes = entities.getAll().values.toList();
-    return ListView.builder(
-      padding: EdgeInsets.all(8),
-      itemCount: dishes.length,
-      itemBuilder: (context, ix) {
-        return buildRow(dishes[ix], context);
-      }
+    return FutureBuilder<Map<Symbol, Dish>>(
+      future: entities.getAll(),
+      builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Dish>> snapshot) {
+        final dishes = snapshot.data?.values.toList() ?? [];
+        return ListView.builder(
+          padding: EdgeInsets.all(8),
+          itemCount: dishes.length,
+          itemBuilder: (context, ix) {
+            return buildRow(dishes[ix], context);
+          }
+        );
+      },
     );
   }
 
   @override
-  final DataCollection<Dish> entities;
+  final AsyncDataCollection<Dish> entities;
 }

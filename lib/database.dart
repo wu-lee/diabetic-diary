@@ -1,4 +1,6 @@
 
+import 'package:diabetic_diary/translation.dart';
+
 import 'entities/dish.dart';
 import 'indexable.dart';
 import 'entities/ingredient.dart';
@@ -44,23 +46,95 @@ abstract class DataCollection<T extends Indexable> {
 
   /// Invoke a named predefined query with some parameters. May throw an exception if this
   /// name doesn't exist or the parameters are wrong.
-  Map<Symbol, T> cannedQuery(Symbol name, [List<dynamic> parameters]);
+  Map<Symbol, T> cannedQuery(Symbol name, [List<dynamic>? parameters]);
 }
 
-class Database {
-  Database({required this.dimensions, required this.measurementTypes, required this.ingredients,
-    required this.dishes, required this.compositionStatistics, required this.config});
+abstract class AsyncDataCollection<T extends Indexable> {
+  /// Count all items
+  Future<int> count();
 
-  final DataCollection<Dimensions> dimensions;
-  final DataCollection<MeasurementType> measurementTypes;
-  final DataCollection<MeasurementType> compositionStatistics;
-  final DataCollection<Ingredient> ingredients;
-  final DataCollection<Dish> dishes;
-  final DataCollection<DPair> config;
+  /// Get a named item, or the otherwise value if absent
+  Future<T?> maybeGet(Symbol index, [T? otherwise]);
+
+  /// Get a named item, or the otherwise value if absent
+  Future<T> get(Symbol index, T otherwise);
+
+  /// Get a named item, or throw
+  Future<T> fetch(Symbol index);
+
+  /// Get all items as a map
+  Future<Map<Symbol, T>> getAll();
+
+  /// Put an indexable item
+  Future<Symbol> add(T value);
+
+  /// Put a named item
+  void put(Symbol index, T value);
+
+  /// Remove a named item
+  void remove(Symbol index);
+
+  /// Remove all items, returning the number
+  Future<int> removeAll();
+
+  /// Retrieve all items of the collection in some arbitrary order, and pass to the visitor
+  void forEach(void Function(Symbol, T) visitor);
+
+  /// Invoke a named predefined query with some parameters. May throw an exception if this
+  /// name doesn't exist or the parameters are wrong.
+  Future<Map<Symbol, T>> cannedQuery(Symbol name, [List<dynamic>? parameters]);
+}
+
+abstract class Database {
+  Database();
+
+  AsyncDataCollection<Dimensions> get dimensions;
+  AsyncDataCollection<Units> get units;
+  AsyncDataCollection<MeasurementType> get measurementTypes;
+  AsyncDataCollection<MeasurementType> get compositionStatistics;
+  AsyncDataCollection<Ingredient> get ingredients;
+  AsyncDataCollection<Dish> get dishes;
+  AsyncDataCollection<DPair> get config;
+
+  /// Find the natural units for an amount (the next smallest in the list of defined units)
+  Symbol naturalUnitsFor(num amount, Symbol dimensionId) {
+    List<Units> inOrder = [];
+    units.forEach((id, unit) { inOrder.add(unit); });
+    inOrder = inOrder
+      .toList()
+      ..sort((a,b) => b.multiplier.compareTo(a.multiplier));
+    final nextSmallest = inOrder
+        .firstWhere(
+          (element) => (element.multiplier < amount),
+          orElse: () => inOrder.first
+        );
+    return nextSmallest.id;
+  }
+
+  Future<Quantity> quantity(num amount, Symbol unitId) async {
+    return Quantity(amount, await units.fetch(unitId));
+  }
+
+  Future<String> formatQuantity(Quantity quantity, [Symbol? unitsId]) async {
+    num amount = quantity.amount;
+    if (unitsId != null) {
+      amount *= (await units.fetch(unitsId))
+          .multiplier;
+    }
+    else {
+      unitsId = quantity.units.id;
+    }
+
+    final abs = amount.abs();
+    var formatted = amount.toStringAsFixed(abs < 1? 2 : abs < 10? 1 : 0);
+    return "$formatted ${TL8(unitsId)}";
+  }
+
+  String formatDimensions(Dimensions dims) => "Dimensions(id: ${TL8(dims.id)})";
 
   /// Sets up an empty database
-  static void initialiseData(Database db) {
-    final int? version = db.config.maybeGet(#version)?.value;
+  static void initialiseData(Database db) async {
+    final int? version = (await db.config.maybeGet(#version))?.value;
     print("Database $db version $version");
     if (version == null)
       schemas[schemas.length-1].init(db);
@@ -74,21 +148,21 @@ class Database {
         const
           Mass = Dimensions(
             id: #Mass,
-            units: {#ug: 0.000001, #mg: 0.001, #g: 1, #kg: 1000},
             components: {#Mass:1},
           ),
           FractionByMass = Dimensions(
             id: #FractionByMass,
-            units: {
-              #g_per_mg: 0.001,
-              #g_per_cg: 0.01,
-              #g_per_g: 1,
-              #g_per_hg: 100,
-              #g_per_kg: 1000
-            },
             components: {},
           ),
-          GramsPerHectogram = Units(#g_per_hg, FractionByMass, 100),
+          MicroGrams = Units(#ug, #Mass, 0.000001),
+          MilliGrams = Units(#mg, #Mass, 0.001),
+          Grams = Units(#g, #Mass, 1),
+          KiloGrams = Units(#kg, #Mass, 1000),
+          GramsPerMilligram = Units(#g_per_mg, #FractionByMass, 0.001),
+          GramsPerCentigram = Units(#g_per_cg, #FractionByMass, 0.01),
+          GramsPerGram = Units(#g_per_g, #FractionByMass, 1),
+          GramsPerHectogram = Units(#g_per_hg, #FractionByMass, 100),
+          GramsPerKiloGram = Units(#g_per_kg, #FractionByMass, 1000),
           Carbs = MeasurementType(id: #Carbs, units: GramsPerHectogram),
           Fat = MeasurementType(id: #Fat, units: GramsPerHectogram),
           Fibre = MeasurementType(id: #Fibre, units: GramsPerHectogram),
@@ -99,22 +173,22 @@ class Database {
           tahini = Ingredient(
             id: #Tahini,
             compositionStats: {
-              Carbs: FractionByMass.of(1, #g_per_hg),
-              Fat: FractionByMass.of(2, #g_per_hg),
+              Carbs: GramsPerHectogram.times(1),
+              Fat: GramsPerHectogram.times(2),
             },
           ),
           cabbage = Ingredient(
             id: #Cabbage,
             compositionStats: {
-              Carbs: FractionByMass.of(1, #g_per_hg),
-              Fibre: FractionByMass.of(1, #g_per_hg),
+              Carbs: GramsPerHectogram.times(1),
+              Fibre: GramsPerHectogram.times(1),
             },
           ),
           salad = Dish(
             id: #Salad,
             ingredients: {
-              tahini: Mass.of(1, #g),
-              cabbage: Mass.of(2, #g),
+              tahini: Grams.times(1),
+              cabbage: Grams.times(2),
             },
           );
         db.config

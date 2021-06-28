@@ -58,7 +58,7 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                 child: Row(
                   children: [
                     Expanded(child: Text(TL8(e.key.id))),
-                    Text('${e.value.format(#g_per_hg)}'),
+                    Text('${db.formatQuantity(e.value, #g_per_hg)}'),
                   ],
                 ),
               ),
@@ -143,31 +143,36 @@ class _IngredientCreateState extends State<IngredientCreateScreen> {
                       ),
                     ),
                     Expanded(
-                      child: ListView(
-                        children: db.compositionStatistics.getAll().values.map(
-                          (e) => Container(
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(TL8(e.id))),
-                                MaterialButton(
-                                  shape: CircleBorder(),
-                                  textColor: Colors.white,
-                                  child: Icon(Icons.add),
-                                  color: Colors.blue,
-                                  onPressed: () {
-                                    final fbmass = db.dimensions.fetch(#FractionByMass);
-                                    final stat = compositionStats[e] ?? Quantity(0, fbmass.units(#g_per_hg));
-                                    setState(() {
-                                      compositionStats[e] = stat.add(10);
-                                    });
-                                  },
+                      child: FutureBuilder<Map<Symbol, MeasurementType>>(
+                        future: db.compositionStatistics.getAll(),
+                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, MeasurementType>> snapshot) {
+                          return ListView(
+                            children: (snapshot.data?.values ?? []).map(
+                              (e) => Container(
+                                child: Row(
+                                  children: [
+                                    Expanded(child: Text(TL8(e.id))),
+                                    MaterialButton(
+                                      shape: CircleBorder(),
+                                      textColor: Colors.white,
+                                      child: Icon(Icons.add),
+                                      color: Colors.blue,
+                                      onPressed: () async {
+                                        final gramsPerHg = await db.units.fetch(#g_per_hg);
+                                        final stat = compositionStats[e] ?? Quantity(0, gramsPerHg);
+                                        setState(() {
+                                          compositionStats[e] = stat.add(10);
+                                        });
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        ).toList(),
+                              ),
+                            ).toList(),
+                          );
+                        },
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),

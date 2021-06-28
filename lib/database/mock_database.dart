@@ -6,7 +6,7 @@ import '../indexable.dart';
 import '../measurement_type.dart';
 import '../unit.dart';
 
-class MockDatabase implements Database {
+class MockDatabase extends Database {
 
   static final _dimensions = MockDataCollection<Dimensions>();
 
@@ -21,25 +21,29 @@ class MockDatabase implements Database {
   static final _config = MockDataCollection<DPair>();
 
   @override
-  DataCollection<Dimensions> get dimensions => _dimensions;
+  AsyncDataCollection<Dimensions> get dimensions => _dimensions;
 
   @override
-  DataCollection<MeasurementType> get measurementTypes => _measurementTypes;
+  AsyncDataCollection<MeasurementType> get measurementTypes => _measurementTypes;
 
   @override
-  DataCollection<Ingredient> get ingredients => _ingredients;
+  AsyncDataCollection<Ingredient> get ingredients => _ingredients;
 
   @override
-  DataCollection<Dish> get dishes => _dishes;
+  AsyncDataCollection<Dish> get dishes => _dishes;
 
   @override
-  DataCollection<MeasurementType> get compositionStatistics => _compositionStatistics;
+  AsyncDataCollection<MeasurementType> get compositionStatistics => _compositionStatistics;
 
   @override
-  DataCollection<DPair> get config => _config;
+  AsyncDataCollection<DPair> get config => _config;
+
+  @override
+  // TODO: implement units
+  AsyncDataCollection<Units> get units => throw UnimplementedError();
 }
 
-class MockDataCollection<T extends Indexable> implements DataCollection<T> {
+class MockDataCollection<T extends Indexable> implements AsyncDataCollection<T> {
   final Map<Symbol, T> map;
 
   MockDataCollection([Map<Symbol, T>? map]) : this.map = map ?? {};
@@ -52,19 +56,19 @@ class MockDataCollection<T extends Indexable> implements DataCollection<T> {
     );
   }
 
-  Symbol add(T value) {
+  Future<Symbol> add(T value) {
     map[value.id] = value;
-    return value.id;
+    return Future(() => value.id);
   }
 
   @override
-  Map<Symbol, T> cannedQuery(Symbol id, [List? parameters]) {
+  Future<Map<Symbol, T>> cannedQuery(Symbol id, [List? parameters]) {
     // TODO: implement cannedQuery
     throw UnimplementedError();
   }
 
   @override
-  int count() => map.length;
+  Future<int> count() => Future(() => map.length);
 
   @override
   forEach(void Function(Symbol ix, T val) visitor) {
@@ -72,24 +76,24 @@ class MockDataCollection<T extends Indexable> implements DataCollection<T> {
   }
 
   @override
-  T get(Symbol index, T otherwise) {
+  Future<T> get(Symbol index, T otherwise) {
     if (map.containsKey(index))
-      return map[index] ?? otherwise;
+      return Future(() => map[index] ?? otherwise);
     else
-      return otherwise;
+      return Future(() => otherwise);
   }
 
   @override
-  T? maybeGet(Symbol index, [T? otherwise]) {
-    return map.containsKey(index)? map[index] : otherwise;
+  Future<T?> maybeGet(Symbol index, [T? otherwise]) {
+    return Future(() => map.containsKey(index)? map[index] : otherwise);
   }
 
   @override
-  T fetch(Symbol index) {
+  Future<T> fetch(Symbol index) {
     final value = map[index];
     if (value == null)
       throw RangeError("No item with index $index");
-    return value;
+    return Future(() => value);
   }
 
   @override
@@ -103,14 +107,14 @@ class MockDataCollection<T extends Indexable> implements DataCollection<T> {
   }
 
   @override
-  int removeAll() {
+  Future<int> removeAll() {
     int length = map.length;
     map.clear();
-    return length;
+    return Future(() => length);
   }
 
   @override
-  Map<Symbol, T> getAll() {
-    return Map.of(map);
+  Future<Map<Symbol, T>> getAll() {
+    return Future(() => Map.of(map));
   }
 }
