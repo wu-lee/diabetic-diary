@@ -102,8 +102,9 @@ class MockDataCollection<T extends Indexable> implements AsyncDataCollection<T> 
   }
 
   @override
-  void remove(Symbol index) {
-    map.remove(index);
+  Future<int> remove(Symbol index) {
+    final val = map.remove(index);
+    return Future(() => val == null? 0 : 1);
   }
 
   @override

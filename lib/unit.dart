@@ -2,6 +2,7 @@
 import 'dart:math';
 
 import 'package:diabetic_diary/indexable.dart';
+import 'package:flutter/foundation.dart';
 import 'translation.dart';
 
 /// Represents a measurement dimension, in the sense of dimensional analysis of quantities
@@ -20,10 +21,15 @@ class Dimensions implements Indexable {
 
   const Dimensions({required this.id, required this.components});
 
-/* Commented, we want to allow static keys of this class, so no == for us
-  bool operator== (Object that) => that is Dimensions && elements == that.elements;
-  int get hashCode => elements.hashCode;
-*/
+  @override
+  bool operator== (Object that) => equals(that);
+
+  @override
+  int get hashCode => components.hashCode;
+
+  bool equals(Object? that) => that is Dimensions &&
+      id == that.id &&
+      mapEquals(components, that.components);
 
 /*
   static int _combine(Dimensions a, Dimensions b, Dimension d) {

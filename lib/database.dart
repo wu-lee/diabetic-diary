@@ -72,7 +72,7 @@ abstract class AsyncDataCollection<T extends Indexable> {
   void put(Symbol index, T value);
 
   /// Remove a named item
-  void remove(Symbol index);
+  Future<int> remove(Symbol index);
 
   /// Remove all items, returning the number
   Future<int> removeAll();
@@ -130,7 +130,13 @@ abstract class Database {
     return "$formatted ${TL8(unitsId)}";
   }
 
-  String formatDimensions(Dimensions dims) => "Dimensions(id: ${TL8(dims.id)})";
+  String formatDimensions(Dimensions dims) => "Dimensions(id: ${TL8(dims.id)}, components: ${formatComponents(dims.components)})";
+
+  String formatComponents(Map<Symbol, int> comps) => "{"+comps.entries.map((e) => "${TL8(e.key)}: ${e.value}").join(",")+"}";
+
+  String formatUnits(Units units) => "Units(id: ${TL8(units.id)}, dimensionId: ${units.dimensionId}, multiplier: ${units.multiplier})";
+
+  String formatMeasurementType(MeasurementType mtype) => "MeasurementType(id: ${TL8(mtype.id)}, units: ${formatUnits(mtype.units)})";
 
   /// Sets up an empty database
   static void initialiseData(Database db) async {

@@ -4,7 +4,9 @@ import 'package:diabetic_diary/entities/ingredient.dart';
 import 'package:diabetic_diary/translation.dart';
 import 'package:diabetic_diary/unit.dart';
 import 'package:moor/ffi.dart';
+// don't import moor_web.dart or moor_flutter/moor_flutter.dart in shared code
 import 'package:moor/moor.dart';
+//import 'package:moor/moor_web.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
@@ -78,6 +80,7 @@ LazyDatabase _openConnection() {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'db.sqlite'));
     return VmDatabase(file);
+//    return WebDatabase('db');
   });
 }
 
@@ -98,11 +101,11 @@ class MoorDatabase extends Database {
 
   MoorDatabase(this.db) :
         dimensions = MoorDimensionsCollection(db),
-        units = MoorDataCollection<Units>(db),
+        units = MoorUnitsCollection(db),
         measurementTypes = MoorMTypeCollection(db),
         compositionStatistics = MoorCStatCollection(db),
         ingredients = MoorIngredientCollection(db),
-        dishes = MoorDataCollection<Dish>(db),
+        dishes = MockDataCollection<Dish>(),
         config = MockDataCollection<DPair>();
 
   static MoorDatabase create() {
@@ -131,19 +134,28 @@ class MoorDatabase extends Database {
   @override
   final AsyncDataCollection<DPair> config;
 }
-class MoorDataCollection<T extends Indexable> implements AsyncDataCollection<T> {
-  final _MoorDatabase db;
 
-  MoorDataCollection(this.db);
+abstract class MoorDataCollection<D extends DataClass, D2 extends Indexable, TI extends TableInfo> implements AsyncDataCollection<D2> {
+  final _MoorDatabase db;
+  final TI tableInfo;
+  final GeneratedTextColumn idCol;
+
+  MoorDataCollection(this.db, this.tableInfo, this.idCol);
+
+  Insertable<D> valueToRow(D2 val);
+  D2 rowToValue(D row);
 
   @override
-  Future<Symbol> add(T value) {
-    // TODO: implement add
-    throw UnimplementedError();
+  Future<Symbol> add(D2 value) async {
+    final row = valueToRow(value);
+//    final result = await db.into(tableInfo).insertOnConflictUpdate(row);
+    final result = await db.into(tableInfo).insert(row);
+    print("result "+result.toString());
+    return Future(() => value.id);
   }
 
   @override
-  Future<Map<Symbol, T>> cannedQuery(Symbol name, [List? parameters]) {
+  Future<Map<Symbol, D2>> cannedQuery(Symbol name, [List? parameters]) {
     // TODO: implement cannedQuery
     throw UnimplementedError();
   }
@@ -155,50 +167,182 @@ class MoorDataCollection<T extends Indexable> implements AsyncDataCollection<T> 
   }
 
   @override
-  Future<T> fetch(Symbol index) {
-    // TODO: implement fetch
-    throw UnimplementedError();
+  Future<D2> fetch(Symbol index) async {
+    final results = db
+      .select(tableInfo)
+      ..where((a) => idCol.equals(symbolToString(index)));
+    final row = await results.getSingle();
+    // Convert the list of rows into a map from dimension id to exponent
+    try {
+      return rowToValue(row);
+    }
+    catch(e) {
+      throw Exception("no such thing as "+symbolToString(index));
+    }
   }
 
   @override
-  void forEach(void Function(Symbol p1, T p2) visitor) {
+  void forEach(void Function(Symbol p1, D2 p2) visitor) {
     // TODO: implement forEach
   }
 
   @override
-  Future<T> get(Symbol index, T otherwise) {
-    // TODO: implement get
-    throw UnimplementedError();
+  Future<D2> get(Symbol index, D2 otherwise) async {
+    final results = db
+        .select(tableInfo)
+      ..where((a) => idCol.equals(symbolToString(index)));
+    final row = await results.getSingleOrNull();
+    if (row == null)
+      return otherwise;
+    return rowToValue(row);
   }
 
   @override
-  Future<Map<Symbol, T>> getAll() {
+  Future<Map<Symbol, D2>> getAll() {
     // TODO: implement getAll
     throw UnimplementedError();
   }
 
   @override
-  Future<T?> maybeGet(Symbol index, [T? otherwise]) {
-    // TODO: implement maybeGet
-    throw UnimplementedError();
+  Future<D2?> maybeGet(Symbol index, [D2? otherwise]) async {
+    final results = db
+        .select(tableInfo)
+      ..where((u) => idCol.equals(symbolToString(index)));
+    final row = await results.getSingleOrNull();
+    if (row == null)
+      return otherwise;
+    return rowToValue(row);
   }
 
   @override
-  void put(Symbol index, T value) {
+  void put(Symbol index, D2 value) {
     // TODO: implement put
   }
 
   @override
-  void remove(Symbol index) {
-    // TODO: implement remove
+  Future<int> remove(Symbol index) async {
+    assert(tableInfo == db.dimensionUnits);
+    final results = db
+        .delete(tableInfo)
+      ..where((u) => idCol.equals(symbolToString(index)));
+    return results.go();
   }
 
   @override
   Future<int> removeAll() {
-    // TODO: implement removeAll
+    assert(tableInfo == db.dimensionUnits);
+    final results = db
+        .delete(tableInfo);
+    return results.go();
+  }
+
+}
+/* FIXME experimental more concrete implementation of Units collection
+abstract class MoorDimensionUnitsCollection implements AsyncDataCollection<D2> {
+  final _MoorDatabase db;
+  final tableInfo;
+  final GeneratedTextColumn idCol;
+
+  MoorDimensionUnitsCollection(this.db, this.idCol) :
+      this.tableInfo = db.dimensionUnits,
+      this.idCol = db.dimensionUnits.unitId;
+
+  Insertable<D> valueToRow(D2 val);
+  D2 rowToValue(D row);
+
+  @override
+  Future<Symbol> add(D2 value) async {
+    final row = valueToRow(value);
+//    final result = await db.into(tableInfo).insertOnConflictUpdate(row);
+    final result = await db.into(tableInfo).insert(row);
+    print("result "+result.toString());
+    return Future(() => value.id);
+  }
+
+  @override
+  Future<Map<Symbol, D2>> cannedQuery(Symbol name, [List? parameters]) {
+    // TODO: implement cannedQuery
     throw UnimplementedError();
   }
+
+  @override
+  Future<int> count() {
+    // TODO: implement count
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<D2> fetch(Symbol index) async {
+    final results = db
+        .select(tableInfo)
+      ..where((a) => idCol.equals(symbolToString(index)));
+    final row = await results.getSingle();
+    // Convert the list of rows into a map from dimension id to exponent
+    try {
+      return rowToValue(row);
+    }
+    catch(e) {
+      throw Exception("no such thing as "+symbolToString(index));
+    }
+  }
+
+  @override
+  void forEach(void Function(Symbol p1, D2 p2) visitor) {
+    // TODO: implement forEach
+  }
+
+  @override
+  Future<D2> get(Symbol index, D2 otherwise) async {
+    final results = db
+        .select(tableInfo)
+      ..where((a) => idCol.equals(symbolToString(index)));
+    final row = await results.getSingleOrNull();
+    if (row == null)
+      return otherwise;
+    return rowToValue(row);
+  }
+
+  @override
+  Future<Map<Symbol, D2>> getAll() {
+    // TODO: implement getAll
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<D2?> maybeGet(Symbol index, [D2? otherwise]) async {
+    final results = db
+        .select(tableInfo)
+      ..where((u) => idCol.equals(symbolToString(index)));
+    final row = await results.getSingleOrNull();
+    if (row == null)
+      return otherwise;
+    return rowToValue(row);
+  }
+
+  @override
+  void put(Symbol index, D2 value) {
+    // TODO: implement put
+  }
+
+  @override
+  Future<int> remove(Symbol index) async {
+    assert(tableInfo == db.dimensionUnits);
+    final results = db
+        .delete(tableInfo)
+      ..where((u) => idCol.equals(symbolToString(index)));
+    return results.go();
+  }
+
+  @override
+  Future<int> removeAll() {
+    assert(tableInfo == db.dimensionUnits);
+    final results = db
+        .delete(tableInfo);
+    return results.go();
+  }
+
 }
+*/
 
 class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
   final _MoorDatabase db;
@@ -264,9 +408,20 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
   }
 
   @override
-  Future<Dimensions?> maybeGet(Symbol index, [Dimensions? otherwise]) {
-    // TODO: implement maybeGet
-    throw UnimplementedError();
+  Future<Dimensions?> maybeGet(Symbol index, [Dimensions? otherwise]) async {
+    final results = db
+        .select(db.dimensionComponents, distinct: true)
+      ..where((a) => a.dimensionId.equals(symbolToString(index)));
+    final rows = await results.get();
+    if (rows.isEmpty)
+      return otherwise;
+
+    // Convert the list of rows into a map from dimension id to exponent
+    final components = Map.fromEntries(rows.map((component) =>
+        MapEntry(Symbol(component.componentId), component.exponent)));
+
+    // Use that map to construct a Dimensions instance
+    return Dimensions(id: index, components: components);
   }
 
   @override
@@ -275,41 +430,44 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
   }
 
   @override
-  void remove(Symbol index) {
+  Future<int> remove(Symbol index) {
     // TODO: implement remove
+    throw UnimplementedError();
   }
 
   @override
   Future<int> removeAll() {
-    // TODO: implement removeAll
-    throw UnimplementedError();
+    final results = db
+        .delete(db.dimensionComponents);
+    return results.go();
   }
 }
 
-abstract class MoorUnitRefCollection<T extends Table, D extends DataClass> implements AsyncDataCollection<MeasurementType> {
+abstract class MoorUnitRefCollection<D extends DataClass, D2 extends Indexable, TI extends TableInfo> implements AsyncDataCollection<D2> {
   final _MoorDatabase db;
-  final TableInfo<T, D> tableInfo;
+  final TI tableInfo;
+  final GeneratedTextColumn idCol;
   final GeneratedTextColumn joinCol;
   final JoinedSelectStatement<Table, dynamic> commonQuery;
 
-  MoorUnitRefCollection(this.db, this.tableInfo, this.joinCol) :
+  MoorUnitRefCollection(this.db, this.tableInfo, this.idCol, this.joinCol) :
       commonQuery = db.select(tableInfo)
         .join([
           leftOuterJoin(db.dimensionUnits, joinCol.equalsExp(db.dimensionUnits.unitId))
         ]);
 
-  Insertable<D> valueToRow(MeasurementType val);
-  MeasurementType rowToValue(TypedResult row);
+  Insertable<D> valueToRow(D2 val);
+  D2 rowToValue(D row);
 
   @override
-  Future<Symbol> add(MeasurementType value) async {
+  Future<Symbol> add(D2 value) async {
     final row = valueToRow(value);
     await db.into(tableInfo).insertOnConflictUpdate(row);
     return Future(() => value.id);
   }
 
   @override
-  Future<Map<Symbol, MeasurementType>> cannedQuery(Symbol name, [List? parameters]) {
+  Future<Map<Symbol, D2>> cannedQuery(Symbol name, [List? parameters]) {
     // TODO: implement cannedQuery
     throw UnimplementedError();
   }
@@ -376,14 +534,16 @@ abstract class MoorUnitRefCollection<T extends Table, D extends DataClass> imple
   }
 
   @override
-  void remove(Symbol index) {
+  Future<int> remove(Symbol index) {
     // TODO: implement remove
+    throw UnimplementedError();
   }
 
   @override
-  Future<int> removeAll() {
-    // TODO: implement removeAll
-    throw UnimplementedError();
+  Future<int> removeAll() async {
+    final results = db
+        .delete(db.compositionStatistics);
+      return results.go();
   }
 
 }
@@ -424,46 +584,31 @@ class MoorMTypeCollection extends MoorUnitRefCollection<$_MeasurementTypesTable,
   }
 }
 
-class MoorIngredientCollection/*< T extends Table, D extends DataClass>*/ implements AsyncDataCollection<Ingredient> {
-  final _MoorDatabase db;/*
+abstract class MoorEntityCollection<T extends Table, D extends DataClass, D2 extends Indexable> implements AsyncDataCollection<D2> {
+  final _MoorDatabase db;
   final TableInfo<T, D> tableInfo;
   final GeneratedTextColumn joinCol;
+  final GeneratedTextColumn idCol;
   final JoinedSelectStatement<Table, dynamic> commonQuery;
 
-  MoorIngredientCollection(this.db, this.tableInfo, this.joinCol) :
-        commonQuery = db.select(tableInfo)
-            .join([
-          leftOuterJoin(db.dimensionUnits, joinCol.equalsExp(db.dimensionUnits.unitId))
-        ]);
 
+  MoorEntityCollection(this.db, this.tableInfo, this.idCol, this.joinCol, this.commonQuery);
 
-  MeasurementType rowToValue(TypedResult row);
-*/
-  MoorIngredientCollection(this.db);
-
-  Iterable<_Ingredient> valueToRows(Ingredient val) {
-    return val.compositionStats.entries
-        .map((stat) => _Ingredient(
-            id: symbolToString(val.id),
-            measurementId: symbolToString(stat.key.id), //symbolToString(val.compositionStats.first()),
-            unitId: symbolToString(stat.key.units.id),
-            amount: stat.value.amount.toDouble(),
-          )
-        );
-  }
+  D2 rowsToValue(Iterable<TypedResult> row);
+  Iterable<Insertable<D>> valueToRows(D2 val);
 
   @override
-  Future<Symbol> add(Ingredient value) async {
+  Future<Symbol> add(D2 value) async {
     final rows = valueToRows(value); // FIXME stream this?
     await Future.forEach(
         rows,
-        (_Ingredient row) => db.into(db.ingredients).insertOnConflictUpdate(row),
+        (Insertable<D> row) => db.into(tableInfo).insertOnConflictUpdate(row),
     );
     return value.id;
   }
 
   @override
-  Future<Map<Symbol, Ingredient>> cannedQuery(Symbol name, [List? parameters]) {
+  Future<Map<Symbol, D2>> cannedQuery(Symbol name, [List? parameters]) {
     // TODO: implement cannedQuery
     throw UnimplementedError();
   }
@@ -475,15 +620,81 @@ class MoorIngredientCollection/*< T extends Table, D extends DataClass>*/ implem
   }
 
   @override
-  Future<Ingredient> fetch(Symbol index) async {
+  Future<D2> fetch(Symbol index) async {
     final results = db
-      .select(db.ingredients)
+      .select(tableInfo)
       .join([
-        leftOuterJoin(db.dimensionUnits, db.dimensionUnits.unitId.equalsExp(db.ingredients.unitId))
+        leftOuterJoin(db.dimensionUnits, db.dimensionUnits.unitId.equalsExp(joinCol)) // FIXME get compstats
       ])
-      ..where(db.ingredients.id.equals(symbolToString(index)));
+      ..where(idCol.equals(symbolToString(index)));
     final rows = await results.get();
     // Convert the list of rows into a map from dimension id to exponent
+    try {
+      return rowsToValue(rows);
+    }
+    catch(e) {
+      throw Exception("no such thing as "+symbolToString(index));
+    }
+  }
+
+  @override
+  void forEach(void Function(Symbol p1, D2 p2) visitor) {
+    // TODO: implement forEach
+  }
+
+  @override
+  Future<D2> get(Symbol index, D2 otherwise) {
+    // TODO: implement get
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<Symbol, D2>> getAll() {
+    // TODO: implement getAll
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<D2?> maybeGet(Symbol index, [D2? otherwise]) {
+    // TODO: implement maybeGet
+    throw UnimplementedError();
+  }
+
+  @override
+  void put(Symbol index, D2 value) {
+    // TODO: implement put
+  }
+
+  @override
+  Future<int> remove(Symbol index) {
+    // TODO: implement remove
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> removeAll() {
+    // TODO: implement removeAll
+    throw UnimplementedError();
+  }
+
+}
+
+class MoorIngredientCollection extends MoorEntityCollection<$_IngredientsTable, _Ingredient, Ingredient> {
+
+  MoorIngredientCollection(_MoorDatabase db) : super(
+      db,
+      db.ingredients,
+      db.ingredients.id,
+      db.ingredients.unitId,
+      db.select(db.ingredients)
+          .join([
+        leftOuterJoin(db.dimensionUnits, db.ingredients.unitId.equalsExp(db.dimensionUnits.unitId))
+      ])
+  );
+
+  @override
+  Ingredient rowsToValue(Iterable<TypedResult> rows) {
+    Symbol index = Symbol('');
     final stats = Map.fromEntries(rows.map((row) {
       final ingRow = row.readTable(db.ingredients);
       final unitsRow = row.readTable(db.dimensionUnits);
@@ -494,50 +705,103 @@ class MoorIngredientCollection/*< T extends Table, D extends DataClass>*/ implem
       final units = Units(unitsId, dimId, multiplier);
       final measurementType = MeasurementType(id: measId, units: units);
       final quantity = Quantity(ingRow.amount, units);
+      index = Symbol(ingRow.id);
       return MapEntry(measurementType, quantity);
     }));
+
+    if (stats.isEmpty)
+      throw Exception("Parameter `rows` is an empty list");
 
     // Use that map to construct an instance
     return Ingredient(id: index, compositionStats: stats);
   }
 
   @override
-  void forEach(void Function(Symbol p1, Ingredient p2) visitor) {
-    // TODO: implement forEach
+  Iterable<Insertable<_Ingredient>> valueToRows(Ingredient val)  {
+    return val.compositionStats.entries
+        .map((stat) => _Ingredient(
+          id: symbolToString(val.id),
+          measurementId: symbolToString(stat.key.id), //symbolToString(val.compositionStats.first()),
+          unitId: symbolToString(stat.key.units.id),
+          amount: stat.value.amount.toDouble(),
+        )
+    );
+  }
+}
+/*
+class MoorDishCollection extends MoorEntityCollection<$_DishesTable, _Dish, Dish> {
+
+  MoorDishCollection(_MoorDatabase db) : super(
+      db,
+      db.dishes,
+      db.dishes.id,
+      db.dishes.unitId,
+      db.select(db.dishes).join([
+        leftOuterJoin(
+          db.ingredients,
+          db.dishes.ingredientId.equalsExp(db.ingredients.id)
+        ),
+        leftOuterJoin(
+            db.measurementTypes,
+            db.ingredients.measurementId.equalsExp(db.measurementTypes.id)
+        ),
+      ])
+  )
+
+  @override
+  Dish rowsToValue(Iterable<TypedResult> rows) {
+    Symbol index = Symbol('');
+    final ingredients = Map.fromEntries(rows.map((row) {
+      final dishRow = row.readTable(db.dishes);
+      final compositionStats = row.readTable(db.dimensionUnits);
+//      final unitsRow = row.readTable(db.dimensionUnits);
+      final ingId = Symbol(dishRow.ingredientId);
+      final unitsId = Symbol(dishRow.unitId);
+      final dimId = Symbol(unitsRow.dimensionId);
+      final multiplier = unitsRow.multiplier;
+      final units = Units(unitsId, dimId, multiplier);
+      //db.ingredients.
+      final ingredient = Ingredient(id: ingId, compositionStats: compStats);
+      final quantity = Quantity(dishRow.amount, units);
+      index = Symbol(dishRow.id);
+      return MapEntry(ingredient, quantity);
+    }));
+
+    if (ingredients.isEmpty)
+      throw Exception("Parameter `rows` is an empty list");
+
+    // Use that map to construct an instance
+    return Dish(id: index, ingredients: ingredients);
   }
 
   @override
-  Future<Ingredient> get(Symbol index, Ingredient otherwise) {
-    // TODO: implement get
-    throw UnimplementedError();
+  Iterable<Insertable<_Dish>> valueToRows(Dish val)  {
+    return val.compositionStats.entries
+        .map((stat) => _Dish(
+      id: symbolToString(val.id),
+      measurementId: symbolToString(stat.key.id), //symbolToString(val.compositionStats.first()),
+      unitId: symbolToString(stat.key.units.id),
+      amount: stat.value.amount.toDouble(),
+    )
+    );
+  }
+}
+*/
+class MoorUnitsCollection extends MoorDataCollection<_DimensionUnit, Units, $_DimensionUnitsTable> {
+
+  MoorUnitsCollection(_MoorDatabase db) : super(db, db.dimensionUnits, db.dimensionUnits.unitId);
+
+  @override
+  Units rowToValue(_DimensionUnit row) {
+    return Units(Symbol(row.unitId), Symbol(row.dimensionId), row.multiplier);
   }
 
   @override
-  Future<Map<Symbol, Ingredient>> getAll() {
-    // TODO: implement getAll
-    throw UnimplementedError();
+  Insertable<_DimensionUnit> valueToRow(Units val)  {
+    return _DimensionUnit(
+        dimensionId: symbolToString(val.dimensionId),
+        unitId: symbolToString(val.id),
+        multiplier: val.multiplier.toDouble(),
+    );
   }
-
-  @override
-  Future<Ingredient?> maybeGet(Symbol index, [Ingredient? otherwise]) {
-    // TODO: implement maybeGet
-    throw UnimplementedError();
-  }
-
-  @override
-  void put(Symbol index, Ingredient value) {
-    // TODO: implement put
-  }
-
-  @override
-  void remove(Symbol index) {
-    // TODO: implement remove
-  }
-
-  @override
-  Future<int> removeAll() {
-    // TODO: implement removeAll
-    throw UnimplementedError();
-  }
-
 }

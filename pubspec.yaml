@@ -40,6 +40,7 @@ dev_dependencies:
 
   moor_generator: # use the latest version
   build_runner:
+  sqflite: # for querying DB location
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
