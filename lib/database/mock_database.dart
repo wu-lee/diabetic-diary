@@ -1,31 +1,37 @@
  
 import '../database.dart';
-import '../entities/dish.dart';
-import '../entities/ingredient.dart';
+import '../dimensions.dart';
 import '../indexable.dart';
-import '../measurement_type.dart';
-import '../unit.dart';
+import '../measureable.dart';
+import '../units.dart';
 
 class MockDatabase extends Database {
 
   static final _dimensions = MockDataCollection<Dimensions>();
 
-  static final _ingredients = MockDataCollection<Ingredient>();
+  static final _units = MockDataCollection<Units>();
 
-  static final _dishes = MockDataCollection<Dish>();
+  static final _measurables = MockDataCollection<Measurable>();
 
-  static final _compositionStatistics = MockDataCollection<MeasurementType>();
+//  static final _compositionStatistics = MockDataCollection<MeasurementType>();
 
-  static final _measurementTypes = MockDataCollection<MeasurementType>();
+//  static final _ingredients = MockDataCollection<Ingredient>();
 
-  static final _config = MockDataCollection<DPair>();
+//  static final _dishes = MockDataCollection<Dish>();
+
+
+
+  static final int _version = 0;
 
   @override
   AsyncDataCollection<Dimensions> get dimensions => _dimensions;
 
   @override
-  AsyncDataCollection<MeasurementType> get measurementTypes => _measurementTypes;
+  AsyncDataCollection<Units> get units => _units;
 
+  @override
+  AsyncDataCollection<Measurable> get measurables => _measurables;
+/*
   @override
   AsyncDataCollection<Ingredient> get ingredients => _ingredients;
 
@@ -34,13 +40,9 @@ class MockDatabase extends Database {
 
   @override
   AsyncDataCollection<MeasurementType> get compositionStatistics => _compositionStatistics;
-
+*/
   @override
-  AsyncDataCollection<DPair> get config => _config;
-
-  @override
-  // TODO: implement units
-  AsyncDataCollection<Units> get units => throw UnimplementedError();
+  Future<int> get version => Future(() => _version);
 }
 
 class MockDataCollection<T extends Indexable> implements AsyncDataCollection<T> {

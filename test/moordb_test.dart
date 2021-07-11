@@ -1,27 +1,18 @@
 import 'package:diabetic_diary/database.dart';
 import 'package:diabetic_diary/database/moor_database.dart';
-import 'package:diabetic_diary/entities/ingredient.dart';
-import 'package:diabetic_diary/measurement_type.dart';
+import 'package:diabetic_diary/dimensions.dart';
+import 'package:diabetic_diary/measureable.dart';
 import 'package:test/test.dart';
-import 'package:diabetic_diary/unit.dart';
+import 'package:diabetic_diary/units.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart' show getDatabasesPath;
 
 void main() async {
   Database mdb = MoorDatabase.create();
+  Database.initialiseData(mdb);
 
   group('Quantity operations', () {
-    test('Just Dimension Units', () async {
-      final inThing = Units(#testUnit, #TestDimension, 1);
-      final removed = await mdb.units.removeAll();
-      print("removed "+removed.toString());
-      await mdb.units.add(inThing);
-      final outThing = await mdb.units.maybeGet(#testUnit);
-
-      expect(outThing, inThing);
-    });
-
-    test('Just Dimension Components', () async {
+    test('Just Dimensions', () async {
       final inThing = Dimensions(id: #testDim, components: {#TestComp1: 1});
       final removed = await mdb.dimensions.removeAll();
       print("removed "+removed.toString());
@@ -33,19 +24,29 @@ void main() async {
       expect(outThing, inThing);
     });
 
-    test('Just MeasurementType', () async {
-      final inUnits = Units(#testUnit, #TestDimension, 1);
-      final inThing = MeasurementType(id: #testMType, units: inUnits);
-      final removed = await mdb.measurementTypes.removeAll();
+    test('Just Units', () async {
+      final inThing = Units(#testUnit, #TestDimension, 1);
+      final removed = await mdb.units.removeAll();
       print("removed "+removed.toString());
-      await mdb.measurementTypes.add(inThing);
-      final outThing = await mdb.measurementTypes.maybeGet(#testUnit);
+      await mdb.units.add(inThing);
+      final outThing = await mdb.units.maybeGet(#testUnit);
 
-      print(mdb.formatMeasurementType(inThing));
-      if (outThing!=null) print(mdb.formatMeasurementType(outThing));
       expect(outThing, inThing);
     });
 
+
+    test('Just Measurables', () async {
+      final inThing = Measurable(id: #testMeasurable, dimensionsId: #testDims);
+      final removed = await mdb.measurables.removeAll();
+      print("removed "+removed.toString());
+      await mdb.measurables.add(inThing);
+      final outThing = await mdb.measurables.maybeGet(#testMeasurable);
+
+      print(mdb.formatMeasurable(inThing));
+      if (outThing!=null) print(mdb.formatMeasurable(outThing));
+      expect(outThing, inThing);
+    });
+/*
     test('Initialise data', () async {
       Database.initialiseData(mdb);
 
@@ -66,6 +67,6 @@ void main() async {
       final dbFolder = await getDatabasesPath();
       final dbLocation = p.join(dbFolder, 'dbnew.sqlite');
       print(dbLocation);
-    });
+    });*/
   });
 }

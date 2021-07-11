@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'database.dart';
-import 'home_page.dart';
+//import 'home_page.dart';
 
 class App extends StatelessWidget {
 
@@ -27,7 +27,7 @@ class App extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: HomePage(db: db),
+//      home: HomePage(db: db),
     );
   }
 }

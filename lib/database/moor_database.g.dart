@@ -166,7 +166,7 @@ class $_DimensionUnitsTable extends _DimensionUnits
   final VerificationMeta _dimensionIdMeta =
       const VerificationMeta('dimensionId');
   @override
-  late final GeneratedTextColumn dimensionId = _constructDimensionId();
+  late final GeneratedTextColumn dimensionsId = _constructDimensionId();
   GeneratedTextColumn _constructDimensionId() {
     return GeneratedTextColumn(
       'dimension_id',
@@ -198,7 +198,7 @@ class $_DimensionUnitsTable extends _DimensionUnits
   }
 
   @override
-  List<GeneratedColumn> get $columns => [dimensionId, unitId, multiplier];
+  List<GeneratedColumn> get $columns => [dimensionsId, unitId, multiplier];
   @override
   $_DimensionUnitsTable get asDslTable => this;
   @override
@@ -213,7 +213,7 @@ class $_DimensionUnitsTable extends _DimensionUnits
     if (data.containsKey('dimension_id')) {
       context.handle(
           _dimensionIdMeta,
-          dimensionId.isAcceptableOrUnknown(
+          dimensionsId.isAcceptableOrUnknown(
               data['dimension_id']!, _dimensionIdMeta));
     } else if (isInserting) {
       context.missing(_dimensionIdMeta);
@@ -236,7 +236,7 @@ class $_DimensionUnitsTable extends _DimensionUnits
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {dimensionId, unitId};
+  Set<GeneratedColumn> get $primaryKey => {dimensionsId, unitId};
   @override
   _DimensionUnit map(Map<String, dynamic> data, {String? tablePrefix}) {
     return _DimensionUnit.fromData(data, _db,
@@ -410,7 +410,7 @@ class $_DimensionComponentsTable extends _DimensionComponents
   final VerificationMeta _dimensionIdMeta =
       const VerificationMeta('dimensionId');
   @override
-  late final GeneratedTextColumn dimensionId = _constructDimensionId();
+  late final GeneratedTextColumn dimensionsId = _constructDimensionId();
   GeneratedTextColumn _constructDimensionId() {
     return GeneratedTextColumn(
       'dimension_id',
@@ -443,7 +443,7 @@ class $_DimensionComponentsTable extends _DimensionComponents
   }
 
   @override
-  List<GeneratedColumn> get $columns => [dimensionId, componentId, exponent];
+  List<GeneratedColumn> get $columns => [dimensionsId, componentId, exponent];
   @override
   $_DimensionComponentsTable get asDslTable => this;
   @override
@@ -459,7 +459,7 @@ class $_DimensionComponentsTable extends _DimensionComponents
     if (data.containsKey('dimension_id')) {
       context.handle(
           _dimensionIdMeta,
-          dimensionId.isAcceptableOrUnknown(
+          dimensionsId.isAcceptableOrUnknown(
               data['dimension_id']!, _dimensionIdMeta));
     } else if (isInserting) {
       context.missing(_dimensionIdMeta);
@@ -482,7 +482,7 @@ class $_DimensionComponentsTable extends _DimensionComponents
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {dimensionId, componentId};
+  Set<GeneratedColumn> get $primaryKey => {dimensionsId, componentId};
   @override
   _DimensionComponent map(Map<String, dynamic> data, {String? tablePrefix}) {
     return _DimensionComponent.fromData(data, _db,
@@ -495,43 +495,41 @@ class $_DimensionComponentsTable extends _DimensionComponents
   }
 }
 
-class _MeasurementType extends DataClass
-    implements Insertable<_MeasurementType> {
+class _Measurable extends DataClass implements Insertable<_Measurable> {
   final String id;
-  final String unitId;
-  _MeasurementType({required this.id, required this.unitId});
-  factory _MeasurementType.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
+  final String dimensionsId;
+  _Measurable({required this.id, required this.dimensionsId});
+  factory _Measurable.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
-    return _MeasurementType(
+    return _Measurable(
       id: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      unitId: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}unit_id'])!,
+      dimensionsId: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}dimensions_id'])!,
     );
   }
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['unit_id'] = Variable<String>(unitId);
+    map['dimensions_id'] = Variable<String>(dimensionsId);
     return map;
   }
 
-  _MeasurementTypesCompanion toCompanion(bool nullToAbsent) {
-    return _MeasurementTypesCompanion(
+  _MeasurablesCompanion toCompanion(bool nullToAbsent) {
+    return _MeasurablesCompanion(
       id: Value(id),
-      unitId: Value(unitId),
+      dimensionsId: Value(dimensionsId),
     );
   }
 
-  factory _MeasurementType.fromJson(Map<String, dynamic> json,
+  factory _Measurable.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
-    return _MeasurementType(
+    return _Measurable(
       id: serializer.fromJson<String>(json['id']),
-      unitId: serializer.fromJson<String>(json['unitId']),
+      dimensionsId: serializer.fromJson<String>(json['dimensionsId']),
     );
   }
   @override
@@ -539,60 +537,60 @@ class _MeasurementType extends DataClass
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'unitId': serializer.toJson<String>(unitId),
+      'dimensionsId': serializer.toJson<String>(dimensionsId),
     };
   }
 
-  _MeasurementType copyWith({String? id, String? unitId}) => _MeasurementType(
+  _Measurable copyWith({String? id, String? dimensionsId}) => _Measurable(
         id: id ?? this.id,
-        unitId: unitId ?? this.unitId,
+        dimensionsId: dimensionsId ?? this.dimensionsId,
       );
   @override
   String toString() {
-    return (StringBuffer('_MeasurementType(')
+    return (StringBuffer('_Measurable(')
           ..write('id: $id, ')
-          ..write('unitId: $unitId')
+          ..write('dimensionsId: $dimensionsId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode, unitId.hashCode));
+  int get hashCode => $mrjf($mrjc(id.hashCode, dimensionsId.hashCode));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is _MeasurementType &&
+      (other is _Measurable &&
           other.id == this.id &&
-          other.unitId == this.unitId);
+          other.dimensionsId == this.dimensionsId);
 }
 
-class _MeasurementTypesCompanion extends UpdateCompanion<_MeasurementType> {
+class _MeasurablesCompanion extends UpdateCompanion<_Measurable> {
   final Value<String> id;
-  final Value<String> unitId;
-  const _MeasurementTypesCompanion({
+  final Value<String> dimensionsId;
+  const _MeasurablesCompanion({
     this.id = const Value.absent(),
-    this.unitId = const Value.absent(),
+    this.dimensionsId = const Value.absent(),
   });
-  _MeasurementTypesCompanion.insert({
+  _MeasurablesCompanion.insert({
     required String id,
-    required String unitId,
+    required String dimensionsId,
   })  : id = Value(id),
-        unitId = Value(unitId);
-  static Insertable<_MeasurementType> custom({
+        dimensionsId = Value(dimensionsId);
+  static Insertable<_Measurable> custom({
     Expression<String>? id,
-    Expression<String>? unitId,
+    Expression<String>? dimensionsId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (unitId != null) 'unit_id': unitId,
+      if (dimensionsId != null) 'dimensions_id': dimensionsId,
     });
   }
 
-  _MeasurementTypesCompanion copyWith(
-      {Value<String>? id, Value<String>? unitId}) {
-    return _MeasurementTypesCompanion(
+  _MeasurablesCompanion copyWith(
+      {Value<String>? id, Value<String>? dimensionsId}) {
+    return _MeasurablesCompanion(
       id: id ?? this.id,
-      unitId: unitId ?? this.unitId,
+      dimensionsId: dimensionsId ?? this.dimensionsId,
     );
   }
 
@@ -602,27 +600,27 @@ class _MeasurementTypesCompanion extends UpdateCompanion<_MeasurementType> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (unitId.present) {
-      map['unit_id'] = Variable<String>(unitId.value);
+    if (dimensionsId.present) {
+      map['dimensions_id'] = Variable<String>(dimensionsId.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('_MeasurementTypesCompanion(')
+    return (StringBuffer('_MeasurablesCompanion(')
           ..write('id: $id, ')
-          ..write('unitId: $unitId')
+          ..write('dimensionsId: $dimensionsId')
           ..write(')'))
         .toString();
   }
 }
 
-class $_MeasurementTypesTable extends _MeasurementTypes
-    with TableInfo<$_MeasurementTypesTable, _MeasurementType> {
+class $_MeasurablesTable extends _Measurables
+    with TableInfo<$_MeasurablesTable, _Measurable> {
   final GeneratedDatabase _db;
   final String? _alias;
-  $_MeasurementTypesTable(this._db, [this._alias]);
+  $_MeasurablesTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedTextColumn id = _constructId();
@@ -634,27 +632,28 @@ class $_MeasurementTypesTable extends _MeasurementTypes
     );
   }
 
-  final VerificationMeta _unitIdMeta = const VerificationMeta('unitId');
+  final VerificationMeta _dimensionsIdMeta =
+      const VerificationMeta('dimensionsId');
   @override
-  late final GeneratedTextColumn unitId = _constructUnitId();
-  GeneratedTextColumn _constructUnitId() {
+  late final GeneratedTextColumn dimensionsId = _constructDimensionsId();
+  GeneratedTextColumn _constructDimensionsId() {
     return GeneratedTextColumn(
-      'unit_id',
+      'dimensions_id',
       $tableName,
       false,
     );
   }
 
   @override
-  List<GeneratedColumn> get $columns => [id, unitId];
+  List<GeneratedColumn> get $columns => [id, dimensionsId];
   @override
-  $_MeasurementTypesTable get asDslTable => this;
+  $_MeasurablesTable get asDslTable => this;
   @override
-  String get $tableName => _alias ?? 'measurement_types';
+  String get $tableName => _alias ?? 'measurables';
   @override
-  final String actualTableName = 'measurement_types';
+  final String actualTableName = 'measurables';
   @override
-  VerificationContext validateIntegrity(Insertable<_MeasurementType> instance,
+  VerificationContext validateIntegrity(Insertable<_Measurable> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -663,11 +662,13 @@ class $_MeasurementTypesTable extends _MeasurementTypes
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('unit_id')) {
-      context.handle(_unitIdMeta,
-          unitId.isAcceptableOrUnknown(data['unit_id']!, _unitIdMeta));
+    if (data.containsKey('dimensions_id')) {
+      context.handle(
+          _dimensionsIdMeta,
+          dimensionsId.isAcceptableOrUnknown(
+              data['dimensions_id']!, _dimensionsIdMeta));
     } else if (isInserting) {
-      context.missing(_unitIdMeta);
+      context.missing(_dimensionsIdMeta);
     }
     return context;
   }
@@ -675,766 +676,14 @@ class $_MeasurementTypesTable extends _MeasurementTypes
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  _MeasurementType map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return _MeasurementType.fromData(data, _db,
+  _Measurable map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return _Measurable.fromData(data, _db,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
   @override
-  $_MeasurementTypesTable createAlias(String alias) {
-    return $_MeasurementTypesTable(_db, alias);
-  }
-}
-
-class _CompositionStatistic extends DataClass
-    implements Insertable<_CompositionStatistic> {
-  final String id;
-  final String unitId;
-  _CompositionStatistic({required this.id, required this.unitId});
-  factory _CompositionStatistic.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
-      {String? prefix}) {
-    final effectivePrefix = prefix ?? '';
-    return _CompositionStatistic(
-      id: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      unitId: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}unit_id'])!,
-    );
-  }
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['unit_id'] = Variable<String>(unitId);
-    return map;
-  }
-
-  _CompositionStatisticsCompanion toCompanion(bool nullToAbsent) {
-    return _CompositionStatisticsCompanion(
-      id: Value(id),
-      unitId: Value(unitId),
-    );
-  }
-
-  factory _CompositionStatistic.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
-    return _CompositionStatistic(
-      id: serializer.fromJson<String>(json['id']),
-      unitId: serializer.fromJson<String>(json['unitId']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'unitId': serializer.toJson<String>(unitId),
-    };
-  }
-
-  _CompositionStatistic copyWith({String? id, String? unitId}) =>
-      _CompositionStatistic(
-        id: id ?? this.id,
-        unitId: unitId ?? this.unitId,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('_CompositionStatistic(')
-          ..write('id: $id, ')
-          ..write('unitId: $unitId')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => $mrjf($mrjc(id.hashCode, unitId.hashCode));
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is _CompositionStatistic &&
-          other.id == this.id &&
-          other.unitId == this.unitId);
-}
-
-class _CompositionStatisticsCompanion
-    extends UpdateCompanion<_CompositionStatistic> {
-  final Value<String> id;
-  final Value<String> unitId;
-  const _CompositionStatisticsCompanion({
-    this.id = const Value.absent(),
-    this.unitId = const Value.absent(),
-  });
-  _CompositionStatisticsCompanion.insert({
-    required String id,
-    required String unitId,
-  })  : id = Value(id),
-        unitId = Value(unitId);
-  static Insertable<_CompositionStatistic> custom({
-    Expression<String>? id,
-    Expression<String>? unitId,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (unitId != null) 'unit_id': unitId,
-    });
-  }
-
-  _CompositionStatisticsCompanion copyWith(
-      {Value<String>? id, Value<String>? unitId}) {
-    return _CompositionStatisticsCompanion(
-      id: id ?? this.id,
-      unitId: unitId ?? this.unitId,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (unitId.present) {
-      map['unit_id'] = Variable<String>(unitId.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('_CompositionStatisticsCompanion(')
-          ..write('id: $id, ')
-          ..write('unitId: $unitId')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $_CompositionStatisticsTable extends _CompositionStatistics
-    with TableInfo<$_CompositionStatisticsTable, _CompositionStatistic> {
-  final GeneratedDatabase _db;
-  final String? _alias;
-  $_CompositionStatisticsTable(this._db, [this._alias]);
-  final VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _unitIdMeta = const VerificationMeta('unitId');
-  @override
-  late final GeneratedTextColumn unitId = _constructUnitId();
-  GeneratedTextColumn _constructUnitId() {
-    return GeneratedTextColumn(
-      'unit_id',
-      $tableName,
-      false,
-    );
-  }
-
-  @override
-  List<GeneratedColumn> get $columns => [id, unitId];
-  @override
-  $_CompositionStatisticsTable get asDslTable => this;
-  @override
-  String get $tableName => _alias ?? 'composition_statistics';
-  @override
-  final String actualTableName = 'composition_statistics';
-  @override
-  VerificationContext validateIntegrity(
-      Insertable<_CompositionStatistic> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('unit_id')) {
-      context.handle(_unitIdMeta,
-          unitId.isAcceptableOrUnknown(data['unit_id']!, _unitIdMeta));
-    } else if (isInserting) {
-      context.missing(_unitIdMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  _CompositionStatistic map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return _CompositionStatistic.fromData(data, _db,
-        prefix: tablePrefix != null ? '$tablePrefix.' : null);
-  }
-
-  @override
-  $_CompositionStatisticsTable createAlias(String alias) {
-    return $_CompositionStatisticsTable(_db, alias);
-  }
-}
-
-class _Ingredient extends DataClass implements Insertable<_Ingredient> {
-  final String id;
-  final String measurementId;
-  final String unitId;
-  final double amount;
-  _Ingredient(
-      {required this.id,
-      required this.measurementId,
-      required this.unitId,
-      required this.amount});
-  factory _Ingredient.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String? prefix}) {
-    final effectivePrefix = prefix ?? '';
-    return _Ingredient(
-      id: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      measurementId: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}measurement_id'])!,
-      unitId: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}unit_id'])!,
-      amount: const RealType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}amount'])!,
-    );
-  }
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['measurement_id'] = Variable<String>(measurementId);
-    map['unit_id'] = Variable<String>(unitId);
-    map['amount'] = Variable<double>(amount);
-    return map;
-  }
-
-  _IngredientsCompanion toCompanion(bool nullToAbsent) {
-    return _IngredientsCompanion(
-      id: Value(id),
-      measurementId: Value(measurementId),
-      unitId: Value(unitId),
-      amount: Value(amount),
-    );
-  }
-
-  factory _Ingredient.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
-    return _Ingredient(
-      id: serializer.fromJson<String>(json['id']),
-      measurementId: serializer.fromJson<String>(json['measurementId']),
-      unitId: serializer.fromJson<String>(json['unitId']),
-      amount: serializer.fromJson<double>(json['amount']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'measurementId': serializer.toJson<String>(measurementId),
-      'unitId': serializer.toJson<String>(unitId),
-      'amount': serializer.toJson<double>(amount),
-    };
-  }
-
-  _Ingredient copyWith(
-          {String? id,
-          String? measurementId,
-          String? unitId,
-          double? amount}) =>
-      _Ingredient(
-        id: id ?? this.id,
-        measurementId: measurementId ?? this.measurementId,
-        unitId: unitId ?? this.unitId,
-        amount: amount ?? this.amount,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('_Ingredient(')
-          ..write('id: $id, ')
-          ..write('measurementId: $measurementId, ')
-          ..write('unitId: $unitId, ')
-          ..write('amount: $amount')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => $mrjf($mrjc(id.hashCode,
-      $mrjc(measurementId.hashCode, $mrjc(unitId.hashCode, amount.hashCode))));
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is _Ingredient &&
-          other.id == this.id &&
-          other.measurementId == this.measurementId &&
-          other.unitId == this.unitId &&
-          other.amount == this.amount);
-}
-
-class _IngredientsCompanion extends UpdateCompanion<_Ingredient> {
-  final Value<String> id;
-  final Value<String> measurementId;
-  final Value<String> unitId;
-  final Value<double> amount;
-  const _IngredientsCompanion({
-    this.id = const Value.absent(),
-    this.measurementId = const Value.absent(),
-    this.unitId = const Value.absent(),
-    this.amount = const Value.absent(),
-  });
-  _IngredientsCompanion.insert({
-    required String id,
-    required String measurementId,
-    required String unitId,
-    required double amount,
-  })  : id = Value(id),
-        measurementId = Value(measurementId),
-        unitId = Value(unitId),
-        amount = Value(amount);
-  static Insertable<_Ingredient> custom({
-    Expression<String>? id,
-    Expression<String>? measurementId,
-    Expression<String>? unitId,
-    Expression<double>? amount,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (measurementId != null) 'measurement_id': measurementId,
-      if (unitId != null) 'unit_id': unitId,
-      if (amount != null) 'amount': amount,
-    });
-  }
-
-  _IngredientsCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? measurementId,
-      Value<String>? unitId,
-      Value<double>? amount}) {
-    return _IngredientsCompanion(
-      id: id ?? this.id,
-      measurementId: measurementId ?? this.measurementId,
-      unitId: unitId ?? this.unitId,
-      amount: amount ?? this.amount,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (measurementId.present) {
-      map['measurement_id'] = Variable<String>(measurementId.value);
-    }
-    if (unitId.present) {
-      map['unit_id'] = Variable<String>(unitId.value);
-    }
-    if (amount.present) {
-      map['amount'] = Variable<double>(amount.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('_IngredientsCompanion(')
-          ..write('id: $id, ')
-          ..write('measurementId: $measurementId, ')
-          ..write('unitId: $unitId, ')
-          ..write('amount: $amount')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $_IngredientsTable extends _Ingredients
-    with TableInfo<$_IngredientsTable, _Ingredient> {
-  final GeneratedDatabase _db;
-  final String? _alias;
-  $_IngredientsTable(this._db, [this._alias]);
-  final VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _measurementIdMeta =
-      const VerificationMeta('measurementId');
-  @override
-  late final GeneratedTextColumn measurementId = _constructMeasurementId();
-  GeneratedTextColumn _constructMeasurementId() {
-    return GeneratedTextColumn(
-      'measurement_id',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _unitIdMeta = const VerificationMeta('unitId');
-  @override
-  late final GeneratedTextColumn unitId = _constructUnitId();
-  GeneratedTextColumn _constructUnitId() {
-    return GeneratedTextColumn(
-      'unit_id',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _amountMeta = const VerificationMeta('amount');
-  @override
-  late final GeneratedRealColumn amount = _constructAmount();
-  GeneratedRealColumn _constructAmount() {
-    return GeneratedRealColumn(
-      'amount',
-      $tableName,
-      false,
-    );
-  }
-
-  @override
-  List<GeneratedColumn> get $columns => [id, measurementId, unitId, amount];
-  @override
-  $_IngredientsTable get asDslTable => this;
-  @override
-  String get $tableName => _alias ?? 'ingredients';
-  @override
-  final String actualTableName = 'ingredients';
-  @override
-  VerificationContext validateIntegrity(Insertable<_Ingredient> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('measurement_id')) {
-      context.handle(
-          _measurementIdMeta,
-          measurementId.isAcceptableOrUnknown(
-              data['measurement_id']!, _measurementIdMeta));
-    } else if (isInserting) {
-      context.missing(_measurementIdMeta);
-    }
-    if (data.containsKey('unit_id')) {
-      context.handle(_unitIdMeta,
-          unitId.isAcceptableOrUnknown(data['unit_id']!, _unitIdMeta));
-    } else if (isInserting) {
-      context.missing(_unitIdMeta);
-    }
-    if (data.containsKey('amount')) {
-      context.handle(_amountMeta,
-          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
-    } else if (isInserting) {
-      context.missing(_amountMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id, measurementId};
-  @override
-  _Ingredient map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return _Ingredient.fromData(data, _db,
-        prefix: tablePrefix != null ? '$tablePrefix.' : null);
-  }
-
-  @override
-  $_IngredientsTable createAlias(String alias) {
-    return $_IngredientsTable(_db, alias);
-  }
-}
-
-class _Dish extends DataClass implements Insertable<_Dish> {
-  final String id;
-  final String ingredientId;
-  final String unitId;
-  final double amount;
-  _Dish(
-      {required this.id,
-      required this.ingredientId,
-      required this.unitId,
-      required this.amount});
-  factory _Dish.fromData(Map<String, dynamic> data, GeneratedDatabase db,
-      {String? prefix}) {
-    final effectivePrefix = prefix ?? '';
-    return _Dish(
-      id: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      ingredientId: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}ingredient_id'])!,
-      unitId: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}unit_id'])!,
-      amount: const RealType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}amount'])!,
-    );
-  }
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['ingredient_id'] = Variable<String>(ingredientId);
-    map['unit_id'] = Variable<String>(unitId);
-    map['amount'] = Variable<double>(amount);
-    return map;
-  }
-
-  _DishesCompanion toCompanion(bool nullToAbsent) {
-    return _DishesCompanion(
-      id: Value(id),
-      ingredientId: Value(ingredientId),
-      unitId: Value(unitId),
-      amount: Value(amount),
-    );
-  }
-
-  factory _Dish.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
-    return _Dish(
-      id: serializer.fromJson<String>(json['id']),
-      ingredientId: serializer.fromJson<String>(json['ingredientId']),
-      unitId: serializer.fromJson<String>(json['unitId']),
-      amount: serializer.fromJson<double>(json['amount']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= moorRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'ingredientId': serializer.toJson<String>(ingredientId),
-      'unitId': serializer.toJson<String>(unitId),
-      'amount': serializer.toJson<double>(amount),
-    };
-  }
-
-  _Dish copyWith(
-          {String? id, String? ingredientId, String? unitId, double? amount}) =>
-      _Dish(
-        id: id ?? this.id,
-        ingredientId: ingredientId ?? this.ingredientId,
-        unitId: unitId ?? this.unitId,
-        amount: amount ?? this.amount,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('_Dish(')
-          ..write('id: $id, ')
-          ..write('ingredientId: $ingredientId, ')
-          ..write('unitId: $unitId, ')
-          ..write('amount: $amount')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => $mrjf($mrjc(id.hashCode,
-      $mrjc(ingredientId.hashCode, $mrjc(unitId.hashCode, amount.hashCode))));
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is _Dish &&
-          other.id == this.id &&
-          other.ingredientId == this.ingredientId &&
-          other.unitId == this.unitId &&
-          other.amount == this.amount);
-}
-
-class _DishesCompanion extends UpdateCompanion<_Dish> {
-  final Value<String> id;
-  final Value<String> ingredientId;
-  final Value<String> unitId;
-  final Value<double> amount;
-  const _DishesCompanion({
-    this.id = const Value.absent(),
-    this.ingredientId = const Value.absent(),
-    this.unitId = const Value.absent(),
-    this.amount = const Value.absent(),
-  });
-  _DishesCompanion.insert({
-    required String id,
-    required String ingredientId,
-    required String unitId,
-    required double amount,
-  })  : id = Value(id),
-        ingredientId = Value(ingredientId),
-        unitId = Value(unitId),
-        amount = Value(amount);
-  static Insertable<_Dish> custom({
-    Expression<String>? id,
-    Expression<String>? ingredientId,
-    Expression<String>? unitId,
-    Expression<double>? amount,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (ingredientId != null) 'ingredient_id': ingredientId,
-      if (unitId != null) 'unit_id': unitId,
-      if (amount != null) 'amount': amount,
-    });
-  }
-
-  _DishesCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? ingredientId,
-      Value<String>? unitId,
-      Value<double>? amount}) {
-    return _DishesCompanion(
-      id: id ?? this.id,
-      ingredientId: ingredientId ?? this.ingredientId,
-      unitId: unitId ?? this.unitId,
-      amount: amount ?? this.amount,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (ingredientId.present) {
-      map['ingredient_id'] = Variable<String>(ingredientId.value);
-    }
-    if (unitId.present) {
-      map['unit_id'] = Variable<String>(unitId.value);
-    }
-    if (amount.present) {
-      map['amount'] = Variable<double>(amount.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('_DishesCompanion(')
-          ..write('id: $id, ')
-          ..write('ingredientId: $ingredientId, ')
-          ..write('unitId: $unitId, ')
-          ..write('amount: $amount')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $_DishesTable extends _Dishes with TableInfo<$_DishesTable, _Dish> {
-  final GeneratedDatabase _db;
-  final String? _alias;
-  $_DishesTable(this._db, [this._alias]);
-  final VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _ingredientIdMeta =
-      const VerificationMeta('ingredientId');
-  @override
-  late final GeneratedTextColumn ingredientId = _constructIngredientId();
-  GeneratedTextColumn _constructIngredientId() {
-    return GeneratedTextColumn(
-      'ingredient_id',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _unitIdMeta = const VerificationMeta('unitId');
-  @override
-  late final GeneratedTextColumn unitId = _constructUnitId();
-  GeneratedTextColumn _constructUnitId() {
-    return GeneratedTextColumn(
-      'unit_id',
-      $tableName,
-      false,
-    );
-  }
-
-  final VerificationMeta _amountMeta = const VerificationMeta('amount');
-  @override
-  late final GeneratedRealColumn amount = _constructAmount();
-  GeneratedRealColumn _constructAmount() {
-    return GeneratedRealColumn(
-      'amount',
-      $tableName,
-      false,
-    );
-  }
-
-  @override
-  List<GeneratedColumn> get $columns => [id, ingredientId, unitId, amount];
-  @override
-  $_DishesTable get asDslTable => this;
-  @override
-  String get $tableName => _alias ?? 'dishes';
-  @override
-  final String actualTableName = 'dishes';
-  @override
-  VerificationContext validateIntegrity(Insertable<_Dish> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('ingredient_id')) {
-      context.handle(
-          _ingredientIdMeta,
-          ingredientId.isAcceptableOrUnknown(
-              data['ingredient_id']!, _ingredientIdMeta));
-    } else if (isInserting) {
-      context.missing(_ingredientIdMeta);
-    }
-    if (data.containsKey('unit_id')) {
-      context.handle(_unitIdMeta,
-          unitId.isAcceptableOrUnknown(data['unit_id']!, _unitIdMeta));
-    } else if (isInserting) {
-      context.missing(_unitIdMeta);
-    }
-    if (data.containsKey('amount')) {
-      context.handle(_amountMeta,
-          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
-    } else if (isInserting) {
-      context.missing(_amountMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id, ingredientId};
-  @override
-  _Dish map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return _Dish.fromData(data, _db,
-        prefix: tablePrefix != null ? '$tablePrefix.' : null);
-  }
-
-  @override
-  $_DishesTable createAlias(String alias) {
-    return $_DishesTable(_db, alias);
+  $_MeasurablesTable createAlias(String alias) {
+    return $_MeasurablesTable(_db, alias);
   }
 }
 
@@ -1443,21 +692,10 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
   late final $_DimensionUnitsTable dimensionUnits = $_DimensionUnitsTable(this);
   late final $_DimensionComponentsTable dimensionComponents =
       $_DimensionComponentsTable(this);
-  late final $_MeasurementTypesTable measurementTypes =
-      $_MeasurementTypesTable(this);
-  late final $_CompositionStatisticsTable compositionStatistics =
-      $_CompositionStatisticsTable(this);
-  late final $_IngredientsTable ingredients = $_IngredientsTable(this);
-  late final $_DishesTable dishes = $_DishesTable(this);
+  late final $_MeasurablesTable measurables = $_MeasurablesTable(this);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [
-        dimensionUnits,
-        dimensionComponents,
-        measurementTypes,
-        compositionStatistics,
-        ingredients,
-        dishes
-      ];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [dimensionUnits, dimensionComponents, measurables];
 }

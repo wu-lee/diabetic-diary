@@ -1,7 +1,7 @@
 import 'package:diabetic_diary/entities/ingredient.dart';
 import 'package:diabetic_diary/measurement_type.dart';
 import 'package:test/test.dart';
-import 'package:diabetic_diary/unit.dart';
+import 'package:diabetic_diary/units.dart';
 
 const Distance = Dimensions(id: #Distance, units: {#m: 1, #km: 1000}, components: {#Distance:1});
 final meters = Distance.units(#m);

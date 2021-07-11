@@ -1,11 +1,14 @@
 
+import 'package:diabetic_diary/measureable.dart';
 import 'package:diabetic_diary/translation.dart';
 
-import 'entities/dish.dart';
+//import 'entities/dish.dart';
+import 'dimensions.dart';
 import 'indexable.dart';
-import 'entities/ingredient.dart';
-import 'measurement_type.dart';
-import 'unit.dart';
+//import 'entities/ingredient.dart';
+//import 'measurement_type.dart';
+import 'quantity.dart';
+import 'units.dart';
 
 class DPair extends Indexable {
   final dynamic value;
@@ -90,11 +93,13 @@ abstract class Database {
 
   AsyncDataCollection<Dimensions> get dimensions;
   AsyncDataCollection<Units> get units;
-  AsyncDataCollection<MeasurementType> get measurementTypes;
-  AsyncDataCollection<MeasurementType> get compositionStatistics;
-  AsyncDataCollection<Ingredient> get ingredients;
-  AsyncDataCollection<Dish> get dishes;
-  AsyncDataCollection<DPair> get config;
+  AsyncDataCollection<Measurable> get measurables;
+
+  Future<int> get version;
+
+//  AsyncDataCollection<MeasurementType> get compositionStatistics;
+//  AsyncDataCollection<Ingredient> get ingredients;
+//  AsyncDataCollection<Dish> get dishes;
 
   /// Find the natural units for an amount (the next smallest in the list of defined units)
   Symbol naturalUnitsFor(num amount, Symbol dimensionId) {
@@ -134,13 +139,13 @@ abstract class Database {
 
   String formatComponents(Map<Symbol, int> comps) => "{"+comps.entries.map((e) => "${TL8(e.key)}: ${e.value}").join(",")+"}";
 
-  String formatUnits(Units units) => "Units(id: ${TL8(units.id)}, dimensionId: ${units.dimensionId}, multiplier: ${units.multiplier})";
+  String formatUnits(Units units) => "Units(id: ${TL8(units.id)}, dimensionId: ${units.dimensionsId}, multiplier: ${units.multiplier})";
 
-  String formatMeasurementType(MeasurementType mtype) => "MeasurementType(id: ${TL8(mtype.id)}, units: ${formatUnits(mtype.units)})";
+  String formatMeasurable(Measurable meas) => "Measurable(id: ${TL8(meas.id)}, units: ${TL8(meas.dimensionsId)})";
 
   /// Sets up an empty database
   static void initialiseData(Database db) async {
-    final int? version = (await db.config.maybeGet(#version))?.value;
+    final int? version = await db.version;
     print("Database $db version $version");
     if (version == null)
       schemas[schemas.length-1].init(db);
@@ -168,8 +173,8 @@ abstract class Database {
           GramsPerCentigram = Units(#g_per_cg, #FractionByMass, 0.01),
           GramsPerGram = Units(#g_per_g, #FractionByMass, 1),
           GramsPerHectogram = Units(#g_per_hg, #FractionByMass, 100),
-          GramsPerKiloGram = Units(#g_per_kg, #FractionByMass, 1000),
-          Carbs = MeasurementType(id: #Carbs, units: GramsPerHectogram),
+          GramsPerKiloGram = Units(#g_per_kg, #FractionByMass, 1000);
+  /*        Carbs = MeasurementType(id: #Carbs, units: GramsPerHectogram),
           Fat = MeasurementType(id: #Fat, units: GramsPerHectogram),
           Fibre = MeasurementType(id: #Fibre, units: GramsPerHectogram),
           Protein = MeasurementType(id: #Protein, units: GramsPerHectogram),
@@ -203,7 +208,7 @@ abstract class Database {
         db.compositionStatistics..add(Carbs)..add(Fat)..add(Fibre)..add(
             Protein)..add(Sugar)..add(Salt);
         db.ingredients..add(tahini)..add(cabbage);
-        db.dishes..add(salad);
+        db.dishes..add(salad);*/
       }
     )
   ];
