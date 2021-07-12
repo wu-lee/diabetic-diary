@@ -1,7 +1,9 @@
 import 'package:diabetic_diary/database.dart';
 import 'package:diabetic_diary/database/moor_database.dart';
 import 'package:diabetic_diary/dimensions.dart';
+import 'package:diabetic_diary/edible.dart';
 import 'package:diabetic_diary/measureable.dart';
+import 'package:diabetic_diary/quantity.dart';
 import 'package:test/test.dart';
 import 'package:diabetic_diary/units.dart';
 import 'package:path/path.dart' as p;
@@ -44,6 +46,19 @@ void main() async {
 
       print(mdb.formatMeasurable(inThing));
       if (outThing!=null) print(mdb.formatMeasurable(outThing));
+      expect(outThing, inThing);
+    });
+
+    test('Just Edibles', () async {
+      final contents = {#testContent: Quantity(1, Units(#g, #Mass, 1))};
+      final inThing = Edible(id: #testEdible, contents: contents);
+      final removed = await mdb.edibles.removeAll();
+      print("removed "+removed.toString());
+      await mdb.edibles.add(inThing);
+      final outThing = await mdb.edibles.maybeGet(#testEdible);
+
+      print(await mdb.formatEdible(inThing));
+      if (outThing!=null) print(await mdb.formatEdible(outThing));
       expect(outThing, inThing);
     });
 /*

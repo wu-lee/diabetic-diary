@@ -1,6 +1,7 @@
  
 import '../database.dart';
 import '../dimensions.dart';
+import '../edible.dart';
 import '../indexable.dart';
 import '../measureable.dart';
 import '../units.dart';
@@ -13,12 +14,7 @@ class MockDatabase extends Database {
 
   static final _measurables = MockDataCollection<Measurable>();
 
-//  static final _compositionStatistics = MockDataCollection<MeasurementType>();
-
-//  static final _ingredients = MockDataCollection<Ingredient>();
-
-//  static final _dishes = MockDataCollection<Dish>();
-
+  static final _edibles = MockDataCollection<Edible>();
 
 
   static final int _version = 0;
@@ -31,16 +27,10 @@ class MockDatabase extends Database {
 
   @override
   AsyncDataCollection<Measurable> get measurables => _measurables;
-/*
-  @override
-  AsyncDataCollection<Ingredient> get ingredients => _ingredients;
 
   @override
-  AsyncDataCollection<Dish> get dishes => _dishes;
+  AsyncDataCollection<Edible> get edibles => _edibles;
 
-  @override
-  AsyncDataCollection<MeasurementType> get compositionStatistics => _compositionStatistics;
-*/
   @override
   Future<int> get version => Future(() => _version);
 }

@@ -4,8 +4,9 @@ import 'package:diabetic_diary/translation.dart';
 
 //import 'entities/dish.dart';
 import 'dimensions.dart';
+import 'edible.dart';
 import 'indexable.dart';
-//import 'entities/ingredient.dart';
+//import 'entities/edible.dart';
 //import 'measurement_type.dart';
 import 'quantity.dart';
 import 'units.dart';
@@ -94,6 +95,7 @@ abstract class Database {
   AsyncDataCollection<Dimensions> get dimensions;
   AsyncDataCollection<Units> get units;
   AsyncDataCollection<Measurable> get measurables;
+  AsyncDataCollection<Edible> get edibles;
 
   Future<int> get version;
 
@@ -142,6 +144,18 @@ abstract class Database {
   String formatUnits(Units units) => "Units(id: ${TL8(units.id)}, dimensionId: ${units.dimensionsId}, multiplier: ${units.multiplier})";
 
   String formatMeasurable(Measurable meas) => "Measurable(id: ${TL8(meas.id)}, units: ${TL8(meas.dimensionsId)})";
+
+  Future<String> formatEdible(Edible edible) async => "Edible(id: ${TL8(edible.id)}, contents: ${await formatContents(edible.contents)})";
+
+  Future<String> formatContents(Map<Symbol, Quantity> contents) async {
+    final entries = contents.entries.map((e) async {
+      final quantity = await formatQuantity(e.value);
+      return "#${TL8(e.key)}: $quantity";
+    });
+    return "{"+(await Future.wait(entries)).join(",")+"}";
+  }
+
+
 
   /// Sets up an empty database
   static void initialiseData(Database db) async {
