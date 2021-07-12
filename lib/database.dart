@@ -2,12 +2,9 @@
 import 'package:diabetic_diary/measureable.dart';
 import 'package:diabetic_diary/translation.dart';
 
-//import 'entities/dish.dart';
 import 'dimensions.dart';
 import 'edible.dart';
 import 'indexable.dart';
-//import 'entities/edible.dart';
-//import 'measurement_type.dart';
 import 'quantity.dart';
 import 'units.dart';
 
