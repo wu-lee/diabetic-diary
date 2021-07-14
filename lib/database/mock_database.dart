@@ -54,18 +54,7 @@ class MockDataCollection<T extends Indexable> implements AsyncDataCollection<T> 
   }
 
   @override
-  Future<Map<Symbol, T>> cannedQuery(Symbol id, [List? parameters]) {
-    // TODO: implement cannedQuery
-    throw UnimplementedError();
-  }
-
-  @override
   Future<int> count() => Future(() => map.length);
-
-  @override
-  forEach(void Function(Symbol ix, T val) visitor) {
-    map.forEach(visitor);
-  }
 
   @override
   Future<T> get(Symbol index, T otherwise) {
@@ -86,11 +75,6 @@ class MockDataCollection<T extends Indexable> implements AsyncDataCollection<T> 
     if (value == null)
       throw RangeError("No item with index $index");
     return Future(() => value);
-  }
-
-  @override
-  void put(Symbol index, T value) {
-    map[index] = value;
   }
 
   @override

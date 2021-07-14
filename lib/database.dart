@@ -54,6 +54,9 @@ abstract class AsyncDataCollection<T extends Indexable> {
   /// Count all items
   Future<int> count();
 
+  /// Get all items as a map
+  Future<Map<Symbol, T>> getAll();
+
   /// Get a named item, or the otherwise value if absent.
   ///
   /// otherwise defaults to null
@@ -67,27 +70,14 @@ abstract class AsyncDataCollection<T extends Indexable> {
   /// Get a named item, or throw
   Future<T> fetch(Symbol index);
 
-  /// Get all items as a map
-  Future<Map<Symbol, T>> getAll();
-
   /// Put an indexable item
   Future<Symbol> add(T value);
-
-  /// Put a named item
-  void put(Symbol index, T value);
 
   /// Remove a named item
   Future<int> remove(Symbol index);
 
   /// Remove all items, returning the number
   Future<int> removeAll();
-
-  /// Retrieve all items of the collection in some arbitrary order, and pass to the visitor
-  void forEach(void Function(Symbol, T) visitor);
-
-  /// Invoke a named predefined query with some parameters. May throw an exception if this
-  /// name doesn't exist or the parameters are wrong.
-  Future<Map<Symbol, T>> cannedQuery(Symbol name, [List<dynamic>? parameters]);
 }
 
 abstract class Database {
@@ -105,9 +95,10 @@ abstract class Database {
 //  AsyncDataCollection<Dish> get dishes;
 
   /// Find the natural units for an amount (the next smallest in the list of defined units)
-  Symbol naturalUnitsFor(num amount, Symbol dimensionId) {
+  Future<Symbol> naturalUnitsFor(num amount, Symbol dimensionId) async {
     List<Units> inOrder = [];
-    units.forEach((id, unit) { inOrder.add(unit); });
+    final map = await units.getAll();
+    map.forEach((id, unit) { inOrder.add(unit); });
     inOrder = inOrder
       .toList()
       ..sort((a,b) => b.multiplier.compareTo(a.multiplier));

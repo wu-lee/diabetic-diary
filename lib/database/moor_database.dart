@@ -134,12 +134,6 @@ abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 exten
   }
 
   @override
-  Future<Map<Symbol, D2>> cannedQuery(Symbol name, [List? parameters]) {
-    // TODO: implement cannedQuery
-    throw UnimplementedError();
-  }
-
-  @override
   Future<int> count() async {
     final count = countAll();
     final query = db.selectOnly(tableInfo)..addColumns([count]);
@@ -155,11 +149,6 @@ abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 exten
 
     // Convert the list of rows into a map from dimension id to exponent
     return rowToValue(row);
-  }
-
-  @override
-  void forEach(void Function(Symbol p1, D2 p2) visitor) {
-    // TODO: implement forEach
   }
 
   @override
@@ -186,11 +175,6 @@ abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 exten
     if (row == null)
       return otherwise;
     return rowToValue(row);
-  }
-
-  @override
-  void put(Symbol index, D2 value) {
-    // TODO: implement put
   }
 
   @override
@@ -263,12 +247,6 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
   }
 
   @override
-  Future<Map<Symbol, Dimensions>> cannedQuery(Symbol name, [List? parameters]) {
-    // TODO: implement cannedQuery
-    throw UnimplementedError();
-  }
-
-  @override
   Future<int> count() async {
     final count = idCol.count(distinct: true);
     final query = db.selectOnly(table)
@@ -284,11 +262,6 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
     if (rows.isEmpty)
       throw ArgumentError("no value for id ${symbolToString(index)}");
     return rowsToValues(rows).values.first;
-  }
-
-  @override
-  void forEach(void Function(Symbol p1, Dimensions p2) visitor) {
-    // TODO: implement forEach
   }
 
   @override
@@ -314,11 +287,6 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
 
     // Convert the list of rows into a map from dimension id to exponent
     return rowsToValues(rows).values.first;
-  }
-
-  @override
-  void put(Symbol index, Dimensions value) {
-    // TODO: implement put
   }
 
   @override
@@ -468,12 +436,6 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   }
 
   @override
-  Future<Map<Symbol, Edible>> cannedQuery(Symbol name, [List? parameters]) {
-    // TODO: implement cannedQuery
-    throw UnimplementedError();
-  }
-
-  @override
   Future<int> count() async { // same as dims
     final count = idCol.count(distinct: true);
     final query = db.selectOnly(table)
@@ -489,11 +451,6 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
     if (rows.isEmpty)
       throw ArgumentError("no value for id ${symbolToString(index)}");
     return rowsToValues(rows).values.first;
-  }
-
-  @override
-  void forEach(void Function(Symbol p1, Edible p2) visitor) {
-    // TODO: implement forEach
   }
 
   @override
@@ -519,11 +476,6 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   }
 
   @override
-  void put(Symbol index, Edible value) {
-    // TODO: implement put
-  }
-
-  @override
   Future<int> remove(Symbol index) {
     final query = db.delete(table)..where((a) => idCol.equals(symbolToString(index)));
     return query.go();
@@ -533,5 +485,4 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   Future<int> removeAll() async {
     return db.delete(table).go();
   }
-
 }
