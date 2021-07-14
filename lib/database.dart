@@ -54,10 +54,14 @@ abstract class AsyncDataCollection<T extends Indexable> {
   /// Count all items
   Future<int> count();
 
-  /// Get a named item, or the otherwise value if absent
+  /// Get a named item, or the otherwise value if absent.
+  ///
+  /// otherwise defaults to null
   Future<T?> maybeGet(Symbol index, [T? otherwise]);
 
   /// Get a named item, or the otherwise value if absent
+  ///
+  /// otherwise must be a non-null value
   Future<T> get(Symbol index, T otherwise);
 
   /// Get a named item, or throw

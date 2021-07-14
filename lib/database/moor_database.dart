@@ -109,9 +109,9 @@ class MoorDatabase extends Database {
   Future<int> get version => Future(() => 0);
 }
 
-abstract class MoorDataCollection<D extends DataClass, D2 extends Indexable, TI extends TableInfo> implements AsyncDataCollection<D2> {
+abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 extends Indexable> implements AsyncDataCollection<D2> {
   final _MoorDatabase db;
-  final TI tableInfo;
+  final TableInfo<T, D> tableInfo;
   final GeneratedTextColumn idCol;
 
   MoorDataCollection(this.db, this.tableInfo, this.idCol);
@@ -119,13 +119,18 @@ abstract class MoorDataCollection<D extends DataClass, D2 extends Indexable, TI 
   Insertable<D> valueToRow(D2 val);
   D2 rowToValue(D row);
 
+  SimpleSelectStatement<T, D> _rowFor(Symbol index) {
+    return db
+      .select(tableInfo)
+      ..where((a) => idCol.equals(symbolToString(index)));
+  }
+
   @override
   Future<Symbol> add(D2 value) async {
     final row = valueToRow(value);
 //    final result = await db.into(tableInfo).insertOnConflictUpdate(row);
     final result = await db.into(tableInfo).insert(row);
-    print("result "+result.toString());
-    return Future(() => value.id);
+    return value.id;
   }
 
   @override
@@ -135,24 +140,21 @@ abstract class MoorDataCollection<D extends DataClass, D2 extends Indexable, TI 
   }
 
   @override
-  Future<int> count() {
-    // TODO: implement count
-    throw UnimplementedError();
+  Future<int> count() async {
+    final count = countAll();
+    final query = db.selectOnly(tableInfo)..addColumns([count]);
+    final result = await query.getSingle();
+    return result.read(count);
   }
 
   @override
   Future<D2> fetch(Symbol index) async {
-    final results = db
-      .select(tableInfo)
-      ..where((a) => idCol.equals(symbolToString(index)));
-    final row = await results.getSingle();
+    final row = await _rowFor(index).getSingleOrNull();
+    if (row == null)
+      throw ArgumentError("no $D2 value for id ${symbolToString(index)}");
+
     // Convert the list of rows into a map from dimension id to exponent
-    try {
-      return rowToValue(row);
-    }
-    catch(e) {
-      throw Exception("no such thing as "+symbolToString(index));
-    }
+    return rowToValue(row);
   }
 
   @override
@@ -162,27 +164,25 @@ abstract class MoorDataCollection<D extends DataClass, D2 extends Indexable, TI 
 
   @override
   Future<D2> get(Symbol index, D2 otherwise) async {
-    final results = db
-        .select(tableInfo)
-      ..where((a) => idCol.equals(symbolToString(index)));
-    final row = await results.getSingleOrNull();
+    final row = await _rowFor(index).getSingleOrNull();
     if (row == null)
       return otherwise;
     return rowToValue(row);
   }
 
   @override
-  Future<Map<Symbol, D2>> getAll() {
-    // TODO: implement getAll
-    throw UnimplementedError();
+  Future<Map<Symbol, D2>> getAll() async {
+    final query = db.select(tableInfo);
+    final rows = await query.get();
+    return Map.fromEntries(rows.map((row) {
+      final value = rowToValue(row);
+      return MapEntry(value.id, value);
+    }));
   }
 
   @override
   Future<D2?> maybeGet(Symbol index, [D2? otherwise]) async {
-    final results = db
-        .select(tableInfo)
-      ..where((u) => idCol.equals(symbolToString(index)));
-    final row = await results.getSingleOrNull();
+    final row = await _rowFor(index).getSingleOrNull();
     if (row == null)
       return otherwise;
     return rowToValue(row);
@@ -211,19 +211,55 @@ abstract class MoorDataCollection<D extends DataClass, D2 extends Indexable, TI 
 
 class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
   final _MoorDatabase db;
+  final $_DimensionsTable table;
+  final GeneratedTextColumn idCol;
+  SimpleSelectStatement<Table, dynamic> get commonQuery => db.select(db.dimensions);
 
-  MoorDimensionsCollection(this.db);
+  MoorDimensionsCollection(this.db) :
+        table = db.dimensions,
+        idCol = db.dimensions.id;
 
-  @override
-  Future<Symbol> add(Dimensions dimensions) {
-    dimensions.components.forEach((key, value) {
-      db.into(db.dimensions).insert(_DimensionsCompanion(
-        id: Value(symbolToString(dimensions.id)),
-        componentId: Value(symbolToString(key)),
-        exponent: Value(value),
+  Iterable<Insertable<_Dimension>> valueToRows(Dimensions value) {
+    List<Insertable<_Dimension>> rows = [];
+    value.components.forEach((k, v) {
+      rows.add(_Dimension(
+        id: symbolToString(value.id),
+        componentId: symbolToString(k),
+        exponent: v,
       ));
     });
-    return Future(() => dimensions.id);
+    return rows;
+  }
+
+  Map<Symbol, Dimensions> rowsToValues(Iterable<_Dimension> rows) {
+    final Map<Symbol, Map<Symbol, int>> map = {};
+    rows.forEach((row) {
+      final dim = map[Symbol(row.id)] ??= <Symbol, int>{};
+      dim[Symbol(row.componentId)] ??= row.exponent;
+    });
+    return map.map((k,v) => MapEntry(k, Dimensions(id: k, components: v)));
+  }
+
+  SimpleSelectStatement<$_DimensionsTable, _Dimension> _rowsFor(Symbol index) {
+    return db
+        .select(table, distinct: true)
+      ..where((a) => idCol.equals(symbolToString(index)));
+  }
+
+  @override
+  Future<Symbol> add(Dimensions value) {
+    final newRows = valueToRows(value).toList(); // FIXME stream this?
+    final delRows = db.delete(table)..where((t) => idCol.equals(symbolToString(value.id)));
+    return db.transaction(() async {
+      await delRows.go();
+      await db.batch((batch) {
+        batch.insertAll(
+          table,
+          newRows,
+        );
+      });
+      return value.id;
+    });
   }
 
   @override
@@ -234,8 +270,8 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
 
   @override
   Future<int> count() async {
-    final count = db.units.dimensionsId.count(distinct: true);
-    final query = db.selectOnly(db.units)
+    final count = idCol.count(distinct: true);
+    final query = db.selectOnly(table)
       ..addColumns([count]);
 
     final r = await query.getSingle();
@@ -244,15 +280,10 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
 
   @override
   Future<Dimensions> fetch(Symbol index) async {
-    final results = db
-      .select(db.dimensions, distinct: true)
-      ..where((a) => a.id.equals(symbolToString(index)));
-    final rows = await results.get();
-    // Convert the list of rows into a map from dimension id to exponent
-    final components = Map.fromEntries(rows.map((component) =>
-        MapEntry(Symbol(component.id), component.exponent)));
-    // Use that map to construct a Dimensions instance
-    return Dimensions(id: index, components: components);
+    final rows = await _rowsFor(index).get();
+    if (rows.isEmpty)
+      throw ArgumentError("no value for id ${symbolToString(index)}");
+    return rowsToValues(rows).values.first;
   }
 
   @override
@@ -261,32 +292,28 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
   }
 
   @override
-  Future<Dimensions> get(Symbol index, Dimensions otherwise) {
-    // TODO: implement get
-    throw UnimplementedError();
+  Future<Dimensions> get(Symbol index, Dimensions otherwise) async {
+    final rows = await _rowsFor(index).get();
+    if (rows.isEmpty)
+      return otherwise;
+    return rowsToValues(rows).values.first;
   }
 
   @override
-  Future<Map<Symbol, Dimensions>> getAll() {
-    // TODO: implement getAll
-    throw UnimplementedError();
+  Future<Map<Symbol, Dimensions>> getAll() async {
+    final rows = await db
+        .select(table, distinct: true).get();
+    return rowsToValues(rows);
   }
 
   @override
   Future<Dimensions?> maybeGet(Symbol index, [Dimensions? otherwise]) async {
-    final results = db
-        .select(db.dimensions, distinct: true)
-      ..where((a) => a.id.equals(symbolToString(index)));
-    final rows = await results.get();
+    final rows = await _rowsFor(index).get();
     if (rows.isEmpty)
       return otherwise;
 
     // Convert the list of rows into a map from dimension id to exponent
-    final components = Map.fromEntries(rows.map((component) =>
-        MapEntry(Symbol(component.componentId), component.exponent)));
-
-    // Use that map to construct a Dimensions instance
-    return Dimensions(id: index, components: components);
+    return rowsToValues(rows).values.first;
   }
 
   @override
@@ -296,20 +323,22 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
 
   @override
   Future<int> remove(Symbol index) {
-    // TODO: implement remove
-    throw UnimplementedError();
+    final results = db
+        .delete(table)
+      ..where((a) => idCol.equals(symbolToString(index)));
+    return results.go();
   }
 
   @override
   Future<int> removeAll() {
     final results = db
-        .delete(db.dimensions);
+        .delete(table);
     return results.go();
   }
 }
 
 
-class MoorUnitsCollection extends MoorDataCollection<_Unit, Units, $_UnitsTable> {
+class MoorUnitsCollection extends MoorDataCollection<$_UnitsTable, _Unit, Units> {
 
   MoorUnitsCollection(_MoorDatabase db) : super(db, db.units, db.units.id);
 
@@ -328,7 +357,7 @@ class MoorUnitsCollection extends MoorDataCollection<_Unit, Units, $_UnitsTable>
   }
 }
 
-class MoorMeasurablesCollection extends MoorDataCollection<_Measurable, Measurable, $_MeasurablesTable> {
+class MoorMeasurablesCollection extends MoorDataCollection<$_MeasurablesTable, _Measurable, Measurable> {
 
   MoorMeasurablesCollection(_MoorDatabase db) : super(db, db.measurables, db.measurables.id);
 
@@ -350,18 +379,16 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   final _MoorDatabase db;
   final $_EdiblesTable table;
   final GeneratedTextColumn idCol;
-  final GeneratedTextColumn joinCol;
-  final JoinedSelectStatement<Table, dynamic> commonQuery;
+  JoinedSelectStatement<Table, dynamic> get commonQuery =>
+    db.select(db.edibles)
+      .join([
+        leftOuterJoin(db.units, db.edibles.unitsId.equalsExp(db.units.id))
+      ]);
 
 
   MoorEdiblesCollection({required this.db}) :
     table = db.edibles,
-    idCol = db.edibles.id,
-    joinCol = db.edibles.unitsId,
-    commonQuery = db.select(db.edibles)
-      .join([
-        leftOuterJoin(db.units, db.edibles.unitsId.equalsExp(db.units.id))
-      ]);
+    idCol = db.edibles.id;
 
   Iterable<Insertable<_Edible>> valueToRows(Edible value) {
     List<Insertable<_Edible>> rows = [];
@@ -392,26 +419,30 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
     );
   }
 
-  Edible rowsToValue(Iterable<TypedResult> rows) {
-    Symbol index = Symbol('');
-    final contents = Map.fromEntries(rows.map((row) {
+  Map<Symbol, Edible> rowsToValues(Iterable<TypedResult> rows) {
+    final Map<Symbol, Map<Symbol, Quantity>> map = {};
+    rows.forEach((row) {
       final edibleFields = row.readTable(db.edibles);
+      final id = Symbol(edibleFields.id);
+      final contains = Symbol(edibleFields.contains);
+      final dim = map[id] ??= <Symbol, Quantity>{};
+      if (dim.containsKey(contains))
+        return; // already present... FIXME signal an error?
       final unitsFields = row.readTableOrNull(db.units);
-      index = Symbol(edibleFields.id);
-      // We do our best to create a Units value even if there is none, or it is malformed
-      final units = Units(Symbol(unitsFields?.id ?? ''), Symbol(unitsFields?.dimensionsId ?? ''), unitsFields?.multiplier ?? 0);
-      final quantity = Quantity(edibleFields.amount, units);
-      return MapEntry(Symbol(edibleFields.contains), quantity);
-    }));
+      final units = unitsFields == null?
+        Units.rogueValue :
+        Units(Symbol(edibleFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
-    if (contents.isEmpty)
-      throw Exception("Parameter `rows` is an empty list");
+      dim[contains] = Quantity(
+          edibleFields.amount,
+          units);
+    });
+    return map.map((k,v) => MapEntry(k, Edible(id: k, contents: v)));
+  }
 
-    // Use that map to construct an instance
-    return Edible(
-      id: index,
-      contents: contents,
-    );
+  JoinedSelectStatement<Table, dynamic> _rowsFor(Symbol index) { // same as dims
+    return commonQuery
+      ..where(idCol.equals(symbolToString(index)));
   }
 
   @override
@@ -443,15 +474,21 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   }
 
   @override
-  Future<int> count() {
-    // TODO: implement count
-    throw UnimplementedError();
+  Future<int> count() async { // same as dims
+    final count = idCol.count(distinct: true);
+    final query = db.selectOnly(table)
+      ..addColumns([count]);
+
+    final r = await query.getSingle();
+    return r.read(count);
   }
 
   @override
-  Future<Edible> fetch(Symbol index) {
-    // TODO: implement fetch
-    throw UnimplementedError();
+  Future<Edible> fetch(Symbol index) async {
+    final rows = await _rowsFor(index).get();
+    if (rows.isEmpty)
+      throw ArgumentError("no value for id ${symbolToString(index)}");
+    return rowsToValues(rows).values.first;
   }
 
   @override
@@ -460,28 +497,25 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   }
 
   @override
-  Future<Edible> get(Symbol index, Edible otherwise) {
-    // TODO: implement get
-    throw UnimplementedError();
+  Future<Edible> get(Symbol index, Edible otherwise) async {
+    final rows = await _rowsFor(index).get();
+    if (rows.isEmpty)
+      return otherwise;
+    return rowsToValues(rows).values.first;
   }
 
   @override
-  Future<Map<Symbol, Edible>> getAll() {
-    // TODO: implement getAll
-    throw UnimplementedError();
+  Future<Map<Symbol, Edible>> getAll() async {
+    final rows =  await commonQuery.get();
+    return rowsToValues(rows);
   }
 
   @override
   Future<Edible?> maybeGet(Symbol index, [Edible? otherwise]) async {
-    final results = commonQuery
-      ..where(idCol.equals(symbolToString(index)));
-    final rows = await results.get();
-    print(rows);
+    final rows = await _rowsFor(index).get();
     if (rows.isEmpty)
       return otherwise;
-
-    // Use that map to construct a Dimensions instance
-    return rowsToValue(rows);
+    return rowsToValues(rows).values.first;
   }
 
   @override
