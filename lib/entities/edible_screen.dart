@@ -55,7 +55,11 @@ class _EdibleState extends State<EdibleScreen> {
                       child: Row(
                         children: [
                           Expanded(child: Text(TL8(e.key))),
-                          Text('${db.formatQuantity(e.value, #g_per_hg)}'),
+                          FutureBuilder(
+                            future: db.formatQuantity(e.value, #g_per_hg),
+                            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) =>
+                                Text('${snapshot.data}'),
+                          ),
                         ],
                       ),
                     ),
@@ -82,7 +86,11 @@ class _EdibleState extends State<EdibleScreen> {
                       child: Row(
                         children: [
                           Expanded(child: Text(TL8(e.key))),
-                          Text('${db.formatQuantity(e.value, #g)}'),
+                          FutureBuilder(
+                            future: db.formatQuantity(e.value, #g),
+                            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) =>
+                                Text('${snapshot.data}'),
+                          ),
                         ],
                       ),
                     ),

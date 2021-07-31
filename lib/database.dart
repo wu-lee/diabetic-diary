@@ -9,12 +9,6 @@ import 'indexable.dart';
 import 'quantity.dart';
 import 'units.dart';
 
-class DPair extends Indexable {
-  final dynamic value;
-
-  DPair(Symbol id, this.value) : super(id: id);
-}
-
 abstract class DataCollection<T extends Indexable> {
   /// Count all items
   int count();
@@ -217,16 +211,16 @@ abstract class Database {
 
   /// Sets up an empty database
   static Future<void> initialiseData(Database db) async {
-    final int? version = await db.version;
+    final int version = await db.version;
     print("Database $db version $version");
-    if (version == null)
+    if (version <= 0)
       schemas[schemas.length-1].init(db);
   }
 
   static final schemas = [
-    DbSchema( // 0
+    DbSchema( // 1
       init: (Database db) {
-        const version = 0;
+        const version = 1;
         print("Initialising $db as version $version");
         const
           Mass = Dimensions(
@@ -274,9 +268,9 @@ abstract class Database {
               cabbage.id: Grams.times(2),
             },
           );
-        //db.config
-        //  ..add(DPair(#version, version));
         db.dimensions..add(Mass)..add(FractionByMass);
+        db.units..add(Grams)..add(KiloGrams)
+          ..add(GramsPerHectogram)..add(GramsPerKiloGram)..add(GramsPerGram);
         db.measurables..add(Carbs)..add(Fat)..add(Fibre)..add(
             Protein)..add(Sugar)..add(Salt);
         db.edibles..add(tahini)..add(cabbage);

@@ -106,7 +106,7 @@ class MoorDatabase extends Database {
   final AsyncDataCollection<Edible> edibles;
 
   @override
-  Future<int> get version => Future(() => 0);
+  Future<int> get version async => db.schemaVersion;
 }
 
 abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 extends Indexable> implements AsyncDataCollection<D2> {

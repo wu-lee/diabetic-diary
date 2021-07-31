@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../database.dart';
 import '../edible.dart';
-import '../indexable.dart';
-import '../measureable.dart';
 import '../quantity.dart';
 import '../translation.dart';
 
@@ -52,12 +50,17 @@ class _EdibleCreateState extends State<EdibleCreateScreen> {
           child: ListView(
             children: entities.map(
               (e) => Container(
-                padding:
-                EdgeInsets.symmetric(vertical: 3, horizontal: 10),
+                padding: EdgeInsets.symmetric(vertical: 3, horizontal: 10),
                 child: Row(
                   children: [
-                    Expanded(child: Text(TL8(e.key))),
-                    Text('${db.formatQuantity(e.value)}'),
+                    Expanded(
+                      child: Text(TL8(e.key))
+                    ),
+                    FutureBuilder(
+                      future: db.formatQuantity(e.value),
+                      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) =>
+                        Text('${snapshot.data}'),
+                    ),
                   ],
                 ),
               ),
@@ -164,13 +167,16 @@ class _EdibleCreateState extends State<EdibleCreateScreen> {
                                     child: Icon(Icons.add),
                                     color: Colors.blue,
                                     onPressed: () async {
-                                      final grams = await db.units.fetch(#g);
-                                      setState(() async {
-                                        final quantity = contentAmounts[e] ?? Quantity(0, grams);
+                                      final gramsPerHectagram = await db.units.fetch(#g_per_hg);
+                                      final quantity = contentAmounts[e] ?? Quantity(0, gramsPerHectagram);
+                                      final aggregated = await db.aggregate(contentAmounts);
+
+                                      setState(() {
+                                        final quantity = contentAmounts[e] ?? Quantity(0, gramsPerHectagram);
                                         contentAmounts[e.id] = quantity.add(1);
                                         //print(db.formatEdible(contentAmounts)); // DEBUG
                                         //print(db.formatMeasurable(compositionStats)); // DEBUG
-                                        compositionStats = await db.aggregate(contentAmounts);
+                                        compositionStats = aggregated;
                                         //print(db.formatEdible(compositionStats));// DEBUG
                                       });
                                     },

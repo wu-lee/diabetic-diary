@@ -1,4 +1,6 @@
  
+import 'package:diabetic_diary/translation.dart';
+
 import '../database.dart';
 import '../dimensions.dart';
 import '../edible.dart';
@@ -17,7 +19,7 @@ class MockDatabase extends Database {
   static final _edibles = MockDataCollection<Edible>();
 
 
-  static final int _version = 0;
+  static int _version = 0;
 
   @override
   AsyncDataCollection<Dimensions> get dimensions => _dimensions;
@@ -32,7 +34,7 @@ class MockDatabase extends Database {
   AsyncDataCollection<Edible> get edibles => _edibles;
 
   @override
-  Future<int> get version => Future(() => _version);
+  Future<int> get version async => Future(() => _version);
 }
 
 class MockDataCollection<T extends Indexable> implements AsyncDataCollection<T> {
@@ -50,6 +52,7 @@ class MockDataCollection<T extends Indexable> implements AsyncDataCollection<T> 
 
   Future<Symbol> add(T value) {
     map[value.id] = value;
+    print("add ${symbolToString(value.id)}");
     return Future(() => value.id);
   }
 
