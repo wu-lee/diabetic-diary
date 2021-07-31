@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'indexable.dart';
+import 'units.dart';
 
 /// Represents a measurement dimension, in the sense of dimensional analysis of quantities
 class Dimensions implements Indexable {
@@ -27,4 +28,6 @@ class Dimensions implements Indexable {
   bool equals(Object? that) => that is Dimensions &&
       id == that.id &&
       mapEquals(components, that.components);
+
+  Units units(Symbol unitsId, multiplier) => Units(unitsId, id, multiplier);
 }

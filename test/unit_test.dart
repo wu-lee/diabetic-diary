@@ -1,81 +1,100 @@
-import 'package:diabetic_diary/entities/ingredient.dart';
-import 'package:diabetic_diary/measurement_type.dart';
-import 'package:test/test.dart';
+import 'package:diabetic_diary/database.dart';
+import 'package:diabetic_diary/database/mock_database.dart';
+import 'package:diabetic_diary/dimensions.dart';
+import 'package:diabetic_diary/edible.dart';
+import 'package:diabetic_diary/measureable.dart';
+import 'package:diabetic_diary/quantity.dart';
 import 'package:diabetic_diary/units.dart';
 
-const Distance = Dimensions(id: #Distance, units: {#m: 1, #km: 1000}, components: {#Distance:1});
-final meters = Distance.units(#m);
-final  kilometers = Distance.units(#km);
+import 'package:test/test.dart';
 
-void main() {
+const Distance = Dimensions(id: #Distance, components: {#Distance:1});
+final meters = Units(#m, Distance.id, 1);
+final  kilometers = Units(#km, Distance.id, 1000);
+final db = MockDatabase();
+
+
+void main() async {
+  await Database.initialiseData(db);
+
   group('Quantity operations', () {
     test('Equating meters', () {
       expect(meters.times(1), meters.times(1));
     });
-/*    test('Adding meters and kilometers', () {
-      expect((meters.of(1) + kilometers.of(1)).amount, meters.of(1001).amount);
-    });*/
-    test('Aggregating ingredients', () {
+    test('Adding meters and kilometers', () {
+      final q1 = meters.times(1).addQuantity(kilometers.times(1));
+      final q2 = meters.times(1001);
+      expect(q1, q2);
+      expect(q1.amount, 1001);
+      expect(q1.units, meters);
+    });
+    test('Adding kilometers and meters', () {
+      final q1 = kilometers.times(1).addQuantity(meters.times(1));
+      final q2 = kilometers.times(1.001);
+      expect(q1, q2);
+      expect(q1.amount, 1.001);
+      expect(q1.units, kilometers);
+    });
+    test('Aggregating ingredients', () async {
+      Database db = MockDatabase();
       final mass = Dimensions(
         id: #Mass,
-        units: {
-          #grams: 1/100,
-          #micrograms: 1,
-        },
         components: {#Mass:1},
       );
+      final grams = mass.units(#grams, 1/100);
+      final micrograms = mass.units(#micrograms, 1);
       final massFraction = Dimensions(
         id: #FractionByMass,
-        units: {
-          #gramsPerHectagram: 1/100,
-          #gramsPerGram: 1,
-          #microgramsPerHectagram: 0.001/100,
-        },
         components: {},
       );
+      final gramsPerHectagram = massFraction.units(#gramsPerHectagram, 1/100);
+      final gramsPerGram = massFraction.units(#gramsPerGram, 1);
+      final microgramsPerHectagram = massFraction.units(#microgramsPerHectagram, 0.001/100);
       final energyFraction = Dimensions(
         id: #EnergyByMass,
-        units: {
-          #joulesPerGram: 1,
-          #joulesPerHectagram: 1/100,
-          #kcalPerGram: 4184,
-          #kcalPerHectagram: 4184/100,
-        },
         components: {},
       );
-      final carbs = MeasurementType(id: #Carbs, units: massFraction.units(#gramsPerHectagram));
-      final fat = MeasurementType(id: #Fat, units: massFraction.units(#gramsPerHectagram));
-      final energy = MeasurementType(id: #Energy, units: energyFraction.units(#kcalPerHectagram));
-      final cabbage = Ingredient(
+      final joulesPerGram = energyFraction.units(#joulesPerGram, 1);
+      final joulesPerHectagram = energyFraction.units(#joulesPerHectagram, 1/100);
+      final kcalPerGram = energyFraction.units(#kcalPerGram, 4184);
+      final kcalPerHectagram = energyFraction.units(#kcalPerHectagram, 4184/100);
+      final carbs = Measurable(id: #Carbs, dimensionsId: massFraction.id);
+      final fat = Measurable(id: #Fat, dimensionsId: massFraction.id);
+      final energy = Measurable(id: #Energy, dimensionsId: energyFraction.id);
+      final cabbage = Edible(
           id: #Cabbage,
-          compositionStats: {
-            carbs: massFraction.of(10, #gramsPerHectagram),
-            fat: massFraction.of(0, #gramsPerHectagram),
-            energy: energyFraction.of(30, #kcalPerHectagram),
+          contents: {
+            carbs.id: Quantity(10, gramsPerHectagram),
+            fat.id: Quantity(0, gramsPerHectagram),
+            energy.id: Quantity(30, kcalPerHectagram),
           }
       );
-      final tahini = Ingredient(
+      final tahini = Edible(
           id: #Tahini,
-          compositionStats: {
-            carbs: massFraction.of(10, #gramsPerHectagram),
-            fat: massFraction.of(0.8, #gramsPerGram),
-            energy: energyFraction.of(100, #kcalPerHectagram),
+          contents: {
+            carbs.id: Quantity(10, gramsPerHectagram),
+            fat.id: Quantity(0.8, gramsPerGram),
+            energy.id: Quantity(100, kcalPerHectagram),
           }
       );
-      final ingredients = {
-        cabbage: mass.of(100, #grams),
-        tahini: mass.of(100, #grams),
-      };
-      final aggregateStats = Ingredient.aggregate(ingredients);
+      db.dimensions..add(mass)..add(massFraction)..add(energyFraction);
+      db.units..add(grams)..add(micrograms)..add(gramsPerGram)..add(gramsPerGram)..add(gramsPerHectagram);
+      db.units..add(joulesPerGram)..add(joulesPerHectagram)..add(kcalPerGram)..add(kcalPerHectagram);
+      db.measurables..add(carbs)..add(fat)..add(energy);
+      db.edibles..add(cabbage)..add(tahini);
 
-      print("cabbage: "+MeasurementType.format(cabbage.compositionStats));
-      print("tahini: "+MeasurementType.format(tahini.compositionStats));
-      print(Ingredient.format(ingredients));
-      print(MeasurementType.format(aggregateStats));
+      final ingredients = {
+        cabbage.id: Quantity(50, gramsPerHectagram),
+        tahini.id: Quantity(50, gramsPerHectagram),
+      };
+      final aggregateStats = await db.aggregate(ingredients);
+
+      print("cabbage: "+await db.formatEdible(cabbage));
+      print("tahini: "+await db.formatEdible(tahini));
       expect(aggregateStats, {
-        carbs: massFraction.of(20, #gramsPerHectagram),
-        fat: massFraction.of(.8, #gramsPerGram),
-        energy: energyFraction.of(130, #kcalPerHectagram),
+        carbs.id: Quantity(10, gramsPerHectagram),
+        fat.id: Quantity(40, gramsPerHectagram),
+        energy.id: Quantity(65, kcalPerHectagram),
       });
     });
   });

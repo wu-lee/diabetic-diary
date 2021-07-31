@@ -4,6 +4,7 @@ import 'package:diabetic_diary/translation.dart';
 
 import 'dimensions.dart';
 import 'edible.dart';
+import 'edible_content.dart';
 import 'indexable.dart';
 import 'quantity.dart';
 import 'units.dart';
@@ -90,7 +91,7 @@ abstract class Database {
 
   Future<int> get version;
 
-//  AsyncDataCollection<MeasurementType> get compositionStatistics;
+//  AsyncDataCollection<Measurable> get compositionStatistics;
 //  AsyncDataCollection<Ingredient> get ingredients;
 //  AsyncDataCollection<Dish> get dishes;
 
@@ -147,10 +148,75 @@ abstract class Database {
     return "{"+(await Future.wait(entries)).join(",")+"}";
   }
 
+  /// Deeply traverse the edibles with the given ids, and return an index
+  /// of all edibles and measurables encountered. Measurables are irreducible
+  /// nutritional components and therefore have no contents, just a dimensionId.
+  Future<Map<Symbol, EdibleContent>> traverseContents(Iterable<Symbol> ids) async {
+    // expand all the symbols into Edibles recursively
+    final index = <Symbol, EdibleContent>{};
+    final pending = ids.toSet();
 
+    // We use conventional loops, not closures here, so we can avoid a cascading
+    // chain of the async/await caused by DB lookups.
+    while(pending.isNotEmpty) {
+      final id = pending.first;
+      pending.remove(id);
+      if (index.containsKey(id))
+        continue;
+      final edible = await edibles.maybeGet(id);
+      if (edible == null) {
+        // Not a known edible, presumably a measurable?
+        final measurable = await measurables.maybeGet(id);
+        if (measurable == null)
+          throw new RangeError("Unknown edible $id"); // Nope, throw
+        index[id] = measurable;
+        continue;
+      }
+      index[id] = edible;
+      pending.addAll(edible.contents.keys);
+    }
+    return index;
+  }
+
+  /// Convert the content list of Edibles into a content list of nutritional components
+  ///
+  Future<Map<Symbol, Quantity>> aggregate(Map<Symbol, Quantity> contents) async {
+    return _aggregate(contents, await traverseContents(contents.keys));
+  }
+
+  /// Convert the content list of Edibles into a content list of nutritional components
+  ///
+  Map<Symbol, Quantity> _aggregate(Map<Symbol, Quantity> contents, Map<Symbol, EdibleContent> index) {
+
+    final expanded = contents.entries.expand((elem) {
+      final id = elem.key;
+      final quantity = elem.value;
+
+      // All edible contents must be in the same dimensions, i.e. fraction by mass.
+      //assert(quantity.units.dimensionsId == #FractionByMass);
+
+      final item = index[id];
+      if (item == null)
+        return <MapEntry<Symbol, Quantity>>[];
+
+      if (item is Measurable)
+        return [elem];
+
+      final aggregated = _aggregate((item as Edible).contents, index);
+
+      // Multiply this edible's contents by the parent edible's quantity
+      final multiplier = quantity.amount * quantity.units.multiplier;
+      print("multiplier = ${quantity.amount} * ${quantity.units.multiplier} = $multiplier");
+      return aggregated.entries.map((elem) => MapEntry(elem.key, elem.value.multiply(multiplier)));
+    });
+
+    return expanded.fold({}, (map, entry) =>
+      map..update(entry.key, (value) => entry.value.addQuantity(value), ifAbsent: () => entry.value)
+    );
+  }
 
   /// Sets up an empty database
-  static void initialiseData(Database db) async {
+  static Future<void> initialiseData(Database db) async {
     final int? version = await db.version;
     print("Database $db version $version");
     if (version == null)
@@ -179,42 +245,42 @@ abstract class Database {
           GramsPerCentigram = Units(#g_per_cg, #FractionByMass, 0.01),
           GramsPerGram = Units(#g_per_g, #FractionByMass, 1),
           GramsPerHectogram = Units(#g_per_hg, #FractionByMass, 100),
-          GramsPerKiloGram = Units(#g_per_kg, #FractionByMass, 1000);
-  /*        Carbs = MeasurementType(id: #Carbs, units: GramsPerHectogram),
-          Fat = MeasurementType(id: #Fat, units: GramsPerHectogram),
-          Fibre = MeasurementType(id: #Fibre, units: GramsPerHectogram),
-          Protein = MeasurementType(id: #Protein, units: GramsPerHectogram),
-          Sugar = MeasurementType(id: #Sugar, units: GramsPerHectogram),
-          Salt = MeasurementType(id: #Salt, units: GramsPerHectogram);
+          GramsPerKiloGram = Units(#g_per_kg, #FractionByMass, 1000),
+          Carbs = Measurable(id: #Carbs, dimensionsId: #GramsPerHectogram),
+          Fat = Measurable(id: #Fat, dimensionsId: #GramsPerHectogram),
+          Fibre = Measurable(id: #Fibre, dimensionsId: #GramsPerHectogram),
+          Protein = Measurable(id: #Protein, dimensionsId: #GramsPerHectogram),
+          Sugar = Measurable(id: #Sugar, dimensionsId: #GramsPerHectogram),
+          Salt = Measurable(id: #Salt, dimensionsId: #GramsPerHectogram);
         final
-          tahini = Ingredient(
+          tahini = Edible(
             id: #Tahini,
-            compositionStats: {
-              Carbs: GramsPerHectogram.times(1),
-              Fat: GramsPerHectogram.times(2),
+            contents: {
+              Carbs.id: GramsPerHectogram.times(1),
+              Fat.id: GramsPerHectogram.times(2),
             },
           ),
-          cabbage = Ingredient(
+          cabbage = Edible(
             id: #Cabbage,
-            compositionStats: {
-              Carbs: GramsPerHectogram.times(1),
-              Fibre: GramsPerHectogram.times(1),
+            contents: {
+              Carbs.id: GramsPerHectogram.times(1),
+              Fibre.id: GramsPerHectogram.times(1),
             },
           ),
-          salad = Dish(
+          salad = Edible(
             id: #Salad,
-            ingredients: {
-              tahini: Grams.times(1),
-              cabbage: Grams.times(2),
+            contents: {
+              tahini.id: Grams.times(1),
+              cabbage.id: Grams.times(2),
             },
           );
-        db.config
-          ..add(DPair(#version, version));
+        //db.config
+        //  ..add(DPair(#version, version));
         db.dimensions..add(Mass)..add(FractionByMass);
-        db.compositionStatistics..add(Carbs)..add(Fat)..add(Fibre)..add(
+        db.measurables..add(Carbs)..add(Fat)..add(Fibre)..add(
             Protein)..add(Sugar)..add(Salt);
-        db.ingredients..add(tahini)..add(cabbage);
-        db.dishes..add(salad);*/
+        db.edibles..add(tahini)..add(cabbage);
+        db.edibles..add(salad);
       }
     )
   ];
