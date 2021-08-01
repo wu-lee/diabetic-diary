@@ -87,7 +87,7 @@ class _EdibleState extends State<EdibleScreen> {
                         children: [
                           Expanded(child: Text(TL8(e.key))),
                           FutureBuilder(
-                            future: db.formatQuantity(e.value, #g),
+                            future: db.formatQuantity(e.value, e.value.units.id),
                             builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) =>
                                 Text('${snapshot.data}'),
                           ),
