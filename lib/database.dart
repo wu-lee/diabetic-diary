@@ -1,6 +1,7 @@
 
 import 'package:diabetic_diary/measureable.dart';
 import 'package:diabetic_diary/translation.dart';
+import 'package:flutter/foundation.dart';
 
 import 'dimensions.dart';
 import 'edible.dart';
@@ -83,11 +84,14 @@ abstract class Database {
   AsyncDataCollection<Measurable> get measurables;
   AsyncDataCollection<Edible> get edibles;
 
+  /// Returns the schema version of this database object
   Future<int> get version;
 
-//  AsyncDataCollection<Measurable> get compositionStatistics;
-//  AsyncDataCollection<Ingredient> get ingredients;
-//  AsyncDataCollection<Dish> get dishes;
+  /// Returns the schema version deployed currently in the database, or zero if nothing deployed yet
+  Future<int> get deployedVersion;
+
+  /// Sets the schema version currently deployed in the database
+  Future<void> setDeployedVersion(int version);
 
   /// Find the natural units for an amount (the next smallest in the list of defined units)
   Future<Symbol> naturalUnitsFor(num amount, Symbol dimensionId) async {
@@ -212,9 +216,26 @@ abstract class Database {
   /// Sets up an empty database
   static Future<void> initialiseData(Database db) async {
     final int version = await db.version;
-    print("Database $db version $version");
-    if (version <= 0)
-      schemas[schemas.length-1].init(db);
+    int deployedVersion = await db.deployedVersion;
+    print("Database $db version $version, deployed version is $deployedVersion");
+    if (deployedVersion <= 0) {
+      debugPrint("Clearing database");
+      await db.clear();
+      final versionIx = schemas.length - 1;
+      debugPrint("Populating database with latest schema #${schemas.length}");
+      schemas[versionIx].init(db);
+      debugPrint("Done populating");
+    }
+    else if (deployedVersion > version)
+        throw RangeError("Database schema currently deployed is newer than the one we support");
+    else while(deployedVersion++ < version) {
+        debugPrint("Migrating database schema to $deployedVersion");
+        schemas[deployedVersion-1].upgrade(db);
+        debugPrint("Done migrating");
+      }
+    debugPrint("Setting deployed version to $version");
+    await db.setDeployedVersion(version);
+    debugPrint("Done migrating database to schema #$version");
   }
 
   static final schemas = [
@@ -275,14 +296,18 @@ abstract class Database {
             Protein)..add(Sugar)..add(Salt);
         db.edibles..add(tahini)..add(cabbage);
         db.edibles..add(salad);
-      }
+      },
+      upgrade: (db) {},
     )
   ];
+
+  Future<void> clear();
 }
 
 class DbSchema {
   final void Function(Database db) init;
+  final void Function(Database db) upgrade;
 
-  const DbSchema({required this.init});
+  const DbSchema({required this.init, required this.upgrade});
 }
 

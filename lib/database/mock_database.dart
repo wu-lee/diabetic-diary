@@ -19,7 +19,13 @@ class MockDatabase extends Database {
   static final _edibles = MockDataCollection<Edible>();
 
 
-  static int _version = 0;
+  final int _version;
+
+  int _deployedVersion;
+
+  MockDatabase({required int version, required int deployedVersion}) :
+      _version = version,
+      _deployedVersion = deployedVersion;
 
   @override
   AsyncDataCollection<Dimensions> get dimensions => _dimensions;
@@ -35,6 +41,25 @@ class MockDatabase extends Database {
 
   @override
   Future<int> get version async => Future(() => _version);
+
+  @override
+  Future<int> get deployedVersion => Future(() => _deployedVersion);
+
+  @override
+  Future<void> setDeployedVersion(int version) {
+    _deployedVersion = version;
+    return Future(() => null);
+  }
+
+  @override
+  Future<void> clear() async {
+    dimensions.removeAll();
+    units.removeAll();
+    measurables.removeAll();
+    edibles.removeAll();
+    _deployedVersion = 0;
+    return;
+  }
 }
 
 class MockDataCollection<T extends Indexable> implements AsyncDataCollection<T> {

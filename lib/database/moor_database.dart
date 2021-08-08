@@ -2,6 +2,7 @@ import 'package:diabetic_diary/database.dart';
 import 'package:diabetic_diary/measureable.dart';
 import 'package:diabetic_diary/translation.dart';
 import 'package:diabetic_diary/units.dart';
+import 'package:flutter/foundation.dart';
 import 'package:moor/ffi.dart';
 // don't import moor_web.dart or moor_flutter/moor_flutter.dart in shared code
 import 'package:moor/moor.dart';
@@ -54,6 +55,14 @@ class _Edibles extends Table {
   Set<Column> get primaryKey => {id, contains};
 }
 
+class _Config extends Table {
+  TextColumn get id => text()();
+  TextColumn get value => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 LazyDatabase _openConnection() {
   // the LazyDatabase util lets us find the right location for the file async.
   return LazyDatabase(() async {
@@ -61,13 +70,13 @@ LazyDatabase _openConnection() {
     // for your app.
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    print("opening moor db at $file");
+    debugPrint("opening moor db at $file");
     return VmDatabase(file);
 //    return WebDatabase('db');
   });
 }
 
-@UseMoor(tables: [_Units, _Dimensions, _Measurables, _Edibles])
+@UseMoor(tables: [_Config, _Units, _Dimensions, _Measurables, _Edibles])
 class _MoorDatabase extends _$_MoorDatabase {
   // we tell the database where to store the data with this constructor
   _MoorDatabase() : super(_openConnection());
@@ -107,6 +116,46 @@ class MoorDatabase extends Database {
 
   @override
   Future<int> get version async => db.schemaVersion;
+
+  @override
+  Future<int> get deployedVersion async {
+    try {
+      final versionQuery = db.select(db.config)
+        ..where((t) => t.id.equals('version'));
+      final result = await versionQuery.getSingleOrNull();
+      if (result == null)
+        return 0;
+      final version = int.tryParse(result.value);
+      return version == null ? 0 : version;
+    }
+    catch(e) {
+      return 0;
+    }
+  }
+
+  @override
+  Future<void> setDeployedVersion(int version) async {
+    final versionRecord = _ConfigData(id: 'version', value: version.toString());
+    await db.into(db.config).insertOnConflictUpdate(versionRecord);
+    return;
+  }
+
+  @override
+  Future<void> clear() async {
+    final foo = await db.customSelect("SELECT * FROM sqlite_master WHERE type='table'").get();
+    for(final row in foo) {
+      final name = row.data['name'].toString();
+      debugPrint("Deleting table $name");
+      await db.customStatement("DROP TABLE IF EXISTS '"+name.replaceAll("'", "''")+"'");
+    }
+    // Create tables
+    final m = db.createMigrator();
+    for (final table in db.allTables.toList()) {
+      debugPrint("Creating table ${table.actualTableName}");
+      await m.createTable(table);
+    }
+    return;
+  }
 }
 
 abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 extends Indexable> implements AsyncDataCollection<D2> {

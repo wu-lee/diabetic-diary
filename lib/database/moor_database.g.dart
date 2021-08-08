@@ -7,6 +7,193 @@ part of 'moor_database.dart';
 // **************************************************************************
 
 // ignore_for_file: unnecessary_brace_in_string_interps, unnecessary_this
+class _ConfigData extends DataClass implements Insertable<_ConfigData> {
+  final String id;
+  final String value;
+  _ConfigData({required this.id, required this.value});
+  factory _ConfigData.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return _ConfigData(
+      id: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      value: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}value'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['value'] = Variable<String>(value);
+    return map;
+  }
+
+  _ConfigCompanion toCompanion(bool nullToAbsent) {
+    return _ConfigCompanion(
+      id: Value(id),
+      value: Value(value),
+    );
+  }
+
+  factory _ConfigData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return _ConfigData(
+      id: serializer.fromJson<String>(json['id']),
+      value: serializer.fromJson<String>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'value': serializer.toJson<String>(value),
+    };
+  }
+
+  _ConfigData copyWith({String? id, String? value}) => _ConfigData(
+        id: id ?? this.id,
+        value: value ?? this.value,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('_ConfigData(')
+          ..write('id: $id, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(id.hashCode, value.hashCode));
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is _ConfigData &&
+          other.id == this.id &&
+          other.value == this.value);
+}
+
+class _ConfigCompanion extends UpdateCompanion<_ConfigData> {
+  final Value<String> id;
+  final Value<String> value;
+  const _ConfigCompanion({
+    this.id = const Value.absent(),
+    this.value = const Value.absent(),
+  });
+  _ConfigCompanion.insert({
+    required String id,
+    required String value,
+  })  : id = Value(id),
+        value = Value(value);
+  static Insertable<_ConfigData> custom({
+    Expression<String>? id,
+    Expression<String>? value,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (value != null) 'value': value,
+    });
+  }
+
+  _ConfigCompanion copyWith({Value<String>? id, Value<String>? value}) {
+    return _ConfigCompanion(
+      id: id ?? this.id,
+      value: value ?? this.value,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('_ConfigCompanion(')
+          ..write('id: $id, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $_ConfigTable extends _Config with TableInfo<$_ConfigTable, _ConfigData> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $_ConfigTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedTextColumn id = _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn(
+      'id',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedTextColumn value = _constructValue();
+  GeneratedTextColumn _constructValue() {
+    return GeneratedTextColumn(
+      'value',
+      $tableName,
+      false,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, value];
+  @override
+  $_ConfigTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'config';
+  @override
+  final String actualTableName = 'config';
+  @override
+  VerificationContext validateIntegrity(Insertable<_ConfigData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+          _valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  _ConfigData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return _ConfigData.fromData(data, _db,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $_ConfigTable createAlias(String alias) {
+    return $_ConfigTable(_db, alias);
+  }
+}
+
 class _Unit extends DataClass implements Insertable<_Unit> {
   final String id;
   final String dimensionsId;
@@ -944,6 +1131,7 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
 
 abstract class _$_MoorDatabase extends GeneratedDatabase {
   _$_MoorDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
+  late final $_ConfigTable config = $_ConfigTable(this);
   late final $_UnitsTable units = $_UnitsTable(this);
   late final $_DimensionsTable dimensions = $_DimensionsTable(this);
   late final $_MeasurablesTable measurables = $_MeasurablesTable(this);
@@ -952,5 +1140,5 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [units, dimensions, measurables, edibles];
+      [config, units, dimensions, measurables, edibles];
 }

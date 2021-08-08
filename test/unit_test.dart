@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 const Distance = Dimensions(id: #Distance, components: {#Distance:1});
 final meters = Units(#m, Distance.id, 1);
 final  kilometers = Units(#km, Distance.id, 1000);
-final db = MockDatabase();
+final db = MockDatabase(version: 1, deployedVersion: 1);
 
 
 void main() async {
@@ -36,7 +36,7 @@ void main() async {
       expect(q1.units, kilometers);
     });
     test('Aggregating ingredients', () async {
-      Database db = MockDatabase();
+      Database db = MockDatabase(version: 1, deployedVersion: 1);
       final mass = Dimensions(
         id: #Mass,
         components: {#Mass:1},
