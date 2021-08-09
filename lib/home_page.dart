@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'database.dart';
 import 'entities/edible_topic.dart';
+import 'entity_topic.dart';
 import 'topic.dart';
 import 'translation.dart';
 
@@ -59,6 +60,10 @@ class _HomePageState extends State<HomePage> {
               setBuilderState(() { currentTopicIndex = tabController.index; });
             }
           });
+          final currentTopic = topics[currentTopicIndex];
+          var floatingActionButton; //optional
+          if (currentTopic is EntityTopic)
+            floatingActionButton = currentTopic.buildFloatingActionButton(context);
           return Scaffold(
             appBar: AppBar(
               title: Text(TL8(widget.title)),
@@ -75,7 +80,7 @@ class _HomePageState extends State<HomePage> {
               children: topics.map((topic) => topic.buildTabContent(context))
                   .toList(),
             ),
-            floatingActionButton: topics[currentTopicIndex].buildFloatingActionButton(context),
+            floatingActionButton: floatingActionButton,
           );
         },
       )

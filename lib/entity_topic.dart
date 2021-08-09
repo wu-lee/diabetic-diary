@@ -17,6 +17,17 @@ abstract class EntityTopic<Entity extends Indexable> implements Topic {
   final AsyncDataCollection<Entity> entities;
 
   EntityTopic({required this.id, required this.icon, required this.entities});
+
+  FloatingActionButton buildFloatingActionButton(BuildContext context) {
+    return FloatingActionButton(
+      child: Icon(Icons.add),
+      onPressed: () {
+        // Do nothing
+      },
+      tooltip: 'Dummy',
+    );
+  }
+
 }
 
 
