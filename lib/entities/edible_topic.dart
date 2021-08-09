@@ -17,6 +17,8 @@ class EdibleTopic implements EntityTopic<Edible> {
   @override
   final IconData icon = Icons.shopping_cart;
 
+  EdibleTopic({required this.entities, required this.db});
+
   @override
   FloatingActionButton buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton(
@@ -34,8 +36,6 @@ class EdibleTopic implements EntityTopic<Edible> {
       tooltip: 'Add Ingredient',
     );
   }
-
-  EdibleTopic({required this.entities, required this.db});
 
   Widget buildRow(Edible entity, BuildContext context) {
     return Row(
