@@ -20,6 +20,7 @@ class EdibleCreateScreen extends StatefulWidget {
 class _EdibleCreateState extends State<EdibleCreateScreen> {
   final Map<Symbol, Quantity> contentAmounts = {};
   Map<Symbol, Quantity> compositionStats = {};
+  bool isDish = false;
   final titleController = new TextEditingController();
   final Database db;
 
@@ -29,6 +30,7 @@ class _EdibleCreateState extends State<EdibleCreateScreen> {
     final edible = Edible(
       contents: contentAmounts,
       id: Symbol(titleController.text),
+      isDish: isDish,
     );
     db.edibles.add(edible);
     return true;
@@ -80,7 +82,7 @@ class _EdibleCreateState extends State<EdibleCreateScreen> {
             children: [
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                child: Text('New edible:'),
+                child: Text(TL8(#NewEdible)+':'),
               ),
               Expanded(
                 child: TextField(
@@ -121,34 +123,65 @@ class _EdibleCreateState extends State<EdibleCreateScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Flexible(
-                flex: 2,
+                  flex: 2,
+                  fit: FlexFit.tight,
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                          flex: 1,
+                          child:RadioListTile(
+                            title: Text(TL8(#Dish)),
+                            value: true,
+                            groupValue: isDish,
+                            onChanged: (bool? value) {
+                              setState(() { isDish = true; });
+                            },
+                          )
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child:
+                        RadioListTile(
+                          title: Text(TL8(#Ingredient)),
+                          value: false,
+                          groupValue: isDish,
+                          onChanged: (bool? value) {
+                            setState(() { isDish = false; });
+                          },
+                        ),
+                      ),
+                    ],
+                  )
+              ),
+              Flexible(
+              flex: 6,
                 fit: FlexFit.tight,
                 child: buildEntityList(
-                  title: 'Composition Stats',
+                  title: TL8(#CompositionStats),
                   entities: compositionStats.entries,
                   context: context,
                   unitId: #g_per_hg,
                 ),
               ),
               Flexible(
-                flex: 2,
+                flex: 6,
                 fit: FlexFit.tight,
                 child: buildEntityList(
-                  title: 'Contents',
+                  title: TL8(#Contents),
                   entities: contentAmounts.entries,
                   context: context,
                   unitId: #g_per_hg,
                 ),
               ),
               Flexible(
-                flex: 3,
+                flex: 6,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       height: 50,
                       child: Text(
-                        'Available Ingredients',
+                        TL8(#AvailableIngredients),
                         textScaleFactor: 2,
                       ),
                     ),
@@ -168,16 +201,12 @@ class _EdibleCreateState extends State<EdibleCreateScreen> {
                                     color: Colors.blue,
                                     onPressed: () async {
                                       final gramsPerHectagram = await db.units.fetch(#g_per_hg);
-                                      final quantity = contentAmounts[e] ?? Quantity(0, gramsPerHectagram);
+                                      final quantity = contentAmounts[e.id] ?? Quantity(0, gramsPerHectagram);
                                       final aggregated = await db.aggregate(contentAmounts);
+                                      final q2 = contentAmounts[e.id] = quantity.add(1);
 
-                                      setState(() {
-                                        final quantity = contentAmounts[e] ?? Quantity(0, gramsPerHectagram);
-                                        contentAmounts[e.id] = quantity.add(1);
-                                        //print(db.formatEdible(contentAmounts)); // DEBUG
-                                        //print(db.formatMeasurable(compositionStats)); // DEBUG
+                                      setState(()  {
                                         compositionStats = aggregated;
-                                        //print(db.formatEdible(compositionStats));// DEBUG
                                       });
                                     },
                                   ),

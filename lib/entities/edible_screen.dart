@@ -41,7 +41,13 @@ class _EdibleState extends State<EdibleScreen> {
             children: <Widget>[
               Container(
                 child: Text(
-                  'Composition Stats',
+                  TL8(edible.isDish? #Dish : #Ingredient),
+                ),
+                height: 20,
+              ),
+              Container(
+                child: Text(
+                  TL8(#CompositionStats),
                   textScaleFactor: 2,
                 ),
                 height: 50,
