@@ -361,11 +361,8 @@ class $_UnitsTable extends _Units with TableInfo<$_UnitsTable, _Unit> {
   @override
   late final GeneratedTextColumn dimensionsId = _constructDimensionsId();
   GeneratedTextColumn _constructDimensionsId() {
-    return GeneratedTextColumn(
-      'dimensions_id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('dimensions_id', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES dimensions(id)');
   }
 
   final VerificationMeta _multiplierMeta = const VerificationMeta('multiplier');
@@ -805,11 +802,8 @@ class $_MeasurablesTable extends _Measurables
   @override
   late final GeneratedTextColumn dimensionsId = _constructDimensionsId();
   GeneratedTextColumn _constructDimensionsId() {
-    return GeneratedTextColumn(
-      'dimensions_id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('dimensions_id', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES dimensions(id)');
   }
 
   @override
@@ -857,18 +851,204 @@ class $_MeasurablesTable extends _Measurables
 
 class _Edible extends DataClass implements Insertable<_Edible> {
   final String id;
-  final String contains;
-  final double amount;
-  final String unitsId;
-  _Edible(
-      {required this.id,
-      required this.contains,
-      required this.amount,
-      required this.unitsId});
+  final bool isDish;
+  _Edible({required this.id, required this.isDish});
   factory _Edible.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return _Edible(
+      id: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      isDish: const BoolType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}is_dish'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['is_dish'] = Variable<bool>(isDish);
+    return map;
+  }
+
+  _EdiblesCompanion toCompanion(bool nullToAbsent) {
+    return _EdiblesCompanion(
+      id: Value(id),
+      isDish: Value(isDish),
+    );
+  }
+
+  factory _Edible.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return _Edible(
+      id: serializer.fromJson<String>(json['id']),
+      isDish: serializer.fromJson<bool>(json['isDish']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'isDish': serializer.toJson<bool>(isDish),
+    };
+  }
+
+  _Edible copyWith({String? id, bool? isDish}) => _Edible(
+        id: id ?? this.id,
+        isDish: isDish ?? this.isDish,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('_Edible(')
+          ..write('id: $id, ')
+          ..write('isDish: $isDish')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(id.hashCode, isDish.hashCode));
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is _Edible && other.id == this.id && other.isDish == this.isDish);
+}
+
+class _EdiblesCompanion extends UpdateCompanion<_Edible> {
+  final Value<String> id;
+  final Value<bool> isDish;
+  const _EdiblesCompanion({
+    this.id = const Value.absent(),
+    this.isDish = const Value.absent(),
+  });
+  _EdiblesCompanion.insert({
+    required String id,
+    required bool isDish,
+  })  : id = Value(id),
+        isDish = Value(isDish);
+  static Insertable<_Edible> custom({
+    Expression<String>? id,
+    Expression<bool>? isDish,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (isDish != null) 'is_dish': isDish,
+    });
+  }
+
+  _EdiblesCompanion copyWith({Value<String>? id, Value<bool>? isDish}) {
+    return _EdiblesCompanion(
+      id: id ?? this.id,
+      isDish: isDish ?? this.isDish,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (isDish.present) {
+      map['is_dish'] = Variable<bool>(isDish.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('_EdiblesCompanion(')
+          ..write('id: $id, ')
+          ..write('isDish: $isDish')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $_EdiblesTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedTextColumn id = _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn(
+      'id',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _isDishMeta = const VerificationMeta('isDish');
+  @override
+  late final GeneratedBoolColumn isDish = _constructIsDish();
+  GeneratedBoolColumn _constructIsDish() {
+    return GeneratedBoolColumn(
+      'is_dish',
+      $tableName,
+      false,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, isDish];
+  @override
+  $_EdiblesTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'edibles';
+  @override
+  final String actualTableName = 'edibles';
+  @override
+  VerificationContext validateIntegrity(Insertable<_Edible> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('is_dish')) {
+      context.handle(_isDishMeta,
+          isDish.isAcceptableOrUnknown(data['is_dish']!, _isDishMeta));
+    } else if (isInserting) {
+      context.missing(_isDishMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  _Edible map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return _Edible.fromData(data, _db,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $_EdiblesTable createAlias(String alias) {
+    return $_EdiblesTable(_db, alias);
+  }
+}
+
+class _EdibleContent extends DataClass implements Insertable<_EdibleContent> {
+  final String id;
+  final String contains;
+  final double amount;
+  final String unitsId;
+  _EdibleContent(
+      {required this.id,
+      required this.contains,
+      required this.amount,
+      required this.unitsId});
+  factory _EdibleContent.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return _EdibleContent(
       id: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
       contains: const StringType()
@@ -889,8 +1069,8 @@ class _Edible extends DataClass implements Insertable<_Edible> {
     return map;
   }
 
-  _EdiblesCompanion toCompanion(bool nullToAbsent) {
-    return _EdiblesCompanion(
+  _EdibleContentsCompanion toCompanion(bool nullToAbsent) {
+    return _EdibleContentsCompanion(
       id: Value(id),
       contains: Value(contains),
       amount: Value(amount),
@@ -898,10 +1078,10 @@ class _Edible extends DataClass implements Insertable<_Edible> {
     );
   }
 
-  factory _Edible.fromJson(Map<String, dynamic> json,
+  factory _EdibleContent.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
-    return _Edible(
+    return _EdibleContent(
       id: serializer.fromJson<String>(json['id']),
       contains: serializer.fromJson<String>(json['contains']),
       amount: serializer.fromJson<double>(json['amount']),
@@ -919,9 +1099,9 @@ class _Edible extends DataClass implements Insertable<_Edible> {
     };
   }
 
-  _Edible copyWith(
+  _EdibleContent copyWith(
           {String? id, String? contains, double? amount, String? unitsId}) =>
-      _Edible(
+      _EdibleContent(
         id: id ?? this.id,
         contains: contains ?? this.contains,
         amount: amount ?? this.amount,
@@ -929,7 +1109,7 @@ class _Edible extends DataClass implements Insertable<_Edible> {
       );
   @override
   String toString() {
-    return (StringBuffer('_Edible(')
+    return (StringBuffer('_EdibleContent(')
           ..write('id: $id, ')
           ..write('contains: $contains, ')
           ..write('amount: $amount, ')
@@ -944,25 +1124,25 @@ class _Edible extends DataClass implements Insertable<_Edible> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is _Edible &&
+      (other is _EdibleContent &&
           other.id == this.id &&
           other.contains == this.contains &&
           other.amount == this.amount &&
           other.unitsId == this.unitsId);
 }
 
-class _EdiblesCompanion extends UpdateCompanion<_Edible> {
+class _EdibleContentsCompanion extends UpdateCompanion<_EdibleContent> {
   final Value<String> id;
   final Value<String> contains;
   final Value<double> amount;
   final Value<String> unitsId;
-  const _EdiblesCompanion({
+  const _EdibleContentsCompanion({
     this.id = const Value.absent(),
     this.contains = const Value.absent(),
     this.amount = const Value.absent(),
     this.unitsId = const Value.absent(),
   });
-  _EdiblesCompanion.insert({
+  _EdibleContentsCompanion.insert({
     required String id,
     required String contains,
     required double amount,
@@ -971,7 +1151,7 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
         contains = Value(contains),
         amount = Value(amount),
         unitsId = Value(unitsId);
-  static Insertable<_Edible> custom({
+  static Insertable<_EdibleContent> custom({
     Expression<String>? id,
     Expression<String>? contains,
     Expression<double>? amount,
@@ -985,12 +1165,12 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
     });
   }
 
-  _EdiblesCompanion copyWith(
+  _EdibleContentsCompanion copyWith(
       {Value<String>? id,
       Value<String>? contains,
       Value<double>? amount,
       Value<String>? unitsId}) {
-    return _EdiblesCompanion(
+    return _EdibleContentsCompanion(
       id: id ?? this.id,
       contains: contains ?? this.contains,
       amount: amount ?? this.amount,
@@ -1018,7 +1198,7 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
 
   @override
   String toString() {
-    return (StringBuffer('_EdiblesCompanion(')
+    return (StringBuffer('_EdibleContentsCompanion(')
           ..write('id: $id, ')
           ..write('contains: $contains, ')
           ..write('amount: $amount, ')
@@ -1028,30 +1208,25 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
   }
 }
 
-class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
+class $_EdibleContentsTable extends _EdibleContents
+    with TableInfo<$_EdibleContentsTable, _EdibleContent> {
   final GeneratedDatabase _db;
   final String? _alias;
-  $_EdiblesTable(this._db, [this._alias]);
+  $_EdibleContentsTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedTextColumn id = _constructId();
   GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES edibles(id)');
   }
 
   final VerificationMeta _containsMeta = const VerificationMeta('contains');
   @override
   late final GeneratedTextColumn contains = _constructContains();
   GeneratedTextColumn _constructContains() {
-    return GeneratedTextColumn(
-      'contains',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('contains', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES edibles(id)');
   }
 
   final VerificationMeta _amountMeta = const VerificationMeta('amount');
@@ -1069,23 +1244,20 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
   @override
   late final GeneratedTextColumn unitsId = _constructUnitsId();
   GeneratedTextColumn _constructUnitsId() {
-    return GeneratedTextColumn(
-      'units_id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('units_id', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES units(id)');
   }
 
   @override
   List<GeneratedColumn> get $columns => [id, contains, amount, unitsId];
   @override
-  $_EdiblesTable get asDslTable => this;
+  $_EdibleContentsTable get asDslTable => this;
   @override
-  String get $tableName => _alias ?? 'edibles';
+  String get $tableName => _alias ?? 'edible_contents';
   @override
-  final String actualTableName = 'edibles';
+  final String actualTableName = 'edible_contents';
   @override
-  VerificationContext validateIntegrity(Insertable<_Edible> instance,
+  VerificationContext validateIntegrity(Insertable<_EdibleContent> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -1118,14 +1290,14 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id, contains};
   @override
-  _Edible map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return _Edible.fromData(data, _db,
+  _EdibleContent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return _EdibleContent.fromData(data, _db,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
   @override
-  $_EdiblesTable createAlias(String alias) {
-    return $_EdiblesTable(_db, alias);
+  $_EdibleContentsTable createAlias(String alias) {
+    return $_EdibleContentsTable(_db, alias);
   }
 }
 
@@ -1136,9 +1308,10 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
   late final $_DimensionsTable dimensions = $_DimensionsTable(this);
   late final $_MeasurablesTable measurables = $_MeasurablesTable(this);
   late final $_EdiblesTable edibles = $_EdiblesTable(this);
+  late final $_EdibleContentsTable edibleContents = $_EdibleContentsTable(this);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [config, units, dimensions, measurables, edibles];
+      [config, units, dimensions, measurables, edibles, edibleContents];
 }

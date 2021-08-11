@@ -18,17 +18,16 @@ class OverviewTopic extends Topic {
       future:  Future(() async {
         final edibles = await db.edibles.getAll();
         edibles.forEach((key, value) async {print("${await db.formatEdible(value)}"); });
-        final numDishes = edibles.values.where((e) => e.contents.isNotEmpty).length;
+        final numDishes = edibles.values.where((e) => e.isDish).length;
         final numIngredients = edibles.length - numDishes;
         final measurables = await db.measurables.getAll();
         final numMeasurables = measurables.length;
-        print("Edibles ${edibles.length} Dishes $numDishes Ingredients $numIngredients");
         return  [numDishes, numIngredients, numMeasurables];
       }),
       builder: (BuildContext context, AsyncSnapshot<List<int>> snapshot) {
-        final numEdibles = snapshot.data?[0] ?? {};
-        final numIngredients = snapshot.data?[1] ?? {};
-        final numMeasurables = snapshot.data?[2] ?? {};
+        final numEdibles = snapshot.data?[0] ?? 0;
+        final numIngredients = snapshot.data?[1] ?? 0;
+        final numMeasurables = snapshot.data?[2] ?? 0;
         return LayoutBuilder(
             builder: (BuildContext context, BoxConstraints viewportConstraints) =>
                 SingleChildScrollView(

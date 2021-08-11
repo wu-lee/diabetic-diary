@@ -136,7 +136,7 @@ abstract class Database {
 
   String formatMeasurable(Measurable meas) => "Measurable(id: ${TL8(meas.id)}, units: ${TL8(meas.dimensionsId)})";
 
-  Future<String> formatEdible(Edible edible) async => "Edible(id: ${TL8(edible.id)}, contents: ${await formatContents(edible.contents)})";
+  Future<String> formatEdible(Edible edible) async => "Edible(id: ${TL8(edible.id)}, isDish: ${edible.isDish}, contents: ${await formatContents(edible.contents)})";
 
   Future<String> formatContents(Map<Symbol, Quantity> contents) async {
     final entries = contents.entries.map((e) async {

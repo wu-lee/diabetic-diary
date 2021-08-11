@@ -30,7 +30,7 @@ class _Dimensions extends Table {
 
 class _Units extends Table {
   TextColumn get id => text()();
-  TextColumn get dimensionsId => text()();
+  TextColumn get dimensionsId => text().customConstraint('NOT NULL REFERENCES dimensions(id)')();
   RealColumn get multiplier => real()();
 
   @override
@@ -39,7 +39,7 @@ class _Units extends Table {
 
 class _Measurables extends Table {
   TextColumn get id => text()();
-  TextColumn get dimensionsId => text()();
+  TextColumn get dimensionsId => text().customConstraint('NOT NULL REFERENCES dimensions(id)')();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -47,9 +47,16 @@ class _Measurables extends Table {
 
 class _Edibles extends Table {
   TextColumn get id => text()();
-  TextColumn get contains => text()();
+  BoolColumn get isDish => boolean()();
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class _EdibleContents extends Table {
+  TextColumn get id => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
+  TextColumn get contains => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
   RealColumn get amount => real()();
-  TextColumn get unitsId => text()();
+  TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
 
   @override
   Set<Column> get primaryKey => {id, contains};
@@ -76,7 +83,7 @@ LazyDatabase _openConnection() {
   });
 }
 
-@UseMoor(tables: [_Config, _Units, _Dimensions, _Measurables, _Edibles])
+@UseMoor(tables: [_Config, _Units, _Dimensions, _Measurables, _Edibles, _EdibleContents])
 class _MoorDatabase extends _$_MoorDatabase {
   // we tell the database where to store the data with this constructor
   _MoorDatabase() : super(_openConnection());
@@ -395,22 +402,37 @@ class MoorMeasurablesCollection extends MoorDataCollection<$_MeasurablesTable, _
 class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   final _MoorDatabase db;
   final $_EdiblesTable table;
+  final $_EdibleContentsTable joinedTable;
   final GeneratedTextColumn idCol;
-  JoinedSelectStatement<Table, dynamic> get commonQuery =>
-    db.select(db.edibles)
-      .join([
-        leftOuterJoin(db.units, db.edibles.unitsId.equalsExp(db.units.id))
+  final GeneratedTextColumn joinedIdCol;
+  SimpleSelectStatement<$_EdiblesTable, _Edible> get ediblesQuery =>
+    db.select(db.edibles);
+  JoinedSelectStatement<Table, dynamic> get contentsQuery =>
+      db.select(db.edibleContents)
+          .join([
+        leftOuterJoin(db.units, db.edibleContents.unitsId.equalsExp(db.units.id))
       ]);
 
 
   MoorEdiblesCollection({required this.db}) :
     table = db.edibles,
-    idCol = db.edibles.id;
+    joinedTable = db.edibleContents,
+    idCol = db.edibles.id,
+    joinedIdCol = db.edibleContents.id;
 
-  Iterable<Insertable<_Edible>> valueToRows(Edible value) {
+  Iterable<Insertable<_Edible>> edibleToRows(Edible value) {
     List<Insertable<_Edible>> rows = [];
+    rows.add(_Edible(
+      id: symbolToString(value.id),
+      isDish: value.isDish,
+    ));
+    return rows;
+  }
+
+  Iterable<Insertable<_EdibleContent>> contentToRows(Edible value) {
+    List<Insertable<_EdibleContent>> rows = [];
     value.contents.forEach((k, v) {
-      rows.add(_Edible(
+      rows.add(_EdibleContent(
         id: symbolToString(value.id),
         contains: symbolToString(k),
         amount: v.amount.toDouble(),
@@ -419,7 +441,6 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
     });
     return rows;
   }
-
   Iterable<Insertable<_Unit>> valueToUnitRows(Edible value) {
     // Dedupe
     final units = value.contents.map((k, v) => MapEntry(
@@ -436,43 +457,61 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
     );
   }
 
-  Map<Symbol, Edible> rowsToValues(Iterable<TypedResult> rows) {
-    final Map<Symbol, Map<Symbol, Quantity>> map = {};
-    rows.forEach((row) {
-      final edibleFields = row.readTable(db.edibles);
+  Map<Symbol, Edible> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
+    final Map<Symbol, Map<Symbol, Quantity>> edibles = {};
+    final Map<Symbol, bool> isDish = {};
+    edibleRows.forEach((edibleFields) {
       final id = Symbol(edibleFields.id);
-      final contains = Symbol(edibleFields.contains);
-      final dim = map[id] ??= <Symbol, Quantity>{};
-      if (dim.containsKey(contains))
-        return; // already present... FIXME signal an error?
+      final dim = edibles[id] ??= <Symbol, Quantity>{};
+      isDish[id] = edibleFields.isDish;
+    });
+    contentRows.forEach((row) {
+      final contentFields = row.readTable(db.edibleContents);
+      final id = Symbol(contentFields.id);
+      final contains = Symbol(contentFields.contains);
+      final dim = edibles[id];
+      if (dim == null)
+        return; // not present... FIXME signal an error?
       final unitsFields = row.readTableOrNull(db.units);
       final units = unitsFields == null?
-        Units.rogueValue :
-        Units(Symbol(edibleFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
+      Units.rogueValue :
+      Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
       dim[contains] = Quantity(
-          edibleFields.amount,
+          contentFields.amount,
           units);
     });
-    return map.map((k,v) => MapEntry(k, Edible(id: k, contents: v)));
+    return edibles.map((id, contents) => MapEntry(id, Edible(id: id, isDish: isDish[id] ?? false, contents: contents)));
+  }
+  
+  SimpleSelectStatement<$_EdiblesTable, _Edible> _edibleRowsFor(Symbol index) {
+    return ediblesQuery
+      ..where((a) => idCol.equals(symbolToString(index)));
   }
 
-  JoinedSelectStatement<Table, dynamic> _rowsFor(Symbol index) { // same as dims
-    return commonQuery
-      ..where(idCol.equals(symbolToString(index)));
+  JoinedSelectStatement<Table, dynamic> _contentRowsFor(Symbol index) {
+    return contentsQuery
+      ..where(joinedIdCol.equals(symbolToString(index)));
   }
 
   @override
   Future<Symbol> add(Edible value) async {
     final unitsRows = valueToUnitRows(value);
-    final edibleRows = valueToRows(value); // FIXME stream this?
+    final edibleRows = edibleToRows(value); // FIXME stream this?
+    final contentRows = contentToRows(value); // FIXME stream this?
     final delEdibles = db.delete(table)..where((t) => idCol.equals(symbolToString(value.id)));
+    final delContent = db.delete(joinedTable)..where((t) => joinedIdCol.equals(symbolToString(value.id)));
     return db.transaction(() async {
+      await delContent.go();
       await delEdibles.go();
       await db.batch((batch) {
         batch.insertAll(
             table,
             edibleRows.toList(),
+        );
+        batch.insertAll(
+          joinedTable,
+          contentRows.toList(),
         );
         batch.insertAll(
             db.units,
@@ -496,42 +535,50 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
 
   @override
   Future<Edible> fetch(Symbol index) async {
-    final rows = await _rowsFor(index).get();
-    if (rows.isEmpty)
+    final edibleRows = await _edibleRowsFor(index).get();
+    if (edibleRows.isEmpty)
       throw ArgumentError("no value for id ${symbolToString(index)}");
-    return rowsToValues(rows).values.first;
+    final contentRows = await _contentRowsFor(index).get();
+    return rowsToValues(edibleRows, contentRows).values.first;
   }
 
   @override
   Future<Edible> get(Symbol index, Edible otherwise) async {
-    final rows = await _rowsFor(index).get();
-    if (rows.isEmpty)
+    final edibleRows = await _edibleRowsFor(index).get();
+    if (edibleRows.isEmpty)
       return otherwise;
-    return rowsToValues(rows).values.first;
+    final contentRows = await _contentRowsFor(index).get();
+    return rowsToValues(edibleRows, contentRows).values.first;
   }
 
   @override
   Future<Map<Symbol, Edible>> getAll() async {
-    final rows =  await commonQuery.get();
-    return rowsToValues(rows);
+    final edibleRows =  await ediblesQuery.get();
+    final contentRows = await contentsQuery.get();
+    return rowsToValues(edibleRows, contentRows);
   }
 
   @override
   Future<Edible?> maybeGet(Symbol index, [Edible? otherwise]) async {
-    final rows = await _rowsFor(index).get();
-    if (rows.isEmpty)
+    final edibleRows = await _edibleRowsFor(index).get();
+    if (edibleRows.isEmpty)
       return otherwise;
-    return rowsToValues(rows).values.first;
+    final contentRows = await _contentRowsFor(index).get();
+    return rowsToValues(edibleRows, contentRows).values.first;
   }
 
   @override
-  Future<int> remove(Symbol index) {
-    final query = db.delete(table)..where((a) => idCol.equals(symbolToString(index)));
-    return query.go();
+  Future<int> remove(Symbol index) async {
+    final edibleQuery = db.delete(table)..where((a) => idCol.equals(symbolToString(index)));
+    final contentsQuery = db.delete(joinedTable)..where((a) => idCol.equals(symbolToString(index)));
+    int deleted = await edibleQuery.go();
+    deleted += await contentsQuery.go();
+    return deleted;
   }
 
   @override
   Future<int> removeAll() async {
-    return db.delete(table).go();
+    int deleted = await db.delete(table).go() + await db.delete(joinedTable).go();
+    return deleted;
   }
 }

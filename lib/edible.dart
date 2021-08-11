@@ -5,9 +5,10 @@ import 'quantity.dart';
 
 class Edible implements EdibleContent {
   final Symbol id;
+  final bool isDish;
   final Map<Symbol, Quantity> contents;
 
-  const Edible({required this.id, required this.contents});
+  const Edible({required this.id, this.isDish = false, required this.contents});
 
   @override
   bool operator== (Object that) {

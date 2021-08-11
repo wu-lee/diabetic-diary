@@ -127,32 +127,32 @@ void main() async {
           }
       );
       final removed = await mdb.edibles.removeAll();
-      print("removed "+removed.toString());
+      print("removed edibles "+removed.toString());
       await mdb.edibles.add(inThing1);
       await mdb.edibles.add(inThing2);
       final outThing = await mdb.edibles.maybeGet(#testEdible1);
 
       print(await mdb.formatEdible(inThing1));
       if (outThing!=null) print(await mdb.formatEdible(outThing));
-      expect(outThing, inThing1);
+      expect(outThing, inThing1, reason: 'outThing mismatches inThing1');
 
       final count = await mdb.edibles.count();
-      expect(count, 2);
+      expect(count, 2, reason: 'counting edibles');
 
       final allThings = await mdb.edibles.getAll();
 
-      expect(allThings.length, 2);
-      expect(allThings[#testEdible1], inThing1);
-      expect(allThings[#testEdible2], inThing2);
+      expect(allThings.length, 2, reason: 'checking number of allThings');
+      expect(allThings[#testEdible1], inThing1, reason: 'checking allThings includes inThing1');
+      expect(allThings[#testEdible2], inThing2, reason: 'checking allThings includes inThing2');
 
-      expect(await mdb.edibles.remove(#testEdible1), 3);
-      expect(await mdb.edibles.remove(#testEdible1), 0);
+      expect(await mdb.edibles.remove(#testEdible1), 4, reason: 'removing #testEdible1');
+      expect(await mdb.edibles.remove(#testEdible1), 0, reason: 'removing #testEdible1 again');
 
-      expect(await mdb.edibles.get(#testEdible1, inThing2), inThing2);
-      expect(await mdb.edibles.get(#testEdible2, inThing1), inThing2);
+      expect(await mdb.edibles.get(#testEdible1, inThing2), inThing2, reason: 'getting #testEdible1 defaults');
+      expect(await mdb.edibles.get(#testEdible2, inThing1), inThing2, reason: 'getting #testEdible2 succeeds');
 
-      expect(await mdb.edibles.fetch(#testEdible2), inThing2);
-      expect(() async => await mdb.edibles.fetch(#testEdible1), throwsA(TypeMatcher<ArgumentError>()));
+      expect(await mdb.edibles.fetch(#testEdible2), inThing2, reason: 'fetching #testEdible2 succeeds');
+      expect(() async => await mdb.edibles.fetch(#testEdible1), throwsA(TypeMatcher<ArgumentError>()), reason: 'fetching #testEdible1 throws');
 
     });
 /*
