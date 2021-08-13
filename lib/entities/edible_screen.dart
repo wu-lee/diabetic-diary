@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../database.dart';
 import '../edible.dart';
 import '../translation.dart';
-import 'edible_create_screen.dart';
+import 'edible_edit_screen.dart';
 
 /// The screen for inspecting an Edible
 class EdibleScreen extends StatefulWidget {
@@ -35,7 +35,7 @@ class _EdibleState extends State<EdibleScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => EdibleCreateScreen(edible: edible, db: db),
+                builder: (context) => EdibleEditScreen(edible: edible, db: db),
               ),
             )
           },

@@ -6,11 +6,11 @@ import '../quantity.dart';
 import '../translation.dart';
 
 /// The screen for editing an Edible
-class EdibleCreateScreen extends StatefulWidget {
+class EdibleEditScreen extends StatefulWidget {
   final Database db;
   final Edible? edible;
 
-  const EdibleCreateScreen({Key? key, required this.db, this.edible}) : super(key: key);
+  const EdibleEditScreen({Key? key, required this.db, this.edible}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -21,7 +21,7 @@ class EdibleCreateScreen extends StatefulWidget {
   }
 }
 
-class _EdibleCreateState extends State<EdibleCreateScreen> {
+class _EdibleCreateState extends State<EdibleEditScreen> {
   final Map<Symbol, Quantity> contentAmounts = {};
   Map<Symbol, Quantity> compositionStats = {};
   bool isDish = false;

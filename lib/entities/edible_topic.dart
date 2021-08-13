@@ -5,7 +5,7 @@ import '../database.dart';
 import '../edible.dart';
 import '../entity_topic.dart';
 import '../translation.dart';
-import 'edible_create_screen.dart';
+import 'edible_edit_screen.dart';
 import 'edible_screen.dart';
 
 class EdibleTopic implements EntityTopic<Edible> {
@@ -27,7 +27,7 @@ class EdibleTopic implements EntityTopic<Edible> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EdibleCreateScreen(
+            builder: (context) => EdibleEditScreen(
               db: db,
             ),
           ),
