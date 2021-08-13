@@ -5,14 +5,18 @@ import '../edible.dart';
 import '../quantity.dart';
 import '../translation.dart';
 
-/// The screen for inspecting a Dish
+/// The screen for editing an Edible
 class EdibleCreateScreen extends StatefulWidget {
   final Database db;
+  final Edible? edible;
 
-  const EdibleCreateScreen({Key? key, required this.db}) : super(key: key);
+  const EdibleCreateScreen({Key? key, required this.db, this.edible}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
+    Edible? edible = this.edible;
+    if (edible != null)
+      return _EdibleCreateState.create(db: db, edible: edible);
     return _EdibleCreateState(db: db);
   }
 }
@@ -25,6 +29,18 @@ class _EdibleCreateState extends State<EdibleCreateScreen> {
   final Database db;
 
   _EdibleCreateState({required this.db});
+
+  factory _EdibleCreateState.create({required Database db, Edible? edible}) {
+    final instance = _EdibleCreateState(db: db);
+    if (edible == null)
+      return instance;
+
+    instance.titleController.text = symbolToString(edible.id);
+    instance.contentAmounts.addAll(edible.contents);
+    instance.isDish = edible.isDish;
+
+    return instance;
+  }
 
   Future<bool> addDish() async {
     final edible = Edible(
@@ -156,11 +172,14 @@ class _EdibleCreateState extends State<EdibleCreateScreen> {
               Flexible(
               flex: 6,
                 fit: FlexFit.tight,
-                child: buildEntityList(
-                  title: TL8(#CompositionStats),
-                  entities: compositionStats.entries,
-                  context: context,
-                  unitId: #g_per_hg,
+                child: FutureBuilder<Map<Symbol, Quantity>>(
+                  future: db.aggregate(contentAmounts),
+                  builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Quantity>> snapshot) => buildEntityList(
+                    title: TL8(#CompositionStats),
+                    entities: (compositionStats = snapshot.data ?? const {}).entries,
+                    context: context,
+                    unitId: #g_per_hg,
+                  ),
                 ),
               ),
               Flexible(

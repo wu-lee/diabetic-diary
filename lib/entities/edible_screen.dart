@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../database.dart';
 import '../edible.dart';
 import '../translation.dart';
+import 'edible_create_screen.dart';
 
 /// The screen for inspecting an Edible
 class EdibleScreen extends StatefulWidget {
@@ -28,9 +29,16 @@ class _EdibleState extends State<EdibleScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(TL8(edible.id)), actions: <Widget>[
         IconButton(
-          icon: const Icon(Icons.add),
-          tooltip: 'FIXME settings?',
-          onPressed: () => {},
+          icon: const Icon(Icons.edit),
+          tooltip: TL8(#Edit),
+          onPressed: () => {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EdibleCreateScreen(edible: edible, db: db),
+              ),
+            )
+          },
         ),
       ]),
       body: ListView(
