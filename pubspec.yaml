@@ -33,6 +33,7 @@ dependencies:
   sqlite3_flutter_libs: # Also use the latest version.
   path_provider:
   path:
+  flutter_spinbox: ^0.5.4
 
 dev_dependencies:
   flutter_test:
