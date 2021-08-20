@@ -146,9 +146,10 @@ abstract class Database {
     return "{"+(await Future.wait(entries)).join(",")+"}";
   }
 
-  /// Deeply traverse the edibles with the given ids, and return an index
-  /// of all edibles and measurables encountered. Measurables are irreducible
-  /// nutritional components and therefore have no contents, just a dimensionId.
+  /// Deeply traverse the [Edible]s with the given [ids], and return an index
+  /// of all [Edible]s and [Measurable]s encountered.
+  ///
+  /// [Measurable]s are irreducible nutritional components and therefore have no contents, just a [dimensionId].
   Future<Map<Symbol, EdibleContent>> traverseContents(Iterable<Symbol> ids) async {
     // expand all the symbols into Edibles recursively
     final index = <Symbol, EdibleContent>{};
@@ -176,16 +177,39 @@ abstract class Database {
     return index;
   }
 
-  /// Convert the content list of Edibles into a content list of nutritional components
+  /// Convert an Edible's content list into a content list of nutritional components
   ///
-  Future<Map<Symbol, Quantity>> aggregate(Map<Symbol, Quantity> contents) async {
-    return _aggregate(contents, await traverseContents(contents.keys));
+  /// [contents] should be a map defining [Quantities] of [EdibleContent] instances named by their ID.
+  /// There should be no null keys or values. Nor should there be any cycles, where an edible
+  /// contains itself, directly or indirectly.
+  ///
+  /// Optionally, [edibleId] can identify an [Edible] which includes this content list,
+  /// in case it needs to be excluded from cycles (i.e. when aggregating an [Edible] existing in the database).
+  ///
+  /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
+  ///
+  /// May throw a [StateError] if a cycle is detected.
+  Future<Map<Symbol, Quantity>> aggregate(Map<Symbol, Quantity> contents, [Symbol? edibleId]) async {
+    final seen = edibleId == null? (id) => false : (id) => id == edibleId;
+    return _aggregate(contents, await traverseContents(contents.keys), seen);
   }
 
-  /// Convert the content list of Edibles into a content list of nutritional components
+  /// Convert [contents] into a table of nutritional component quantities.
   ///
-  Map<Symbol, Quantity> _aggregate(Map<Symbol, Quantity> contents, Map<Symbol, EdibleContent> index) {
-
+  /// [contents] should be a map defining [Quantities] of [EdibleContent] instances named by their ID.
+  /// There should be no null keys or values. Nor should there be any cycles, where an edible
+  /// contains itself, directly or indirectly.
+  ///
+  /// All IDs in [content] must exist in [index], mapped to the appropriate instance of an [Edible]
+  /// or a [Measurable].
+  ///
+  /// The function [seen] is used to detect cycles, and should return true if a symbol identifies
+  /// an [EdibleContent] instance including this one.
+  ///
+  /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
+  ///
+  /// May throw a [StateError] if a cycle is detected.
+  Map<Symbol, Quantity> _aggregate(Map<Symbol, Quantity> contents, Map<Symbol, EdibleContent> index, bool Function(Symbol) seen) {
     final expanded = contents.entries.expand((elem) {
       final id = elem.key;
       final quantity = elem.value;
@@ -193,14 +217,24 @@ abstract class Database {
       // All edible contents must be in the same dimensions, i.e. fraction by mass.
       //assert(quantity.units.dimensionsId == #FractionByMass);
 
+      // Prevent infinite loops in cyclic graphs (which should not exist: you
+      // should not include an ingredient as an ingredient of itself, even
+      // indirectly).
+      if (seen(id))
+        throw StateError(
+            "Cannot aggregate this ingredient list as it contains "
+            "a cyclic reference to the edible ID #${symbolToString(id)} "
+        );
+
       final item = index[id];
-      if (item == null)
-        return <MapEntry<Symbol, Quantity>>[];
+      if (item == null) {
+        return <MapEntry<Symbol, Quantity>>[]; // Probably shouldn't ever happen
+      }
 
       if (item is Measurable)
         return [elem];
 
-      final aggregated = _aggregate((item as Edible).contents, index);
+      final aggregated = _aggregate((item as Edible).contents, index, (newId) => id == newId || seen(newId));
 
       // Multiply this edible's contents by the parent edible's quantity
       final multiplier = quantity.amount * quantity.units.multiplier;
@@ -208,9 +242,10 @@ abstract class Database {
       return aggregated.entries.map((elem) => MapEntry(elem.key, elem.value.multiply(multiplier)));
     });
 
-    return expanded.fold({}, (map, entry) =>
+    final result = expanded.fold<Map<Symbol, Quantity>>({}, (map, entry) =>
       map..update(entry.key, (value) => entry.value.addQuantity(value), ifAbsent: () => entry.value)
     );
+    return result;
   }
 
   /// Sets up an empty database
