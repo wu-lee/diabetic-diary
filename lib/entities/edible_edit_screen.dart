@@ -21,12 +21,15 @@ class EdibleEditScreen extends StatefulWidget {
   }
 }
 
+/// Manages state for edible creation / amendment
 class _EdibleCreateState extends State<EdibleEditScreen> {
   final Map<Symbol, Quantity> contentAmounts = {};
   Map<Symbol, Quantity> compositionStats = {};
   bool isDish = false;
   final titleController = new TextEditingController();
   final Database db;
+  Future<Map<Symbol, Quantity>> _contentAmounts = Future.value({});
+  Future<Map<Symbol, String>> _compositionStats = Future.value({});
 
   _EdibleCreateState({required this.db});
 
@@ -38,6 +41,20 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
     instance.titleController.text = symbolToString(edible.id);
     instance.contentAmounts.addAll(edible.contents);
     instance.isDish = edible.isDish;
+
+    // This case doesn't really need to be a future, only to allow code reuse
+    instance._contentAmounts = Future.value(edible.contents);
+
+    instance._compositionStats = db.aggregate(edible.contents, edible.id).then(
+        // Format the quantities into strings
+        (stats) async {
+          final Map<Symbol, String> result = {};
+          for(final entry in stats.entries) {
+            result[entry.key] = await db.formatQuantity(entry.value);
+          }
+          return result;
+        }
+    );
 
     return instance;
   }
@@ -52,41 +69,62 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
     return true;
   }
 
-  Widget buildEntityList({required String title, required Iterable<MapEntry<Symbol, Quantity>> entities,
-    required Symbol unitId, required BuildContext context}) =>
-    Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          child: Text(
-            title,
-            textScaleFactor: 2,
+  Widget _buildCompositionStat(BuildContext context, Symbol id, String quantity) {
+    return Text(quantity);
+  }
+
+  Widget _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
+    return Text("${quantity.amount} x");
+  }
+
+  Widget _buildEntityList<T>({
+    required String title,
+    required Future<Map<Symbol, T>> futureEntities,
+    required Widget Function(BuildContext, Symbol, T) builder,
+    required BuildContext context}) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            child: Text(
+              title,
+              textScaleFactor: 2,
+            ),
+            height: 50,
           ),
-          height: 50,
-        ),
-        Flexible(
-          child: ListView(
-            children: entities.map(
-              (e) => Container(
-                padding: EdgeInsets.symmetric(vertical: 3, horizontal: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(TL8(e.key))
-                    ),
-                    FutureBuilder(
-                      future: db.formatQuantity(e.value),
-                      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) =>
-                        Text('${snapshot.data}'),
-                    ),
-                  ],
-                ),
-              ),
-            ).toList(),
+          Flexible(
+            child: FutureBuilder<Map<Symbol, T>>( // Entities
+              future: futureEntities,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final entities = snapshot.data ?? {};
+                  return ListView(
+                    children: entities.entries.map((e) =>
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 3, horizontal: 10),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(TL8(e.key)),
+                              ),
+                              builder(context, e.key, e.value),
+                            ],
+                          ),
+                        ),
+                    ).toList(),
+                  );
+                }
+                if (snapshot.hasError) {
+                  debugPrint("Error calculating stats: ${snapshot.error}\n${snapshot.stackTrace}");
+                  return Text(TL8(#ErrorCalculatingStats, {#error: snapshot.error.toString()}));
+                }
+                return Text('...');
+              },
+            )
           ),
-        ),
-      ],
-    );
+        ],
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -169,27 +207,24 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
                     ],
                   )
               ),
-              Flexible(
+              Flexible( // Composition Stats
               flex: 6,
                 fit: FlexFit.tight,
-                child: FutureBuilder<Map<Symbol, Quantity>>(
-                  future: db.aggregate(contentAmounts),
-                  builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Quantity>> snapshot) => buildEntityList(
-                    title: TL8(#CompositionStats),
-                    entities: (compositionStats = snapshot.data ?? const {}).entries,
-                    context: context,
-                    unitId: #g_per_hg,
-                  ),
+                child: _buildEntityList<String>(
+                  title: TL8(#CompositionStats),
+                  futureEntities: _compositionStats,
+                  builder: _buildCompositionStat,
+                  context: context,
                 ),
               ),
-              Flexible(
+              Flexible( // Contents
                 flex: 6,
                 fit: FlexFit.tight,
-                child: buildEntityList(
+                child: _buildEntityList<Quantity>(
                   title: TL8(#Contents),
-                  entities: contentAmounts.entries,
+                  futureEntities: _contentAmounts,
+                  builder: _buildContentAmount,
                   context: context,
-                  unitId: #g_per_hg,
                 ),
               ),
               Flexible(
@@ -205,7 +240,7 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
                       ),
                     ),
                     Expanded(
-                      child: FutureBuilder<Map<Symbol, Edible>>(
+                      child: FutureBuilder<Map<Symbol, Edible>>( // Ingredients
                         future: db.edibles.getAll(),
                         builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Edible>> snapshot) => ListView(
                           children: (snapshot.data?.values ?? []).map(
@@ -222,7 +257,7 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
                                       final gramsPerHectagram = await db.units.fetch(#g_per_hg);
                                       final quantity = contentAmounts[e.id] ?? Quantity(0, gramsPerHectagram);
                                       final aggregated = await db.aggregate(contentAmounts);
-                                      final q2 = contentAmounts[e.id] = quantity.add(1);
+                                      contentAmounts[e.id] = quantity.add(1);
 
                                       setState(()  {
                                         compositionStats = aggregated;
