@@ -37,25 +37,28 @@ class EdibleTopic implements EntityTopic<Edible> {
     );
   }
 
-  Widget buildRow(Edible entity, BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 3, vertical: 5),
-          child:
-          GestureDetector(
-            child: Text(TL8(entity.id)),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EdibleScreen(edible: entity, db: db),
-                ),
-              );
-            },
-          ),
+  Widget buildRow(Edible entity, BuildContext context, int ix) {
+    return  GestureDetector(
+      child: Container(
+        color: (ix % 2 == 0) ? Colors.lightBlueAccent : Colors.lightBlue,
+//        padding: EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+              child: Text(TL8(entity.id)),
+            ),
+          ],
         ),
-      ],
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EdibleScreen(edible: entity, db: db),
+          ),
+        );
+      },
     );
   }
 
@@ -69,7 +72,7 @@ class EdibleTopic implements EntityTopic<Edible> {
           padding: EdgeInsets.all(16.0),
           itemCount: ingredients.length,
           itemBuilder: (context, ix) {
-            return buildRow(ingredients[ix], context);
+            return buildRow(ingredients[ix], context, ix);
           },
         );
       },
