@@ -59,14 +59,14 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
     return instance;
   }
 
-  Future<bool> addDish() async {
+   Future<Edible> addDish() async {
     final edible = Edible(
-      contents: contentAmounts,
+      contents: Map.from(contentAmounts), // Make a copy, since we're returning it
       id: Symbol(titleController.text),
       isDish: isDish,
     );
-    db.edibles.add(edible);
-    return true;
+    await db.edibles.add(edible);
+    return edible;
   }
 
   Widget _buildCompositionStat(BuildContext context, Symbol id, String quantity) {
@@ -129,7 +129,7 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: addDish,
+      onWillPop: _onPop,
       child: Scaffold(
         appBar: AppBar(
           title: Row(
@@ -279,5 +279,11 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
         ),
       ),
     );
+  }
+
+  Future<bool> _onPop() async {
+    Edible edible = await addDish();
+    Navigator.pop(context, edible);
+    return true;
   }
 }

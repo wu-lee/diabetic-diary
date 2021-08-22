@@ -20,13 +20,22 @@ class EdibleScreen extends StatefulWidget {
 }
 
 class _EdibleState extends State<EdibleScreen> {
-  final Edible edible;
+  Edible _edible;
   final Database db;
 
   Future<Map<Symbol, String>> _compositionStats = Future.value({});
   Future<Map<Symbol, String>> _contentAmounts = Future.value({});
 
-  _EdibleState(this.edible, this.db) {
+  Edible get edible => _edible;
+  set edible(Edible e) {
+    _edible = e;
+    _contentAmounts = _format(edible.contents);
+    _compositionStats = db.aggregate(edible.contents).then(_format);
+  }
+
+  _EdibleState(Edible edible, this.db) :
+        this._edible = edible
+  {
     _contentAmounts = _format(edible.contents);
     _compositionStats = db.aggregate(edible.contents).then(_format);
   }
@@ -47,13 +56,16 @@ class _EdibleState extends State<EdibleScreen> {
         IconButton(
           icon: const Icon(Icons.edit),
           tooltip: TL8(#Edit),
-          onPressed: () => {
-            Navigator.push(
+          onPressed: () async {
+            final Edible? newEdible = await Navigator.push<Edible>(
               context,
               MaterialPageRoute(
                 builder: (context) => EdibleEditScreen(edible: edible, db: db),
               ),
-            )
+            );
+            if (newEdible != null) {
+              setState(() { edible = newEdible; });
+            }
           },
         ),
       ]),
