@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinbox/flutter_spinbox.dart';
 
 import '../database.dart';
 import '../edible.dart';
@@ -24,10 +25,9 @@ class EdibleEditScreen extends StatefulWidget {
 /// Manages state for edible creation / amendment
 class _EdibleEditState extends State<EdibleEditScreen> {
   bool isDish = false;
-  final Map<Symbol, Quantity> _contents = {};
-  final Map<Symbol, Quantity> compositionStats = {};
   final titleController = new TextEditingController();
   final Database db;
+  Map<Symbol, Quantity> _contents = {};
   Future<Map<Symbol, Quantity>> _pendingContentAmounts = Future.value({});
   Future<Map<Symbol, String>> _pendingCompositionStats = Future.value({});
 
@@ -44,7 +44,7 @@ class _EdibleEditState extends State<EdibleEditScreen> {
 
   Map<Symbol, Quantity> get contents => _contents;
   set contents(Map<Symbol, Quantity> newContents) {
-    _contents..clear()..addAll(newContents);
+    _contents = newContents;
 
     // This case doesn't really need to be a future, only to allow code reuse
     // in _buildEntityList
@@ -55,11 +55,11 @@ class _EdibleEditState extends State<EdibleEditScreen> {
     _pendingCompositionStats = db.aggregate(newContents, id).then(
       // Format the quantities into strings
         (stats) async {
-          setState(() { compositionStats..clear()..addAll(stats); });
           final Map<Symbol, String> result = {};
           for(final entry in stats.entries) {
             result[entry.key] = await db.formatQuantity(entry.value);
           }
+
           return result;
         }
     );
@@ -82,7 +82,25 @@ class _EdibleEditState extends State<EdibleEditScreen> {
   }
 
   Widget _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
-    return Text("${quantity.amount}");
+    return SpinBox(
+      min: 0,
+      max: 100,
+      decimals: 1,
+      value: quantity.amount.toDouble(),
+      onChanged: (value) {
+        setState(() {
+          if (value <= 0) {
+            _contents.remove(id);
+          }
+          else {
+            _contents[id] = Quantity(value, quantity.units);
+          }
+
+          this.contents = _contents; // updates the stats too
+        });
+      },
+
+    );
   }
 
   Widget _buildEntityList<T>({
@@ -116,7 +134,9 @@ class _EdibleEditState extends State<EdibleEditScreen> {
                               Expanded(
                                 child: Text(TL8(e.key)),
                               ),
-                              builder(context, e.key, e.value),
+                              Expanded(
+                                child: builder(context, e.key, e.value),
+                              ),
                             ],
                           ),
                         ),
