@@ -16,38 +16,46 @@ class EdibleEditScreen extends StatefulWidget {
   State<StatefulWidget> createState() {
     Edible? edible = this.edible;
     if (edible != null)
-      return _EdibleCreateState.create(db: db, edible: edible);
-    return _EdibleCreateState(db: db);
+      return _EdibleEditState(db: db, edible: edible);
+    return _EdibleEditState(db: db);
   }
 }
 
 /// Manages state for edible creation / amendment
-class _EdibleCreateState extends State<EdibleEditScreen> {
-  final Map<Symbol, Quantity> contentAmounts = {};
-  Map<Symbol, Quantity> compositionStats = {};
+class _EdibleEditState extends State<EdibleEditScreen> {
   bool isDish = false;
+  final Map<Symbol, Quantity> _contents = {};
+  final Map<Symbol, Quantity> compositionStats = {};
   final titleController = new TextEditingController();
   final Database db;
-  Future<Map<Symbol, Quantity>> _contentAmounts = Future.value({});
-  Future<Map<Symbol, String>> _compositionStats = Future.value({});
+  Future<Map<Symbol, Quantity>> _pendingContentAmounts = Future.value({});
+  Future<Map<Symbol, String>> _pendingCompositionStats = Future.value({});
 
-  _EdibleCreateState({required this.db});
+  _EdibleEditState({required this.db, Edible? edible}) {
+    if (edible != null) {
+      this.edible = edible;
+    }
+  }
 
-  factory _EdibleCreateState.create({required Database db, Edible? edible}) {
-    final instance = _EdibleCreateState(db: db);
-    if (edible == null)
-      return instance;
+  Symbol get id => Symbol(titleController.text);
+  set id(Symbol newId) {
+    titleController.text = symbolToString(newId);
+  }
 
-    instance.titleController.text = symbolToString(edible.id);
-    instance.contentAmounts.addAll(edible.contents);
-    instance.isDish = edible.isDish;
+  Map<Symbol, Quantity> get contents => _contents;
+  set contents(Map<Symbol, Quantity> newContents) {
+    _contents..clear()..addAll(newContents);
 
     // This case doesn't really need to be a future, only to allow code reuse
-    instance._contentAmounts = Future.value(edible.contents);
+    // in _buildEntityList
+    _pendingContentAmounts = Future.value(newContents);
 
-    instance._compositionStats = db.aggregate(edible.contents, edible.id).then(
-        // Format the quantities into strings
+    // This does, because the calculation is asynchronous. Add a handler to
+    // update our state when it's done.
+    _pendingCompositionStats = db.aggregate(newContents, id).then(
+      // Format the quantities into strings
         (stats) async {
+          setState(() { compositionStats..clear()..addAll(stats); });
           final Map<Symbol, String> result = {};
           for(final entry in stats.entries) {
             result[entry.key] = await db.formatQuantity(entry.value);
@@ -55,18 +63,18 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
           return result;
         }
     );
-
-    return instance;
   }
 
-   Future<Edible> addDish() async {
-    final edible = Edible(
-      contents: Map.from(contentAmounts), // Make a copy, since we're returning it
-      id: Symbol(titleController.text),
-      isDish: isDish,
-    );
-    await db.edibles.add(edible);
-    return edible;
+  Edible get edible => Edible(
+    contents: Map.from(_contents), // Make a copy, since we're returning it
+    id: id,
+    isDish: isDish,
+  );
+
+  set edible(Edible e) {
+    id = e.id;
+    isDish = e.isDish;
+    contents = e.contents;
   }
 
   Widget _buildCompositionStat(BuildContext context, Symbol id, String quantity) {
@@ -74,7 +82,7 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
   }
 
   Widget _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
-    return Text("${quantity.amount} x");
+    return Text("${quantity.amount}");
   }
 
   Widget _buildEntityList<T>({
@@ -212,7 +220,7 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
                 fit: FlexFit.tight,
                 child: _buildEntityList<String>(
                   title: TL8(#CompositionStats),
-                  futureEntities: _compositionStats,
+                  futureEntities: _pendingCompositionStats,
                   builder: _buildCompositionStat,
                   context: context,
                 ),
@@ -222,7 +230,7 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
                 fit: FlexFit.tight,
                 child: _buildEntityList<Quantity>(
                   title: TL8(#Contents),
-                  futureEntities: _contentAmounts,
+                  futureEntities: _pendingContentAmounts,
                   builder: _buildContentAmount,
                   context: context,
                 ),
@@ -255,12 +263,13 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
                                     color: Colors.blue,
                                     onPressed: () async {
                                       final gramsPerHectagram = await db.units.fetch(#g_per_hg);
-                                      final quantity = contentAmounts[e.id] ?? Quantity(0, gramsPerHectagram);
-                                      final aggregated = await db.aggregate(contentAmounts);
-                                      contentAmounts[e.id] = quantity.add(1);
+                                      final newContents = await _pendingContentAmounts;
+                                      final quantity = newContents[e.id] ?? Quantity(0, gramsPerHectagram);
+                                      final aggregated = await db.aggregate(newContents);
+                                      newContents[e.id] = quantity.add(1);
 
-                                      setState(()  {
-                                        compositionStats = aggregated;
+                                      setState(() {
+                                        contents = newContents;
                                       });
                                     },
                                   ),
@@ -282,8 +291,9 @@ class _EdibleCreateState extends State<EdibleEditScreen> {
   }
 
   Future<bool> _onPop() async {
-    Edible edible = await addDish();
-    Navigator.pop(context, edible);
+    final e = edible;
+    await db.edibles.add(e);
+    Navigator.pop(context, e);
     return true;
   }
 }
