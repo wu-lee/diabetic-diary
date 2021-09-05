@@ -29,6 +29,8 @@ void main() async {
 
       final count = await mdb.dimensions.count();
       expect(count, 2);
+      expect(await mdb.dimensions.containsId(#testDim1), true);
+      expect(await mdb.dimensions.containsId(#testDim2), true);
 
       final allThings = await mdb.dimensions.getAll();
 
@@ -41,6 +43,9 @@ void main() async {
 
       expect(await mdb.dimensions.get(#testDim1, inThing2), inThing2);
       expect(await mdb.dimensions.get(#testDim2, inThing1), inThing2);
+
+      expect(await mdb.dimensions.containsId(#testDim1), false);
+      expect(await mdb.dimensions.containsId(#testDim2), true);
 
       expect(await mdb.dimensions.fetch(#testDim2), inThing2);
       expect(() async => await mdb.dimensions.fetch(#testDim1), throwsA(TypeMatcher<ArgumentError>()));
@@ -61,6 +66,9 @@ void main() async {
       final count = await mdb.units.count();
       expect(count, 2);
 
+      expect(await mdb.units.containsId(#testUnit1), true);
+      expect(await mdb.units.containsId(#testUnit2), true);
+
       final allThings = await mdb.units.getAll();
 
       expect(allThings.length, 2);
@@ -69,6 +77,9 @@ void main() async {
 
       expect(await mdb.units.remove(#testUnit1), 1);
       expect(await mdb.units.remove(#testUnit1), 0);
+
+      expect(await mdb.units.containsId(#testUnit1), false);
+      expect(await mdb.units.containsId(#testUnit2), true);
 
       expect(await mdb.units.get(#testUnit1, inThing2), inThing2);
       expect(await mdb.units.get(#testUnit2, inThing1), inThing2);
@@ -93,6 +104,9 @@ void main() async {
       final count = await mdb.measurables.count();
       expect(count, 2);
 
+      expect(await mdb.measurables.containsId(#testMeasurable1), true);
+      expect(await mdb.measurables.containsId(#testMeasurable2), true);
+
       final allThings = await mdb.measurables.getAll();
 
       expect(allThings.length, 2);
@@ -101,6 +115,9 @@ void main() async {
 
       expect(await mdb.measurables.remove(#testMeasurable1), 1);
       expect(await mdb.measurables.remove(#testMeasurable1), 0);
+
+      expect(await mdb.measurables.containsId(#testMeasurable1), false);
+      expect(await mdb.measurables.containsId(#testMeasurable2), true);
 
       expect(await mdb.measurables.get(#testMeasurable1, inThing2), inThing2);
       expect(await mdb.measurables.get(#testMeasurable2, inThing1), inThing2);
@@ -136,6 +153,9 @@ void main() async {
       if (outThing!=null) print(await mdb.formatEdible(outThing));
       expect(outThing, inThing1, reason: 'outThing mismatches inThing1');
 
+      expect(await mdb.edibles.containsId(#testEdible1), true);
+      expect(await mdb.edibles.containsId(#testEdible2), true);
+
       final count = await mdb.edibles.count();
       expect(count, 2, reason: 'counting edibles');
 
@@ -147,6 +167,9 @@ void main() async {
 
       expect(await mdb.edibles.remove(#testEdible1), 4, reason: 'removing #testEdible1');
       expect(await mdb.edibles.remove(#testEdible1), 0, reason: 'removing #testEdible1 again');
+
+      expect(await mdb.edibles.containsId(#testEdible1), false);
+      expect(await mdb.edibles.containsId(#testEdible2), true);
 
       expect(await mdb.edibles.get(#testEdible1, inThing2), inThing2, reason: 'getting #testEdible1 defaults');
       expect(await mdb.edibles.get(#testEdible2, inThing1), inThing2, reason: 'getting #testEdible2 succeeds');

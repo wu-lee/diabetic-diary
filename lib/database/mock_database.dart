@@ -85,6 +85,11 @@ class MockDataCollection<T extends Indexable> implements AsyncDataCollection<T> 
   Future<int> count() => Future(() => map.length);
 
   @override
+  Future<bool> containsId(Symbol index) {
+    return Future(() => map.containsKey(index));
+  }
+
+  @override
   Future<T> get(Symbol index, T otherwise) {
     if (map.containsKey(index))
       return Future(() => map[index] ?? otherwise);

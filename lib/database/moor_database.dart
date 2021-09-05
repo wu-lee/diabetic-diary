@@ -182,6 +182,16 @@ abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 exten
   }
 
   @override
+  Future<bool> containsId(Symbol index) async {
+    final count = db
+        .selectOnly(tableInfo)
+      ..addColumns([idCol])
+      ..where(idCol.equals(symbolToString(index)))
+      ..limit(1);
+    return null != await count.getSingleOrNull();
+  }
+
+  @override
   Future<Symbol> add(D2 value) async {
     final row = valueToRow(value);
 //    final result = await db.into(tableInfo).insertOnConflictUpdate(row);
@@ -310,6 +320,16 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
 
     final r = await query.getSingle();
     return r.read(count);
+  }
+
+  @override
+  Future<bool> containsId(Symbol index) async {
+    final count = db
+        .selectOnly(table)
+        ..addColumns([idCol])
+        ..where(idCol.equals(symbolToString(index)))
+        ..limit(1);
+    return null != await count.getSingleOrNull();
   }
 
   @override
@@ -492,6 +512,16 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   JoinedSelectStatement<Table, dynamic> _contentRowsFor(Symbol index) {
     return contentsQuery
       ..where(joinedIdCol.equals(symbolToString(index)));
+  }
+
+  @override
+  Future<bool> containsId(Symbol index) async {
+    final count = db
+        .selectOnly(table)
+      ..addColumns([idCol])
+      ..where(idCol.equals(symbolToString(index)))
+      ..limit(1);
+    return null != await count.getSingleOrNull();
   }
 
   @override

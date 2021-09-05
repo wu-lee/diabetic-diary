@@ -50,6 +50,8 @@ abstract class AsyncDataCollection<T extends Indexable> {
   /// Count all items
   Future<int> count();
 
+  Future<bool> containsId(Symbol index);
+
   /// Get all items as a map
   Future<Map<Symbol, T>> getAll();
 
