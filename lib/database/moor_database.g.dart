@@ -849,41 +849,59 @@ class $_MeasurablesTable extends _Measurables
   }
 }
 
-class _Edible extends DataClass implements Insertable<_Edible> {
+class _BasicIngredientContent extends DataClass
+    implements Insertable<_BasicIngredientContent> {
   final String id;
-  final bool isDish;
-  _Edible({required this.id, required this.isDish});
-  factory _Edible.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+  final String contains;
+  final double amount;
+  final String unitsId;
+  _BasicIngredientContent(
+      {required this.id,
+      required this.contains,
+      required this.amount,
+      required this.unitsId});
+  factory _BasicIngredientContent.fromData(
+      Map<String, dynamic> data, GeneratedDatabase db,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
-    return _Edible(
+    return _BasicIngredientContent(
       id: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      isDish: const BoolType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}is_dish'])!,
+      contains: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}contains'])!,
+      amount: const RealType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}amount'])!,
+      unitsId: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}units_id'])!,
     );
   }
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['is_dish'] = Variable<bool>(isDish);
+    map['contains'] = Variable<String>(contains);
+    map['amount'] = Variable<double>(amount);
+    map['units_id'] = Variable<String>(unitsId);
     return map;
   }
 
-  _EdiblesCompanion toCompanion(bool nullToAbsent) {
-    return _EdiblesCompanion(
+  _BasicIngredientContentsCompanion toCompanion(bool nullToAbsent) {
+    return _BasicIngredientContentsCompanion(
       id: Value(id),
-      isDish: Value(isDish),
+      contains: Value(contains),
+      amount: Value(amount),
+      unitsId: Value(unitsId),
     );
   }
 
-  factory _Edible.fromJson(Map<String, dynamic> json,
+  factory _BasicIngredientContent.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
-    return _Edible(
+    return _BasicIngredientContent(
       id: serializer.fromJson<String>(json['id']),
-      isDish: serializer.fromJson<bool>(json['isDish']),
+      contains: serializer.fromJson<String>(json['contains']),
+      amount: serializer.fromJson<double>(json['amount']),
+      unitsId: serializer.fromJson<String>(json['unitsId']),
     );
   }
   @override
@@ -891,57 +909,89 @@ class _Edible extends DataClass implements Insertable<_Edible> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'isDish': serializer.toJson<bool>(isDish),
+      'contains': serializer.toJson<String>(contains),
+      'amount': serializer.toJson<double>(amount),
+      'unitsId': serializer.toJson<String>(unitsId),
     };
   }
 
-  _Edible copyWith({String? id, bool? isDish}) => _Edible(
+  _BasicIngredientContent copyWith(
+          {String? id, String? contains, double? amount, String? unitsId}) =>
+      _BasicIngredientContent(
         id: id ?? this.id,
-        isDish: isDish ?? this.isDish,
+        contains: contains ?? this.contains,
+        amount: amount ?? this.amount,
+        unitsId: unitsId ?? this.unitsId,
       );
   @override
   String toString() {
-    return (StringBuffer('_Edible(')
+    return (StringBuffer('_BasicIngredientContent(')
           ..write('id: $id, ')
-          ..write('isDish: $isDish')
+          ..write('contains: $contains, ')
+          ..write('amount: $amount, ')
+          ..write('unitsId: $unitsId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode, isDish.hashCode));
+  int get hashCode => $mrjf($mrjc(id.hashCode,
+      $mrjc(contains.hashCode, $mrjc(amount.hashCode, unitsId.hashCode))));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is _Edible && other.id == this.id && other.isDish == this.isDish);
+      (other is _BasicIngredientContent &&
+          other.id == this.id &&
+          other.contains == this.contains &&
+          other.amount == this.amount &&
+          other.unitsId == this.unitsId);
 }
 
-class _EdiblesCompanion extends UpdateCompanion<_Edible> {
+class _BasicIngredientContentsCompanion
+    extends UpdateCompanion<_BasicIngredientContent> {
   final Value<String> id;
-  final Value<bool> isDish;
-  const _EdiblesCompanion({
+  final Value<String> contains;
+  final Value<double> amount;
+  final Value<String> unitsId;
+  const _BasicIngredientContentsCompanion({
     this.id = const Value.absent(),
-    this.isDish = const Value.absent(),
+    this.contains = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.unitsId = const Value.absent(),
   });
-  _EdiblesCompanion.insert({
+  _BasicIngredientContentsCompanion.insert({
     required String id,
-    required bool isDish,
+    required String contains,
+    required double amount,
+    required String unitsId,
   })  : id = Value(id),
-        isDish = Value(isDish);
-  static Insertable<_Edible> custom({
+        contains = Value(contains),
+        amount = Value(amount),
+        unitsId = Value(unitsId);
+  static Insertable<_BasicIngredientContent> custom({
     Expression<String>? id,
-    Expression<bool>? isDish,
+    Expression<String>? contains,
+    Expression<double>? amount,
+    Expression<String>? unitsId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (isDish != null) 'is_dish': isDish,
+      if (contains != null) 'contains': contains,
+      if (amount != null) 'amount': amount,
+      if (unitsId != null) 'units_id': unitsId,
     });
   }
 
-  _EdiblesCompanion copyWith({Value<String>? id, Value<bool>? isDish}) {
-    return _EdiblesCompanion(
+  _BasicIngredientContentsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? contains,
+      Value<double>? amount,
+      Value<String>? unitsId}) {
+    return _BasicIngredientContentsCompanion(
       id: id ?? this.id,
-      isDish: isDish ?? this.isDish,
+      contains: contains ?? this.contains,
+      amount: amount ?? this.amount,
+      unitsId: unitsId ?? this.unitsId,
     );
   }
 
@@ -951,8 +1001,231 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (isDish.present) {
-      map['is_dish'] = Variable<bool>(isDish.value);
+    if (contains.present) {
+      map['contains'] = Variable<String>(contains.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (unitsId.present) {
+      map['units_id'] = Variable<String>(unitsId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('_BasicIngredientContentsCompanion(')
+          ..write('id: $id, ')
+          ..write('contains: $contains, ')
+          ..write('amount: $amount, ')
+          ..write('unitsId: $unitsId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $_BasicIngredientContentsTable extends _BasicIngredientContents
+    with TableInfo<$_BasicIngredientContentsTable, _BasicIngredientContent> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $_BasicIngredientContentsTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedTextColumn id = _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES edibles(id)');
+  }
+
+  final VerificationMeta _containsMeta = const VerificationMeta('contains');
+  @override
+  late final GeneratedTextColumn contains = _constructContains();
+  GeneratedTextColumn _constructContains() {
+    return GeneratedTextColumn('contains', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES measurables(id)');
+  }
+
+  final VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedRealColumn amount = _constructAmount();
+  GeneratedRealColumn _constructAmount() {
+    return GeneratedRealColumn(
+      'amount',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
+  @override
+  late final GeneratedTextColumn unitsId = _constructUnitsId();
+  GeneratedTextColumn _constructUnitsId() {
+    return GeneratedTextColumn('units_id', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES units(id)');
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, contains, amount, unitsId];
+  @override
+  $_BasicIngredientContentsTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'basic_ingredient_contents';
+  @override
+  final String actualTableName = 'basic_ingredient_contents';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<_BasicIngredientContent> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('contains')) {
+      context.handle(_containsMeta,
+          contains.isAcceptableOrUnknown(data['contains']!, _containsMeta));
+    } else if (isInserting) {
+      context.missing(_containsMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(_amountMeta,
+          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('units_id')) {
+      context.handle(_unitsIdMeta,
+          unitsId.isAcceptableOrUnknown(data['units_id']!, _unitsIdMeta));
+    } else if (isInserting) {
+      context.missing(_unitsIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id, contains};
+  @override
+  _BasicIngredientContent map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    return _BasicIngredientContent.fromData(data, _db,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $_BasicIngredientContentsTable createAlias(String alias) {
+    return $_BasicIngredientContentsTable(_db, alias);
+  }
+}
+
+class _Edible extends DataClass implements Insertable<_Edible> {
+  final String id;
+  final bool isBasic;
+  _Edible({required this.id, required this.isBasic});
+  factory _Edible.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return _Edible(
+      id: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      isBasic: const BoolType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}is_basic'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['is_basic'] = Variable<bool>(isBasic);
+    return map;
+  }
+
+  _EdiblesCompanion toCompanion(bool nullToAbsent) {
+    return _EdiblesCompanion(
+      id: Value(id),
+      isBasic: Value(isBasic),
+    );
+  }
+
+  factory _Edible.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return _Edible(
+      id: serializer.fromJson<String>(json['id']),
+      isBasic: serializer.fromJson<bool>(json['isBasic']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'isBasic': serializer.toJson<bool>(isBasic),
+    };
+  }
+
+  _Edible copyWith({String? id, bool? isBasic}) => _Edible(
+        id: id ?? this.id,
+        isBasic: isBasic ?? this.isBasic,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('_Edible(')
+          ..write('id: $id, ')
+          ..write('isBasic: $isBasic')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(id.hashCode, isBasic.hashCode));
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is _Edible &&
+          other.id == this.id &&
+          other.isBasic == this.isBasic);
+}
+
+class _EdiblesCompanion extends UpdateCompanion<_Edible> {
+  final Value<String> id;
+  final Value<bool> isBasic;
+  const _EdiblesCompanion({
+    this.id = const Value.absent(),
+    this.isBasic = const Value.absent(),
+  });
+  _EdiblesCompanion.insert({
+    required String id,
+    required bool isBasic,
+  })  : id = Value(id),
+        isBasic = Value(isBasic);
+  static Insertable<_Edible> custom({
+    Expression<String>? id,
+    Expression<bool>? isBasic,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (isBasic != null) 'is_basic': isBasic,
+    });
+  }
+
+  _EdiblesCompanion copyWith({Value<String>? id, Value<bool>? isBasic}) {
+    return _EdiblesCompanion(
+      id: id ?? this.id,
+      isBasic: isBasic ?? this.isBasic,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (isBasic.present) {
+      map['is_basic'] = Variable<bool>(isBasic.value);
     }
     return map;
   }
@@ -961,7 +1234,7 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
   String toString() {
     return (StringBuffer('_EdiblesCompanion(')
           ..write('id: $id, ')
-          ..write('isDish: $isDish')
+          ..write('isBasic: $isBasic')
           ..write(')'))
         .toString();
   }
@@ -982,19 +1255,19 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
     );
   }
 
-  final VerificationMeta _isDishMeta = const VerificationMeta('isDish');
+  final VerificationMeta _isBasicMeta = const VerificationMeta('isBasic');
   @override
-  late final GeneratedBoolColumn isDish = _constructIsDish();
-  GeneratedBoolColumn _constructIsDish() {
+  late final GeneratedBoolColumn isBasic = _constructIsBasic();
+  GeneratedBoolColumn _constructIsBasic() {
     return GeneratedBoolColumn(
-      'is_dish',
+      'is_basic',
       $tableName,
       false,
     );
   }
 
   @override
-  List<GeneratedColumn> get $columns => [id, isDish];
+  List<GeneratedColumn> get $columns => [id, isBasic];
   @override
   $_EdiblesTable get asDslTable => this;
   @override
@@ -1011,11 +1284,11 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('is_dish')) {
-      context.handle(_isDishMeta,
-          isDish.isAcceptableOrUnknown(data['is_dish']!, _isDishMeta));
+    if (data.containsKey('is_basic')) {
+      context.handle(_isBasicMeta,
+          isBasic.isAcceptableOrUnknown(data['is_basic']!, _isBasicMeta));
     } else if (isInserting) {
-      context.missing(_isDishMeta);
+      context.missing(_isBasicMeta);
     }
     return context;
   }
@@ -1307,11 +1580,20 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
   late final $_UnitsTable units = $_UnitsTable(this);
   late final $_DimensionsTable dimensions = $_DimensionsTable(this);
   late final $_MeasurablesTable measurables = $_MeasurablesTable(this);
+  late final $_BasicIngredientContentsTable basicIngredientContents =
+      $_BasicIngredientContentsTable(this);
   late final $_EdiblesTable edibles = $_EdiblesTable(this);
   late final $_EdibleContentsTable edibleContents = $_EdibleContentsTable(this);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [config, units, dimensions, measurables, edibles, edibleContents];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        config,
+        units,
+        dimensions,
+        measurables,
+        basicIngredientContents,
+        edibles,
+        edibleContents
+      ];
 }

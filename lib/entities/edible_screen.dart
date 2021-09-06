@@ -1,3 +1,4 @@
+import 'package:diabetic_diary/basic_ingredient.dart';
 import 'package:flutter/material.dart';
 
 import '../database.dart';
@@ -74,7 +75,7 @@ class _EdibleState extends State<EdibleScreen> {
         children: [
           Container(
             child: Text(
-              TL8(edible.isDish? #Dish : #Ingredient),
+              TL8(edible is BasicIngredient? #Ingredient : #Dish),
             ),
             height: 20,
           ),

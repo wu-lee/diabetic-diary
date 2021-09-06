@@ -1,18 +1,18 @@
 import 'package:flutter/foundation.dart';
-import 'quantified.dart';
+import 'edible.dart';
 import 'quantity.dart';
 
 
-class Edible implements Quantified {
+class BasicIngredient implements Edible {
   final Symbol id;
   final Map<Symbol, Quantity> contents;
 
-  const Edible({required this.id, required this.contents});
+  const BasicIngredient({required this.id, required this.contents});
 
   @override
   bool operator== (Object that) {
     if (identical(that, this)) return true;
-    if (that is Edible &&
+    if (that is BasicIngredient &&
         that.runtimeType == this.runtimeType) {
       return id == that.id && mapEquals(contents, that.contents);
     }
@@ -30,12 +30,12 @@ class Edible implements Quantified {
     );
   }
 
-  Edible.compose({required this.id, required Map<Edible, Quantity> ingredients}) :
+  BasicIngredient.compose({required this.id, required Map<BasicIngredient, Quantity> ingredients}) :
     contents = aggregate(ingredients);
 
 
 
-  static String format(Map<Edible, Quantity> ingredients) {
+  static String format(Map<BasicIngredient, Quantity> ingredients) {
     return "ingredients ${ingredients.entries.map((e) => "${TL8(e.key.id)}: ${e.value.amount} ${TL8(e.value.units.id)}").join("; ")}";
   }*/
 }

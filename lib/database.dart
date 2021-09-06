@@ -1,4 +1,5 @@
 
+import 'package:diabetic_diary/basic_ingredient.dart';
 import 'package:diabetic_diary/measureable.dart';
 import 'package:diabetic_diary/translation.dart';
 import 'package:flutter/foundation.dart';
@@ -84,6 +85,7 @@ abstract class Database {
   AsyncDataCollection<Dimensions> get dimensions;
   AsyncDataCollection<Units> get units;
   AsyncDataCollection<Measurable> get measurables;
+  AsyncDataCollection<BasicIngredient> get ingredients;
   AsyncDataCollection<Edible> get edibles;
 
   /// Returns the schema version of this database object
@@ -138,7 +140,9 @@ abstract class Database {
 
   String formatMeasurable(Measurable meas) => "Measurable(id: ${TL8(meas.id)}, units: ${TL8(meas.dimensionsId)})";
 
-  Future<String> formatEdible(Edible edible) async => "Edible(id: ${TL8(edible.id)}, isDish: ${edible.isDish}, contents: ${await formatContents(edible.contents)})";
+  Future<String> formatEdible(Edible edible) async => "Edible(id: ${TL8(edible.id)}, contents: ${await formatContents(edible.contents)})";
+
+  Future<String> formatBasicIngredient(BasicIngredient ingredient) async => "${ingredient is Edible? 'Edible' : 'BasicIngredient'}(id: ${TL8(ingredient.id)}, contents: ${await formatContents(ingredient.contents)})";
 
   Future<String> formatContents(Map<Symbol, Quantity> contents) async {
     final entries = contents.entries.map((e) async {
@@ -166,15 +170,28 @@ abstract class Database {
         continue;
       final edible = await edibles.maybeGet(id);
       if (edible == null) {
-        // Not a known edible, presumably a measurable?
-        final measurable = await measurables.maybeGet(id);
-        if (measurable == null)
-          throw new RangeError("Unknown edible $id"); // Nope, throw
-        index[id] = measurable;
-        continue;
+        // Not a known edible, maybe an ingredient?
+        final ingredient = await ingredients.maybeGet(id);
+
+        if (ingredient == null) {
+          // Not a known ingredient, presumably a measurable?
+          final measurable = await measurables.maybeGet(id);
+
+          if (measurable == null)
+            throw new RangeError("Unknown edible $id"); // Nope, throw
+
+          index[id] = measurable;
+          continue;
+        }
+        else {
+          index[id] = ingredient;
+          pending.addAll(ingredient.contents.keys);
+        }
       }
-      index[id] = edible;
-      pending.addAll(edible.contents.keys);
+      else {
+        index[id] = edible;
+        pending.addAll(edible.contents.keys);
+      }
     }
     return index;
   }
@@ -305,14 +322,14 @@ abstract class Database {
           Sugar = Measurable(id: #Sugar, dimensionsId: #GramsPerHectogram),
           Salt = Measurable(id: #Salt, dimensionsId: #GramsPerHectogram);
         final
-          tahini = Edible(
+          tahini = BasicIngredient(
             id: #Tahini,
             contents: {
               Carbs.id: GramsPerHectogram.times(1),
               Fat.id: GramsPerHectogram.times(2),
             },
           ),
-          cabbage = Edible(
+          cabbage = BasicIngredient(
             id: #Cabbage,
             contents: {
               Carbs.id: GramsPerHectogram.times(1),
@@ -331,7 +348,7 @@ abstract class Database {
           ..add(GramsPerHectogram)..add(GramsPerKiloGram)..add(GramsPerGram);
         db.measurables..add(Carbs)..add(Fat)..add(Fibre)..add(
             Protein)..add(Sugar)..add(Salt);
-        db.edibles..add(tahini)..add(cabbage);
+        db.ingredients..add(tahini)..add(cabbage);
         db.edibles..add(salad);
       },
       upgrade: (db) {},

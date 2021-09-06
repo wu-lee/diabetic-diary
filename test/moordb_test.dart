@@ -1,3 +1,4 @@
+import 'package:diabetic_diary/basic_ingredient.dart';
 import 'package:diabetic_diary/database.dart';
 import 'package:diabetic_diary/database/moor_database.dart';
 import 'package:diabetic_diary/dimensions.dart';
@@ -124,6 +125,59 @@ void main() async {
 
       expect(await mdb.measurables.fetch(#testMeasurable2), inThing2);
       expect(() async => await mdb.measurables.fetch(#testMeasurable1), throwsA(TypeMatcher<ArgumentError>()));
+    });
+
+    test('Just BasicIngredients', () async {
+      final inThing1 = BasicIngredient(
+          id: #testBasicIngredient1,
+          contents: {
+            #testContent1: Quantity(1, Units(#g, #Mass, 1)),
+            #testContent2: Quantity(2, Units(#Pa, #Pressure, 1)),
+            #testContent3: Quantity(3, Units(#gg, #MassByFraction, 1)),
+          }
+      );
+      final inThing2 = BasicIngredient(
+          id: #testBasicIngredient2,
+          contents: {
+            #testContent1: Quantity(1, Units(#kg, #Mass, 1000)),
+            #testContent3: Quantity(3, Units(#ghg, #MassByFraction, .01)),
+            #testContent4: Quantity(4, Units(#kj, #Energy, 1)),
+          }
+      );
+      final removed = await mdb.ingredients.removeAll();
+      print("removed basic ingredients "+removed.toString());
+      await mdb.ingredients.add(inThing1);
+      await mdb.ingredients.add(inThing2);
+      final outThing = await mdb.ingredients.maybeGet(#testBasicIngredient1);
+
+      print(await mdb.formatBasicIngredient(inThing1));
+      if (outThing!=null) print(await mdb.formatBasicIngredient(outThing));
+      expect(outThing, inThing1, reason: 'outThing mismatches inThing1');
+
+      expect(await mdb.ingredients.containsId(#testBasicIngredient1), true);
+      expect(await mdb.ingredients.containsId(#testBasicIngredient2), true);
+
+      final count = await mdb.ingredients.count();
+      expect(count, 2, reason: 'counting ingredients');
+
+      final allThings = await mdb.ingredients.getAll();
+
+      expect(allThings.length, 2, reason: 'checking number of allThings');
+      expect(allThings[#testBasicIngredient1], inThing1, reason: 'checking allThings includes inThing1');
+      expect(allThings[#testBasicIngredient2], inThing2, reason: 'checking allThings includes inThing2');
+
+      expect(await mdb.ingredients.remove(#testBasicIngredient1), 4, reason: 'removing #testBasicIngredient1');
+      expect(await mdb.ingredients.remove(#testBasicIngredient1), 0, reason: 'removing #testBasicIngredient1 again');
+
+      expect(await mdb.ingredients.containsId(#testBasicIngredient1), false);
+      expect(await mdb.ingredients.containsId(#testBasicIngredient2), true);
+
+      expect(await mdb.ingredients.get(#testBasicIngredient1, inThing2), inThing2, reason: 'getting #testBasicIngredient1 defaults');
+      expect(await mdb.ingredients.get(#testBasicIngredient2, inThing1), inThing2, reason: 'getting #testBasicIngredient2 succeeds');
+
+      expect(await mdb.ingredients.fetch(#testBasicIngredient2), inThing2, reason: 'fetching #testBasicIngredient2 succeeds');
+      expect(() async => await mdb.ingredients.fetch(#testBasicIngredient1), throwsA(TypeMatcher<ArgumentError>()), reason: 'fetching #testBasicIngredient1 throws');
+
     });
 
     test('Just Edibles', () async {

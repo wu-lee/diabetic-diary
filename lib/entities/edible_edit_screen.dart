@@ -68,12 +68,10 @@ class _EdibleEditState extends State<EdibleEditScreen> {
   Edible get edible => Edible(
     contents: Map.from(_contents), // Make a copy, since we're returning it
     id: id,
-    isDish: isDish,
   );
 
   set edible(Edible e) {
     id = e.id;
-    isDish = e.isDish;
     contents = e.contents;
   }
 

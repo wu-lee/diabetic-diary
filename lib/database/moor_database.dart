@@ -1,3 +1,4 @@
+import 'package:diabetic_diary/basic_ingredient.dart';
 import 'package:diabetic_diary/database.dart';
 import 'package:diabetic_diary/measureable.dart';
 import 'package:diabetic_diary/translation.dart';
@@ -51,9 +52,19 @@ class _Measurables extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class _BasicIngredientContents extends Table {
+  TextColumn get id => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
+  TextColumn get contains => text().customConstraint('NOT NULL REFERENCES measurables(id)')();
+  RealColumn get amount => real()();
+  TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
+
+  @override
+  Set<Column> get primaryKey => {id, contains};
+}
+
 class _Edibles extends Table {
-  TextColumn get id => text()();
-  BoolColumn get isDish => boolean()();
+  TextColumn get id => text()(); // a BasicIngredient or an Edible
+  BoolColumn get isBasic => boolean()(); // True if a BasicIngredient
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -89,7 +100,7 @@ LazyDatabase _openConnection() {
   });
 }
 
-@UseMoor(tables: [_Config, _Units, _Dimensions, _Measurables, _Edibles, _EdibleContents])
+@UseMoor(tables: [_Config, _Units, _Dimensions, _Measurables, _BasicIngredientContents, _Edibles, _EdibleContents])
 class _MoorDatabase extends _$_MoorDatabase {
   // we tell the database where to store the data with this constructor
   _MoorDatabase() : super(_openConnection());
@@ -108,6 +119,7 @@ class MoorDatabase extends Database {
         dimensions = MoorDimensionsCollection(db),
         units = MoorUnitsCollection(db),
         measurables = MoorMeasurablesCollection(db),
+        ingredients = MoorBasicIngredientsCollection(db: db),
         edibles = MoorEdiblesCollection(db: db);
 
   static MoorDatabase create() {
@@ -123,6 +135,9 @@ class MoorDatabase extends Database {
 
   @override
   final AsyncDataCollection<Measurable> measurables;
+
+  @override
+  final AsyncDataCollection<BasicIngredient> ingredients;
 
   @override
   final AsyncDataCollection<Edible> edibles;
@@ -425,92 +440,28 @@ class MoorMeasurablesCollection extends MoorDataCollection<$_MeasurablesTable, _
   }
 }
 
-class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
+abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataClass, T2 extends Table, D2 extends DataClass, I extends Indexable> implements AsyncDataCollection<I> {
   final _MoorDatabase db;
-  final $_EdiblesTable table;
-  final $_EdibleContentsTable joinedTable;
+  final TableInfo<T1, D1> table;
+  final TableInfo<T2, D2> joinedTable;
   final GeneratedTextColumn idCol;
   final GeneratedTextColumn joinedIdCol;
-  SimpleSelectStatement<$_EdiblesTable, _Edible> get ediblesQuery =>
-    db.select(db.edibles);
-  JoinedSelectStatement<Table, dynamic> get contentsQuery =>
-      db.select(db.edibleContents)
-          .join([
-        leftOuterJoin(db.units, db.edibleContents.unitsId.equalsExp(db.units.id))
-      ]);
 
+  MoorAbstractEdiblesCollection({required this.db, required this.table, required this.joinedTable, required this.idCol, required this.joinedIdCol});
 
-  MoorEdiblesCollection({required this.db}) :
-    table = db.edibles,
-    joinedTable = db.edibleContents,
-    idCol = db.edibles.id,
-    joinedIdCol = db.edibleContents.id;
+  Iterable<Insertable<D1>> edibleToRows(I value);
 
-  Iterable<Insertable<_Edible>> edibleToRows(Edible value) {
-    List<Insertable<_Edible>> rows = [];
-    rows.add(_Edible(
-      id: symbolToString(value.id),
-      isDish: value.isDish,
-    ));
-    return rows;
-  }
+  Iterable<Insertable<D2>> contentToRows(I value);
 
-  Iterable<Insertable<_EdibleContent>> contentToRows(Edible value) {
-    List<Insertable<_EdibleContent>> rows = [];
-    value.contents.forEach((k, v) {
-      rows.add(_EdibleContent(
-        id: symbolToString(value.id),
-        contains: symbolToString(k),
-        amount: v.amount.toDouble(),
-        unitsId: symbolToString(v.units.id),
-      ));
-    });
-    return rows;
-  }
-  Iterable<Insertable<_Unit>> valueToUnitRows(Edible value) {
-    // Dedupe
-    final units = value.contents.map((k, v) => MapEntry(
-      v.units.id, v.units
-    ));
+  Iterable<Insertable<_Unit>> valueToUnitRows(I value);
 
-    // Convert
-    return units.values.map((v) =>
-      _Unit(
-        id: symbolToString(v.id),
-        dimensionsId: symbolToString(v.dimensionsId),
-        multiplier: v.multiplier.toDouble(),
-      )
-    );
-  }
+  Map<Symbol, I> rowsToValues(List<D1> edibleRows, Iterable<TypedResult> contentRows);
 
-  Map<Symbol, Edible> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
-    final Map<Symbol, Map<Symbol, Quantity>> edibles = {};
-    final Map<Symbol, bool> isDish = {};
-    edibleRows.forEach((edibleFields) {
-      final id = Symbol(edibleFields.id);
-      final dim = edibles[id] ??= <Symbol, Quantity>{};
-      isDish[id] = edibleFields.isDish;
-    });
-    contentRows.forEach((row) {
-      final contentFields = row.readTable(db.edibleContents);
-      final id = Symbol(contentFields.id);
-      final contains = Symbol(contentFields.contains);
-      final dim = edibles[id];
-      if (dim == null)
-        return; // not present... FIXME signal an error?
-      final unitsFields = row.readTableOrNull(db.units);
-      final units = unitsFields == null?
-      Units.rogueValue :
-      Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
+  SimpleSelectStatement<T1, D1> get ediblesQuery;
 
-      dim[contains] = Quantity(
-          contentFields.amount,
-          units);
-    });
-    return edibles.map((id, contents) => MapEntry(id, Edible(id: id, isDish: isDish[id] ?? false, contents: contents)));
-  }
-  
-  SimpleSelectStatement<$_EdiblesTable, _Edible> _edibleRowsFor(Symbol index) {
+  JoinedSelectStatement<Table, dynamic> get contentsQuery;
+
+  SimpleSelectStatement<T1, D1> _edibleRowsFor(Symbol index) {
     return ediblesQuery
       ..where((a) => idCol.equals(symbolToString(index)));
   }
@@ -531,7 +482,7 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   }
 
   @override
-  Future<Symbol> add(Edible value) async {
+  Future<Symbol> add(I value) async {
     final unitsRows = valueToUnitRows(value);
     final edibleRows = edibleToRows(value); // FIXME stream this?
     final contentRows = contentToRows(value); // FIXME stream this?
@@ -570,7 +521,7 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   }
 
   @override
-  Future<Edible> fetch(Symbol index) async {
+  Future<I> fetch(Symbol index) async {
     final edibleRows = await _edibleRowsFor(index).get();
     if (edibleRows.isEmpty)
       throw ArgumentError("no value for id ${symbolToString(index)}");
@@ -579,7 +530,7 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   }
 
   @override
-  Future<Edible> get(Symbol index, Edible otherwise) async {
+  Future<I> get(Symbol index, I otherwise) async {
     final edibleRows = await _edibleRowsFor(index).get();
     if (edibleRows.isEmpty)
       return otherwise;
@@ -588,14 +539,14 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   }
 
   @override
-  Future<Map<Symbol, Edible>> getAll() async {
+  Future<Map<Symbol, I>> getAll() async {
     final edibleRows =  await ediblesQuery.get();
     final contentRows = await contentsQuery.get();
     return rowsToValues(edibleRows, contentRows);
   }
 
   @override
-  Future<Edible?> maybeGet(Symbol index, [Edible? otherwise]) async {
+  Future<I?> maybeGet(Symbol index, [I? otherwise]) async {
     final edibleRows = await _edibleRowsFor(index).get();
     if (edibleRows.isEmpty)
       return otherwise;
@@ -616,5 +567,179 @@ class MoorEdiblesCollection implements AsyncDataCollection<Edible> {
   Future<int> removeAll() async {
     int deleted = await db.delete(table).go() + await db.delete(joinedTable).go();
     return deleted;
+  }
+}
+
+class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_EdibleContentsTable, _EdibleContent, Edible> {
+
+  MoorEdiblesCollection({required _MoorDatabase db}) :
+        super(
+          db: db,
+          table: db.edibles,
+          joinedTable: db.edibleContents,
+          idCol: db.edibles.id,
+          joinedIdCol: db.edibleContents.id
+      );
+
+  SimpleSelectStatement<$_EdiblesTable, _Edible> get ediblesQuery =>
+      db.select(table)..where((tbl) => db.edibles.isBasic.equals(false));
+
+  JoinedSelectStatement<Table, dynamic> get contentsQuery =>
+      db.select(joinedTable)
+          .join([
+        leftOuterJoin(db.units, db.edibleContents.unitsId.equalsExp(db.units.id))
+      ]);
+
+  Iterable<Insertable<_Edible>> edibleToRows(Edible value) {
+    List<Insertable<_Edible>> rows = [];
+    rows.add(_Edible(
+      id: symbolToString(value.id),
+      isBasic: false,
+    ));
+    return rows;
+  }
+
+  Iterable<Insertable<_EdibleContent>> contentToRows(Edible value) {
+    List<Insertable<_EdibleContent>> rows = [];
+    value.contents.forEach((k, v) {
+      rows.add(_EdibleContent(
+        id: symbolToString(value.id),
+        contains: symbolToString(k),
+        amount: v.amount.toDouble(),
+        unitsId: symbolToString(v.units.id),
+      ));
+    });
+    return rows;
+  }
+  Iterable<Insertable<_Unit>> valueToUnitRows(Edible value) {
+    // Dedupe
+    final units = value.contents.map((k, v) => MapEntry(
+        v.units.id, v.units
+    ));
+
+    // Convert
+    return units.values.map((v) =>
+        _Unit(
+          id: symbolToString(v.id),
+          dimensionsId: symbolToString(v.dimensionsId),
+          multiplier: v.multiplier.toDouble(),
+        )
+    );
+  }
+
+  Map<Symbol, Edible> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
+    final Map<Symbol, Map<Symbol, Quantity>> edibles = {};
+    edibleRows.forEach((edibleFields) {
+      final id = Symbol(edibleFields.id);
+      final dim = edibles[id] ??= <Symbol, Quantity>{};
+    });
+    contentRows.forEach((row) {
+      final contentFields = row.readTable(db.edibleContents);
+      final id = Symbol(contentFields.id);
+      final contains = Symbol(contentFields.contains);
+      final dim = edibles[id];
+      if (dim == null)
+        return; // not present... FIXME signal an error?
+      final unitsFields = row.readTableOrNull(db.units);
+      final units = unitsFields == null?
+      Units.rogueValue :
+      Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
+
+      dim[contains] = Quantity(
+          contentFields.amount,
+          units);
+    });
+    return edibles.map((id, contents) => MapEntry(
+        id,
+        Edible(id: id, contents: contents)
+    ));
+  }
+
+
+}
+
+class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_BasicIngredientContentsTable, _BasicIngredientContent, BasicIngredient> {
+
+  MoorBasicIngredientsCollection({required _MoorDatabase db}) :
+        super(
+          db: db,
+          table: db.edibles,
+          joinedTable: db.basicIngredientContents,
+          idCol: db.edibles.id,
+          joinedIdCol: db.basicIngredientContents.id
+      );
+
+  SimpleSelectStatement<$_EdiblesTable, _Edible> get ediblesQuery =>
+      db.select(table)..where((tbl) => db.edibles.isBasic.equals(true));
+
+  JoinedSelectStatement<Table, dynamic> get contentsQuery =>
+      db.select(joinedTable)
+          .join([
+        leftOuterJoin(db.units, db.basicIngredientContents.unitsId.equalsExp(db.units.id))
+      ]);
+
+  Iterable<Insertable<_Edible>> edibleToRows(Edible value) {
+    List<Insertable<_Edible>> rows = [];
+    rows.add(_Edible(
+      id: symbolToString(value.id),
+      isBasic: true,
+    ));
+    return rows;
+  }
+
+  Iterable<Insertable<_BasicIngredientContent>> contentToRows(Edible value) {
+    List<Insertable<_BasicIngredientContent>> rows = [];
+    value.contents.forEach((k, v) {
+      rows.add(_BasicIngredientContent(
+        id: symbolToString(value.id),
+        contains: symbolToString(k),
+        amount: v.amount.toDouble(),
+        unitsId: symbolToString(v.units.id),
+      ));
+    });
+    return rows;
+  }
+  Iterable<Insertable<_Unit>> valueToUnitRows(Edible value) {
+    // Dedupe
+    final units = value.contents.map((k, v) => MapEntry(
+        v.units.id, v.units
+    ));
+
+    // Convert
+    return units.values.map((v) =>
+        _Unit(
+          id: symbolToString(v.id),
+          dimensionsId: symbolToString(v.dimensionsId),
+          multiplier: v.multiplier.toDouble(),
+        )
+    );
+  }
+
+  Map<Symbol, BasicIngredient> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
+    final Map<Symbol, Map<Symbol, Quantity>> ingredients = {};
+    edibleRows.forEach((edibleFields) {
+      final id = Symbol(edibleFields.id);
+      final dim = ingredients[id] ??= <Symbol, Quantity>{};
+    });
+    contentRows.forEach((row) {
+      final contentFields = row.readTable(db.basicIngredientContents);
+      final id = Symbol(contentFields.id);
+      final contains = Symbol(contentFields.contains);
+      final dim = ingredients[id];
+      if (dim == null)
+        return; // not present... FIXME signal an error?
+      final unitsFields = row.readTableOrNull(db.units);
+      final units = unitsFields == null?
+      Units.rogueValue :
+      Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
+
+      dim[contains] = Quantity(
+          contentFields.amount,
+          units);
+    });
+    return ingredients.map((id, contents) => MapEntry(
+        id,
+        BasicIngredient(id: id, contents: contents)
+    ));
   }
 }
