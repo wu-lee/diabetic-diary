@@ -1,39 +1,38 @@
+import 'package:diabetic_diary/measureable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinbox/flutter_spinbox.dart';
 
 import '../database.dart';
-import '../edible.dart';
+import '../basic_ingredient.dart';
 import '../quantity.dart';
 import '../translation.dart';
 
-/// The screen for editing an Edible
-class EdibleEditScreen extends StatefulWidget {
+/// The screen for editing an Ingredient
+class IngredientEditScreen extends StatefulWidget {
   final Database db;
-  final Edible? edible;
+  final BasicIngredient? ingredient;
 
-  const EdibleEditScreen({Key? key, required this.db, this.edible}) : super(key: key);
+  const IngredientEditScreen({Key? key, required this.db, this.ingredient}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    Edible? edible = this.edible;
-    if (edible != null)
-      return _EdibleEditState(db: db, edible: edible);
-    return _EdibleEditState(db: db);
+    BasicIngredient? ingredient = this.ingredient;
+    if (ingredient != null)
+      return _IngredientEditState(db: db, ingredient: ingredient);
+    return _IngredientEditState(db: db);
   }
 }
 
-/// Manages state for edible creation / amendment
-class _EdibleEditState extends State<EdibleEditScreen> {
-  bool isDish = false;
+/// Manages state for ingredient creation / amendment
+class _IngredientEditState extends State<IngredientEditScreen> {
   final titleController = new TextEditingController();
   final Database db;
   Map<Symbol, Quantity> _contents = {};
   Future<Map<Symbol, Quantity>> _pendingContentAmounts = Future.value({});
-  Future<Map<Symbol, String>> _pendingCompositionStats = Future.value({});
 
-  _EdibleEditState({required this.db, Edible? edible}) {
-    if (edible != null) {
-      this.edible = edible;
+  _IngredientEditState({required this.db, BasicIngredient? ingredient}) {
+    if (ingredient != null) {
+      this.ingredient = ingredient;
     }
   }
 
@@ -49,34 +48,16 @@ class _EdibleEditState extends State<EdibleEditScreen> {
     // This case doesn't really need to be a future, only to allow code reuse
     // in _buildEntityList
     _pendingContentAmounts = Future.value(newContents);
-
-    // This does, because the calculation is asynchronous. Add a handler to
-    // update our state when it's done.
-    _pendingCompositionStats = db.aggregate(newContents, id).then(
-      // Format the quantities into strings
-        (stats) async {
-          final Map<Symbol, String> result = {};
-          for(final entry in stats.entries) {
-            result[entry.key] = await db.formatQuantity(entry.value);
-          }
-
-          return result;
-        }
-    );
   }
 
-  Edible get edible => Edible(
+  BasicIngredient get ingredient => BasicIngredient(
     contents: Map.from(_contents), // Make a copy, since we're returning it
     id: id,
   );
 
-  set edible(Edible e) {
+  set ingredient(BasicIngredient e) {
     id = e.id;
     contents = e.contents;
-  }
-
-  Widget _buildCompositionStat(BuildContext context, Symbol id, String quantity) {
-    return Text(quantity);
   }
 
   Widget _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
@@ -162,7 +143,7 @@ class _EdibleEditState extends State<EdibleEditScreen> {
             children: [
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                child: Text(TL8(#NewEdible)+':'),
+                child: Text(TL8(#NewIngredient)+':'),
               ),
               Expanded(
                 child: TextField(
@@ -202,52 +183,11 @@ class _EdibleEditState extends State<EdibleEditScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
-                  flex: 2,
-                  fit: FlexFit.tight,
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                          flex: 1,
-                          child:RadioListTile(
-                            title: Text(TL8(#Dish)),
-                            value: true,
-                            groupValue: isDish,
-                            onChanged: (bool? value) {
-                              setState(() { isDish = true; });
-                            },
-                          )
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child:
-                        RadioListTile(
-                          title: Text(TL8(#Ingredient)),
-                          value: false,
-                          groupValue: isDish,
-                          onChanged: (bool? value) {
-                            setState(() { isDish = false; });
-                          },
-                        ),
-                      ),
-                    ],
-                  )
-              ),
-              Flexible( // Composition Stats
-              flex: 6,
-                fit: FlexFit.tight,
-                child: _buildEntityList<String>(
-                  title: TL8(#CompositionStats),
-                  futureEntities: _pendingCompositionStats,
-                  builder: _buildCompositionStat,
-                  context: context,
-                ),
-              ),
               Flexible( // Contents
                 flex: 6,
                 fit: FlexFit.tight,
                 child: _buildEntityList<Quantity>(
-                  title: TL8(#Contents),
+                  title: TL8(#CompositionStats),
                   futureEntities: _pendingContentAmounts,
                   builder: _buildContentAmount,
                   context: context,
@@ -261,14 +201,14 @@ class _EdibleEditState extends State<EdibleEditScreen> {
                     Container(
                       height: 50,
                       child: Text(
-                        TL8(#AvailableIngredients),
+                        TL8(#AvailableStats),
                         textScaleFactor: 2,
                       ),
                     ),
                     Expanded(
-                        child: FutureBuilder<Map<Symbol, Edible>>(
-                        future: db.edibles.getAll().then((list) => list..removeWhere((k, v) => k == id)),
-                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Edible>> snapshot) => ListView(
+                      child: FutureBuilder<Map<Symbol, Measurable>>( // Ingredients
+                        future: db.measurables.getAll().then((list) => list..removeWhere((k, v) => k == id)),
+                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Measurable>> snapshot) => ListView(
                           children: (snapshot.data?.values ?? []).map(
                             (e) => Container(
                               child: Row(
@@ -283,6 +223,7 @@ class _EdibleEditState extends State<EdibleEditScreen> {
                                       final gramsPerHectagram = await db.units.fetch(#g_per_hg);
                                       final newContents = await _pendingContentAmounts;
                                       final quantity = newContents[e.id] ?? Quantity(0, gramsPerHectagram);
+                                      final aggregated = await db.aggregate(newContents);
                                       newContents[e.id] = quantity.add(1);
 
                                       setState(() {
@@ -308,8 +249,8 @@ class _EdibleEditState extends State<EdibleEditScreen> {
   }
 
   Future<bool> _onPop() async {
-    final e = edible;
-    await db.edibles.add(e);
+    final e = ingredient;
+    await db.ingredients.add(e);
     Navigator.pop(context, e);
     return true;
   }

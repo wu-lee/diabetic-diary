@@ -2,43 +2,43 @@ import 'package:diabetic_diary/basic_ingredient.dart';
 import 'package:flutter/material.dart';
 
 import '../database.dart';
-import '../edible.dart';
+import '../basic_ingredient.dart';
 import '../quantity.dart';
 import '../translation.dart';
-import 'edible_edit_screen.dart';
+import 'ingredient_edit_screen.dart';
 
-/// The screen for inspecting an Edible
-class EdibleScreen extends StatefulWidget {
-  final Edible edible;
+/// The screen for inspecting an Ingredient
+class IngredientScreen extends StatefulWidget {
+  final BasicIngredient ingredient;
   final Database db;
 
-  const EdibleScreen({Key? key, required this.edible, required this.db}) : super(key: key);
+  const IngredientScreen({Key? key, required this.ingredient, required this.db}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _EdibleState(edible, db);
+    return _IngredientState(ingredient, db);
   }
 }
 
-class _EdibleState extends State<EdibleScreen> {
-  Edible _edible;
+class _IngredientState extends State<IngredientScreen> {
+  BasicIngredient _ingredient;
   final Database db;
 
   Future<Map<Symbol, String>> _compositionStats = Future.value({});
   Future<Map<Symbol, String>> _contentAmounts = Future.value({});
 
-  Edible get edible => _edible;
-  set edible(Edible e) {
-    _edible = e;
-    _contentAmounts = _format(edible.contents);
-    _compositionStats = db.aggregate(edible.contents).then(_format);
+  BasicIngredient get ingredient => _ingredient;
+  set ingredient(BasicIngredient e) {
+    _ingredient = e;
+    _contentAmounts = _format(ingredient.contents);
+    _compositionStats = db.aggregate(ingredient.contents).then(_format);
   }
 
-  _EdibleState(Edible edible, this.db) :
-        this._edible = edible
+  _IngredientState(BasicIngredient ingredient, this.db) :
+        this._ingredient = ingredient
   {
-    _contentAmounts = _format(edible.contents);
-    _compositionStats = db.aggregate(edible.contents).then(_format);
+    _contentAmounts = _format(ingredient.contents);
+    _compositionStats = db.aggregate(ingredient.contents).then(_format);
   }
 
   Future<Map<Symbol, String>> _format(Map<Symbol, Quantity> entities) async {
@@ -53,19 +53,19 @@ class _EdibleState extends State<EdibleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(TL8(edible.id)), actions: <Widget>[
+      appBar: AppBar(title: Text(TL8(ingredient.id)), actions: <Widget>[
         IconButton(
           icon: const Icon(Icons.edit),
           tooltip: TL8(#Edit),
           onPressed: () async {
-            final Edible? newEdible = await Navigator.push<Edible>(
+            final BasicIngredient? newIngredient = await Navigator.push<BasicIngredient>(
               context,
               MaterialPageRoute(
-                builder: (context) => EdibleEditScreen(edible: edible, db: db),
+                builder: (context) => IngredientEditScreen(ingredient: ingredient, db: db),
               ),
             );
-            if (newEdible != null) {
-              setState(() { edible = newEdible; });
+            if (newIngredient != null) {
+              setState(() { ingredient = newIngredient; });
             }
           },
         ),
@@ -75,17 +75,13 @@ class _EdibleState extends State<EdibleScreen> {
         children: [
           Container(
             child: Text(
-              TL8(#Dishes),
+              TL8(#Ingredients),
             ),
             height: 20,
           ),
           _buildEntityList(
             title: TL8(#CompositionStats),
             futureEntities: _compositionStats,
-          ),
-          _buildEntityList(
-            title: TL8(#Ingredients),
-            futureEntities: _contentAmounts,
           ),
         ],
       ),
