@@ -1,9 +1,9 @@
 
-import 'edible_content.dart';
+import 'quantified.dart';
 import 'translation.dart';
 
 /// Represents a category of dimensioned scalar measurement, like weight, volume, etc.
-class Measurable implements EdibleContent {
+class Measurable implements Quantified {
   final Symbol id;
   final Symbol dimensionsId;
   const Measurable({required this.id, required this.dimensionsId});

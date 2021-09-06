@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import 'dimensions.dart';
 import 'edible.dart';
-import 'edible_content.dart';
+import 'quantified.dart';
 import 'indexable.dart';
 import 'quantity.dart';
 import 'units.dart';
@@ -152,9 +152,9 @@ abstract class Database {
   /// of all [Edible]s and [Measurable]s encountered.
   ///
   /// [Measurable]s are irreducible nutritional components and therefore have no contents, just a [dimensionId].
-  Future<Map<Symbol, EdibleContent>> traverseContents(Iterable<Symbol> ids) async {
+  Future<Map<Symbol, Quantified>> traverseContents(Iterable<Symbol> ids) async {
     // expand all the symbols into Edibles recursively
-    final index = <Symbol, EdibleContent>{};
+    final index = <Symbol, Quantified>{};
     final pending = ids.toSet();
 
     // We use conventional loops, not closures here, so we can avoid a cascading
@@ -181,7 +181,7 @@ abstract class Database {
 
   /// Convert an Edible's content list into a content list of nutritional components
   ///
-  /// [contents] should be a map defining [Quantities] of [EdibleContent] instances named by their ID.
+  /// [contents] should be a map defining [Quantities] of [Quantified] instances named by their ID.
   /// There should be no null keys or values. Nor should there be any cycles, where an edible
   /// contains itself, directly or indirectly.
   ///
@@ -198,7 +198,7 @@ abstract class Database {
 
   /// Convert [contents] into a table of nutritional component quantities.
   ///
-  /// [contents] should be a map defining [Quantities] of [EdibleContent] instances named by their ID.
+  /// [contents] should be a map defining [Quantities] of [Quantified] instances named by their ID.
   /// There should be no null keys or values. Nor should there be any cycles, where an edible
   /// contains itself, directly or indirectly.
   ///
@@ -206,12 +206,12 @@ abstract class Database {
   /// or a [Measurable].
   ///
   /// The function [seen] is used to detect cycles, and should return true if a symbol identifies
-  /// an [EdibleContent] instance including this one.
+  /// an [Quantified] instance including this one.
   ///
   /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
   ///
   /// May throw a [StateError] if a cycle is detected.
-  Map<Symbol, Quantity> _aggregate(Map<Symbol, Quantity> contents, Map<Symbol, EdibleContent> index, bool Function(Symbol) seen) {
+  Map<Symbol, Quantity> _aggregate(Map<Symbol, Quantity> contents, Map<Symbol, Quantified> index, bool Function(Symbol) seen) {
     final expanded = contents.entries.expand((elem) {
       final id = elem.key;
       final quantity = elem.value;

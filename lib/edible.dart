@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'edible_content.dart';
+import 'quantified.dart';
 import 'quantity.dart';
 
 
-class Edible implements EdibleContent {
+class Edible implements Quantified {
   final Symbol id;
   final bool isDish;
   final Map<Symbol, Quantity> contents;
