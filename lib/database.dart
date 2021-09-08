@@ -86,6 +86,7 @@ abstract class Database {
   AsyncDataCollection<Dimensions> get dimensions;
   AsyncDataCollection<Units> get units;
   AsyncDataCollection<Measurable> get measurables;
+  AsyncDataCollection<Edible> get edibles;
   AsyncDataCollection<BasicIngredient> get ingredients;
   AsyncDataCollection<Dish> get dishes;
 

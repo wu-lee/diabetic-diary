@@ -3,6 +3,7 @@ import 'package:flutter_spinbox/flutter_spinbox.dart';
 
 import '../database.dart';
 import '../dish.dart';
+import '../edible.dart';
 import '../quantity.dart';
 import '../translation.dart';
 
@@ -202,37 +203,6 @@ class _DishEditState extends State<DishEditScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
-                  flex: 2,
-                  fit: FlexFit.tight,
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                          flex: 1,
-                          child:RadioListTile(
-                            title: Text(TL8(#Dish)),
-                            value: true,
-                            groupValue: isDish,
-                            onChanged: (bool? value) {
-                              setState(() { isDish = true; });
-                            },
-                          )
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child:
-                        RadioListTile(
-                          title: Text(TL8(#Ingredient)),
-                          value: false,
-                          groupValue: isDish,
-                          onChanged: (bool? value) {
-                            setState(() { isDish = false; });
-                          },
-                        ),
-                      ),
-                    ],
-                  )
-              ),
               Flexible( // Composition Stats
               flex: 6,
                 fit: FlexFit.tight,
@@ -266,9 +236,9 @@ class _DishEditState extends State<DishEditScreen> {
                       ),
                     ),
                     Expanded(
-                        child: FutureBuilder<Map<Symbol, Dish>>(
-                        future: db.dishes.getAll().then((list) => list..removeWhere((k, v) => k == id)),
-                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Dish>> snapshot) => ListView(
+                        child: FutureBuilder<Map<Symbol, Edible>>(
+                        future: db.edibles.getAll().then((list) => list..removeWhere((k, v) => k == id)),
+                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Edible>> snapshot) => ListView(
                           children: (snapshot.data?.values ?? []).map(
                             (e) => Container(
                               child: Row(

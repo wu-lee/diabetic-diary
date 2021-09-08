@@ -1307,21 +1307,20 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
   }
 }
 
-class _EdibleContent extends DataClass implements Insertable<_EdibleContent> {
+class _DishContent extends DataClass implements Insertable<_DishContent> {
   final String id;
   final String contains;
   final double amount;
   final String unitsId;
-  _EdibleContent(
+  _DishContent(
       {required this.id,
       required this.contains,
       required this.amount,
       required this.unitsId});
-  factory _EdibleContent.fromData(
-      Map<String, dynamic> data, GeneratedDatabase db,
+  factory _DishContent.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
-    return _EdibleContent(
+    return _DishContent(
       id: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
       contains: const StringType()
@@ -1342,8 +1341,8 @@ class _EdibleContent extends DataClass implements Insertable<_EdibleContent> {
     return map;
   }
 
-  _EdibleContentsCompanion toCompanion(bool nullToAbsent) {
-    return _EdibleContentsCompanion(
+  _DishContentsCompanion toCompanion(bool nullToAbsent) {
+    return _DishContentsCompanion(
       id: Value(id),
       contains: Value(contains),
       amount: Value(amount),
@@ -1351,10 +1350,10 @@ class _EdibleContent extends DataClass implements Insertable<_EdibleContent> {
     );
   }
 
-  factory _EdibleContent.fromJson(Map<String, dynamic> json,
+  factory _DishContent.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= moorRuntimeOptions.defaultSerializer;
-    return _EdibleContent(
+    return _DishContent(
       id: serializer.fromJson<String>(json['id']),
       contains: serializer.fromJson<String>(json['contains']),
       amount: serializer.fromJson<double>(json['amount']),
@@ -1372,9 +1371,9 @@ class _EdibleContent extends DataClass implements Insertable<_EdibleContent> {
     };
   }
 
-  _EdibleContent copyWith(
+  _DishContent copyWith(
           {String? id, String? contains, double? amount, String? unitsId}) =>
-      _EdibleContent(
+      _DishContent(
         id: id ?? this.id,
         contains: contains ?? this.contains,
         amount: amount ?? this.amount,
@@ -1382,7 +1381,7 @@ class _EdibleContent extends DataClass implements Insertable<_EdibleContent> {
       );
   @override
   String toString() {
-    return (StringBuffer('_EdibleContent(')
+    return (StringBuffer('_DishContent(')
           ..write('id: $id, ')
           ..write('contains: $contains, ')
           ..write('amount: $amount, ')
@@ -1397,25 +1396,25 @@ class _EdibleContent extends DataClass implements Insertable<_EdibleContent> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is _EdibleContent &&
+      (other is _DishContent &&
           other.id == this.id &&
           other.contains == this.contains &&
           other.amount == this.amount &&
           other.unitsId == this.unitsId);
 }
 
-class _EdibleContentsCompanion extends UpdateCompanion<_EdibleContent> {
+class _DishContentsCompanion extends UpdateCompanion<_DishContent> {
   final Value<String> id;
   final Value<String> contains;
   final Value<double> amount;
   final Value<String> unitsId;
-  const _EdibleContentsCompanion({
+  const _DishContentsCompanion({
     this.id = const Value.absent(),
     this.contains = const Value.absent(),
     this.amount = const Value.absent(),
     this.unitsId = const Value.absent(),
   });
-  _EdibleContentsCompanion.insert({
+  _DishContentsCompanion.insert({
     required String id,
     required String contains,
     required double amount,
@@ -1424,7 +1423,7 @@ class _EdibleContentsCompanion extends UpdateCompanion<_EdibleContent> {
         contains = Value(contains),
         amount = Value(amount),
         unitsId = Value(unitsId);
-  static Insertable<_EdibleContent> custom({
+  static Insertable<_DishContent> custom({
     Expression<String>? id,
     Expression<String>? contains,
     Expression<double>? amount,
@@ -1438,12 +1437,12 @@ class _EdibleContentsCompanion extends UpdateCompanion<_EdibleContent> {
     });
   }
 
-  _EdibleContentsCompanion copyWith(
+  _DishContentsCompanion copyWith(
       {Value<String>? id,
       Value<String>? contains,
       Value<double>? amount,
       Value<String>? unitsId}) {
-    return _EdibleContentsCompanion(
+    return _DishContentsCompanion(
       id: id ?? this.id,
       contains: contains ?? this.contains,
       amount: amount ?? this.amount,
@@ -1471,7 +1470,7 @@ class _EdibleContentsCompanion extends UpdateCompanion<_EdibleContent> {
 
   @override
   String toString() {
-    return (StringBuffer('_EdibleContentsCompanion(')
+    return (StringBuffer('_DishContentsCompanion(')
           ..write('id: $id, ')
           ..write('contains: $contains, ')
           ..write('amount: $amount, ')
@@ -1481,11 +1480,11 @@ class _EdibleContentsCompanion extends UpdateCompanion<_EdibleContent> {
   }
 }
 
-class $_EdibleContentsTable extends _EdibleContents
-    with TableInfo<$_EdibleContentsTable, _EdibleContent> {
+class $_DishContentsTable extends _DishContents
+    with TableInfo<$_DishContentsTable, _DishContent> {
   final GeneratedDatabase _db;
   final String? _alias;
-  $_EdibleContentsTable(this._db, [this._alias]);
+  $_DishContentsTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedTextColumn id = _constructId();
@@ -1524,13 +1523,13 @@ class $_EdibleContentsTable extends _EdibleContents
   @override
   List<GeneratedColumn> get $columns => [id, contains, amount, unitsId];
   @override
-  $_EdibleContentsTable get asDslTable => this;
+  $_DishContentsTable get asDslTable => this;
   @override
-  String get $tableName => _alias ?? 'edible_contents';
+  String get $tableName => _alias ?? 'dish_contents';
   @override
-  final String actualTableName = 'edible_contents';
+  final String actualTableName = 'dish_contents';
   @override
-  VerificationContext validateIntegrity(Insertable<_EdibleContent> instance,
+  VerificationContext validateIntegrity(Insertable<_DishContent> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -1563,14 +1562,14 @@ class $_EdibleContentsTable extends _EdibleContents
   @override
   Set<GeneratedColumn> get $primaryKey => {id, contains};
   @override
-  _EdibleContent map(Map<String, dynamic> data, {String? tablePrefix}) {
-    return _EdibleContent.fromData(data, _db,
+  _DishContent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return _DishContent.fromData(data, _db,
         prefix: tablePrefix != null ? '$tablePrefix.' : null);
   }
 
   @override
-  $_EdibleContentsTable createAlias(String alias) {
-    return $_EdibleContentsTable(_db, alias);
+  $_DishContentsTable createAlias(String alias) {
+    return $_DishContentsTable(_db, alias);
   }
 }
 
@@ -1583,7 +1582,7 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
   late final $_BasicIngredientContentsTable basicIngredientContents =
       $_BasicIngredientContentsTable(this);
   late final $_EdiblesTable edibles = $_EdiblesTable(this);
-  late final $_EdibleContentsTable edibleContents = $_EdibleContentsTable(this);
+  late final $_DishContentsTable dishContents = $_DishContentsTable(this);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
@@ -1594,6 +1593,6 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
         measurables,
         basicIngredientContents,
         edibles,
-        edibleContents
+        dishContents
       ];
 }

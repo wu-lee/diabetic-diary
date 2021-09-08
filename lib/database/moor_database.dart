@@ -53,8 +53,15 @@ class _Measurables extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class _Edibles extends Table {
+  TextColumn get id => text()(); // a BasicIngredient or an Dish
+  BoolColumn get isBasic => boolean()(); // True if a BasicIngredient
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class _BasicIngredientContents extends Table {
-  TextColumn get id => text().customConstraint('NOT NULL REFERENCES dishes(id)')();
+  TextColumn get id => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
   TextColumn get contains => text().customConstraint('NOT NULL REFERENCES measurables(id)')();
   RealColumn get amount => real()();
   TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
@@ -63,16 +70,9 @@ class _BasicIngredientContents extends Table {
   Set<Column> get primaryKey => {id, contains};
 }
 
-class _Edibles extends Table {
-  TextColumn get id => text()(); // a BasicIngredient or an Dish
-  BoolColumn get isBasic => boolean()(); // True if a BasicIngredient
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class _EdibleContents extends Table {
-  TextColumn get id => text().customConstraint('NOT NULL REFERENCES dishes(id)')();
-  TextColumn get contains => text().customConstraint('NOT NULL REFERENCES dishes(id)')();
+class _DishContents extends Table {
+  TextColumn get id => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
+  TextColumn get contains => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
   RealColumn get amount => real()();
   TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
 
@@ -101,7 +101,7 @@ LazyDatabase _openConnection() {
   });
 }
 
-@UseMoor(tables: [_Config, _Units, _Dimensions, _Measurables, _BasicIngredientContents, _Edibles, _EdibleContents])
+@UseMoor(tables: [_Config, _Units, _Dimensions, _Measurables, _BasicIngredientContents, _Edibles, _DishContents])
 class _MoorDatabase extends _$_MoorDatabase {
   // we tell the database where to store the data with this constructor
   _MoorDatabase() : super(_openConnection());
@@ -120,6 +120,7 @@ class MoorDatabase extends Database {
         dimensions = MoorDimensionsCollection(db),
         units = MoorUnitsCollection(db),
         measurables = MoorMeasurablesCollection(db),
+        edibles = MoorEdiblesCollection(db: db),
         ingredients = MoorBasicIngredientsCollection(db: db),
         dishes = MoorDishesCollection(db: db);
 
@@ -136,6 +137,9 @@ class MoorDatabase extends Database {
 
   @override
   final AsyncDataCollection<Measurable> measurables;
+
+  @override
+  final AsyncDataCollection<Edible> edibles;
 
   @override
   final AsyncDataCollection<BasicIngredient> ingredients;
@@ -571,15 +575,106 @@ abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataCl
   }
 }
 
-class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_EdibleContentsTable, _EdibleContent, Dish> {
+class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_DishContentsTable, _DishContent, Edible> {
+
+  MoorEdiblesCollection({required _MoorDatabase db}) :
+        super(
+        db: db,
+        table: db.edibles,
+        joinedTable: db.dishContents,
+        idCol: db.edibles.id,
+        joinedIdCol: db.dishContents.id,
+      );
+
+  SimpleSelectStatement<$_EdiblesTable, _Edible> get edibleQuery =>
+      db.select(table);
+
+  JoinedSelectStatement<Table, dynamic> get contentsQuery =>
+      db.select(joinedTable)
+          .join([
+        leftOuterJoin(db.units, db.dishContents.unitsId.equalsExp(db.units.id))
+      ]);
+
+  Iterable<Insertable<_Edible>> edibleToRows(Edible value) {
+    List<Insertable<_Edible>> rows = [];
+    rows.add(_Edible(
+      id: symbolToString(value.id),
+      isBasic: value is BasicIngredient,
+    ));
+    return rows;
+  }
+
+  Iterable<Insertable<_DishContent>> contentToRows(Edible value) {
+    List<Insertable<_DishContent>> rows = [];
+    value.contents.forEach((k, v) {
+      rows.add(_DishContent(
+        id: symbolToString(value.id),
+        contains: symbolToString(k),
+        amount: v.amount.toDouble(),
+        unitsId: symbolToString(v.units.id),
+      ));
+    });
+    return rows;
+  }
+  Iterable<Insertable<_Unit>> valueToUnitRows(Edible value) {
+    // Dedupe
+    final units = value.contents.map((k, v) => MapEntry(
+        v.units.id, v.units
+    ));
+
+    // Convert
+    return units.values.map((v) =>
+        _Unit(
+          id: symbolToString(v.id),
+          dimensionsId: symbolToString(v.dimensionsId),
+          multiplier: v.multiplier.toDouble(),
+        )
+    );
+  }
+
+  Map<Symbol, Edible> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
+    final Map<Symbol, Map<Symbol, Quantity>> edibles = {};
+    final Map<Symbol, bool> isBasic = {};
+    edibleRows.forEach((edibleFields) {
+      final id = Symbol(edibleFields.id);
+      edibles[id] ??= <Symbol, Quantity>{};
+      isBasic[id] = edibleFields.isBasic;
+    });
+    contentRows.forEach((row) {
+      final contentFields = row.readTable(db.dishContents);
+      final id = Symbol(contentFields.id);
+      final contains = Symbol(contentFields.contains);
+      final dim = edibles[id];
+      if (dim == null)
+        return; // not present... FIXME signal an error?
+      final unitsFields = row.readTableOrNull(db.units);
+      final units = unitsFields == null?
+      Units.rogueValue :
+      Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
+
+      dim[contains] = Quantity(
+          contentFields.amount,
+          units);
+    });
+    return edibles.map((id, contents) => MapEntry(
+        id,
+        isBasic[id] == true? BasicIngredient(id: id, contents: contents) : Dish(id: id, contents: contents)
+    ));
+  }
+
+
+}
+
+
+class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_DishContentsTable, _DishContent, Dish> {
 
   MoorDishesCollection({required _MoorDatabase db}) :
         super(
           db: db,
           table: db.edibles,
-          joinedTable: db.edibleContents,
+          joinedTable: db.dishContents,
           idCol: db.edibles.id,
-          joinedIdCol: db.edibleContents.id,
+          joinedIdCol: db.dishContents.id,
       );
 
   SimpleSelectStatement<$_EdiblesTable, _Edible> get edibleQuery =>
@@ -588,7 +683,7 @@ class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable,
   JoinedSelectStatement<Table, dynamic> get contentsQuery =>
       db.select(joinedTable)
           .join([
-        leftOuterJoin(db.units, db.edibleContents.unitsId.equalsExp(db.units.id))
+        leftOuterJoin(db.units, db.dishContents.unitsId.equalsExp(db.units.id))
       ]);
 
   Iterable<Insertable<_Edible>> edibleToRows(Dish value) {
@@ -600,10 +695,10 @@ class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable,
     return rows;
   }
 
-  Iterable<Insertable<_EdibleContent>> contentToRows(Dish value) {
-    List<Insertable<_EdibleContent>> rows = [];
+  Iterable<Insertable<_DishContent>> contentToRows(Dish value) {
+    List<Insertable<_DishContent>> rows = [];
     value.contents.forEach((k, v) {
-      rows.add(_EdibleContent(
+      rows.add(_DishContent(
         id: symbolToString(value.id),
         contains: symbolToString(k),
         amount: v.amount.toDouble(),
@@ -632,10 +727,10 @@ class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable,
     final Map<Symbol, Map<Symbol, Quantity>> dishes = {};
     dishRows.forEach((dishFields) {
       final id = Symbol(dishFields.id);
-      final dim = dishes[id] ??= <Symbol, Quantity>{};
+      dishes[id] ??= <Symbol, Quantity>{};
     });
     contentRows.forEach((row) {
-      final contentFields = row.readTable(db.edibleContents);
+      final contentFields = row.readTable(db.dishContents);
       final id = Symbol(contentFields.id);
       final contains = Symbol(contentFields.contains);
       final dim = dishes[id];
@@ -720,7 +815,7 @@ class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_Edi
     final Map<Symbol, Map<Symbol, Quantity>> ingredients = {};
     dishRows.forEach((dishFields) {
       final id = Symbol(dishFields.id);
-      final dim = ingredients[id] ??= <Symbol, Quantity>{};
+      ingredients[id] ??= <Symbol, Quantity>{};
     });
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.basicIngredientContents);
