@@ -1,7 +1,7 @@
+import 'package:diabetic_diary/basic_ingredient.dart';
 import 'package:diabetic_diary/database.dart';
 import 'package:diabetic_diary/database/mock_database.dart';
 import 'package:diabetic_diary/dimensions.dart';
-import 'package:diabetic_diary/edible.dart';
 import 'package:diabetic_diary/measureable.dart';
 import 'package:diabetic_diary/quantity.dart';
 import 'package:diabetic_diary/units.dart';
@@ -61,7 +61,7 @@ void main() async {
       final carbs = Measurable(id: #Carbs, dimensionsId: massFraction.id);
       final fat = Measurable(id: #Fat, dimensionsId: massFraction.id);
       final energy = Measurable(id: #Energy, dimensionsId: energyFraction.id);
-      final cabbage = Edible(
+      final cabbage = BasicIngredient(
           id: #Cabbage,
           contents: {
             carbs.id: Quantity(10, gramsPerHectagram),
@@ -69,7 +69,7 @@ void main() async {
             energy.id: Quantity(30, kcalPerHectagram),
           }
       );
-      final tahini = Edible(
+      final tahini = BasicIngredient(
           id: #Tahini,
           contents: {
             carbs.id: Quantity(10, gramsPerHectagram),
@@ -81,7 +81,7 @@ void main() async {
       db.units..add(grams)..add(micrograms)..add(gramsPerGram)..add(gramsPerGram)..add(gramsPerHectagram);
       db.units..add(joulesPerGram)..add(joulesPerHectagram)..add(kcalPerGram)..add(kcalPerHectagram);
       db.measurables..add(carbs)..add(fat)..add(energy);
-      db.edibles..add(cabbage)..add(tahini);
+      db.ingredients..add(cabbage)..add(tahini);
 
       final ingredients = {
         cabbage.id: Quantity(50, gramsPerHectagram),
@@ -89,8 +89,8 @@ void main() async {
       };
       final aggregateStats = await db.aggregate(ingredients);
 
-      print("cabbage: "+await db.formatEdible(cabbage));
-      print("tahini: "+await db.formatEdible(tahini));
+      print("cabbage: "+await db.formatBasicIngredient(cabbage));
+      print("tahini: "+await db.formatBasicIngredient(tahini));
       expect(aggregateStats, {
         carbs.id: Quantity(10, gramsPerHectagram),
         fat.id: Quantity(40, gramsPerHectagram),
