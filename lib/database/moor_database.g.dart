@@ -1573,6 +1573,546 @@ class $_DishContentsTable extends _DishContents
   }
 }
 
+class _Meal extends DataClass implements Insertable<_Meal> {
+  final String id;
+  final String title;
+  final String notes;
+  final DateTime timestamp;
+  _Meal(
+      {required this.id,
+      required this.title,
+      required this.notes,
+      required this.timestamp});
+  factory _Meal.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return _Meal(
+      id: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      title: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}title'])!,
+      notes: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}notes'])!,
+      timestamp: const DateTimeType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}timestamp'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    map['notes'] = Variable<String>(notes);
+    map['timestamp'] = Variable<DateTime>(timestamp);
+    return map;
+  }
+
+  _MealsCompanion toCompanion(bool nullToAbsent) {
+    return _MealsCompanion(
+      id: Value(id),
+      title: Value(title),
+      notes: Value(notes),
+      timestamp: Value(timestamp),
+    );
+  }
+
+  factory _Meal.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return _Meal(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      notes: serializer.fromJson<String>(json['notes']),
+      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'notes': serializer.toJson<String>(notes),
+      'timestamp': serializer.toJson<DateTime>(timestamp),
+    };
+  }
+
+  _Meal copyWith(
+          {String? id, String? title, String? notes, DateTime? timestamp}) =>
+      _Meal(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        notes: notes ?? this.notes,
+        timestamp: timestamp ?? this.timestamp,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('_Meal(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('notes: $notes, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(id.hashCode,
+      $mrjc(title.hashCode, $mrjc(notes.hashCode, timestamp.hashCode))));
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is _Meal &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.notes == this.notes &&
+          other.timestamp == this.timestamp);
+}
+
+class _MealsCompanion extends UpdateCompanion<_Meal> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String> notes;
+  final Value<DateTime> timestamp;
+  const _MealsCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.timestamp = const Value.absent(),
+  });
+  _MealsCompanion.insert({
+    required String id,
+    required String title,
+    required String notes,
+    required DateTime timestamp,
+  })  : id = Value(id),
+        title = Value(title),
+        notes = Value(notes),
+        timestamp = Value(timestamp);
+  static Insertable<_Meal> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? notes,
+    Expression<DateTime>? timestamp,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (notes != null) 'notes': notes,
+      if (timestamp != null) 'timestamp': timestamp,
+    });
+  }
+
+  _MealsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? title,
+      Value<String>? notes,
+      Value<DateTime>? timestamp}) {
+    return _MealsCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      notes: notes ?? this.notes,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<DateTime>(timestamp.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('_MealsCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('notes: $notes, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $_MealsTable extends _Meals with TableInfo<$_MealsTable, _Meal> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $_MealsTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedTextColumn id = _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn(
+      'id',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedTextColumn title = _constructTitle();
+  GeneratedTextColumn _constructTitle() {
+    return GeneratedTextColumn(
+      'title',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedTextColumn notes = _constructNotes();
+  GeneratedTextColumn _constructNotes() {
+    return GeneratedTextColumn(
+      'notes',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _timestampMeta = const VerificationMeta('timestamp');
+  @override
+  late final GeneratedDateTimeColumn timestamp = _constructTimestamp();
+  GeneratedDateTimeColumn _constructTimestamp() {
+    return GeneratedDateTimeColumn(
+      'timestamp',
+      $tableName,
+      false,
+    );
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, title, notes, timestamp];
+  @override
+  $_MealsTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'meals';
+  @override
+  final String actualTableName = 'meals';
+  @override
+  VerificationContext validateIntegrity(Insertable<_Meal> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+          _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
+    } else if (isInserting) {
+      context.missing(_notesMeta);
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(_timestampMeta,
+          timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta));
+    } else if (isInserting) {
+      context.missing(_timestampMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  _Meal map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return _Meal.fromData(data, _db,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $_MealsTable createAlias(String alias) {
+    return $_MealsTable(_db, alias);
+  }
+}
+
+class _MealContent extends DataClass implements Insertable<_MealContent> {
+  final String id;
+  final String contains;
+  final double amount;
+  final String unitsId;
+  _MealContent(
+      {required this.id,
+      required this.contains,
+      required this.amount,
+      required this.unitsId});
+  factory _MealContent.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return _MealContent(
+      id: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      contains: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}contains'])!,
+      amount: const RealType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}amount'])!,
+      unitsId: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}units_id'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['contains'] = Variable<String>(contains);
+    map['amount'] = Variable<double>(amount);
+    map['units_id'] = Variable<String>(unitsId);
+    return map;
+  }
+
+  _MealContentsCompanion toCompanion(bool nullToAbsent) {
+    return _MealContentsCompanion(
+      id: Value(id),
+      contains: Value(contains),
+      amount: Value(amount),
+      unitsId: Value(unitsId),
+    );
+  }
+
+  factory _MealContent.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return _MealContent(
+      id: serializer.fromJson<String>(json['id']),
+      contains: serializer.fromJson<String>(json['contains']),
+      amount: serializer.fromJson<double>(json['amount']),
+      unitsId: serializer.fromJson<String>(json['unitsId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'contains': serializer.toJson<String>(contains),
+      'amount': serializer.toJson<double>(amount),
+      'unitsId': serializer.toJson<String>(unitsId),
+    };
+  }
+
+  _MealContent copyWith(
+          {String? id, String? contains, double? amount, String? unitsId}) =>
+      _MealContent(
+        id: id ?? this.id,
+        contains: contains ?? this.contains,
+        amount: amount ?? this.amount,
+        unitsId: unitsId ?? this.unitsId,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('_MealContent(')
+          ..write('id: $id, ')
+          ..write('contains: $contains, ')
+          ..write('amount: $amount, ')
+          ..write('unitsId: $unitsId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(id.hashCode,
+      $mrjc(contains.hashCode, $mrjc(amount.hashCode, unitsId.hashCode))));
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is _MealContent &&
+          other.id == this.id &&
+          other.contains == this.contains &&
+          other.amount == this.amount &&
+          other.unitsId == this.unitsId);
+}
+
+class _MealContentsCompanion extends UpdateCompanion<_MealContent> {
+  final Value<String> id;
+  final Value<String> contains;
+  final Value<double> amount;
+  final Value<String> unitsId;
+  const _MealContentsCompanion({
+    this.id = const Value.absent(),
+    this.contains = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.unitsId = const Value.absent(),
+  });
+  _MealContentsCompanion.insert({
+    required String id,
+    required String contains,
+    required double amount,
+    required String unitsId,
+  })  : id = Value(id),
+        contains = Value(contains),
+        amount = Value(amount),
+        unitsId = Value(unitsId);
+  static Insertable<_MealContent> custom({
+    Expression<String>? id,
+    Expression<String>? contains,
+    Expression<double>? amount,
+    Expression<String>? unitsId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (contains != null) 'contains': contains,
+      if (amount != null) 'amount': amount,
+      if (unitsId != null) 'units_id': unitsId,
+    });
+  }
+
+  _MealContentsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? contains,
+      Value<double>? amount,
+      Value<String>? unitsId}) {
+    return _MealContentsCompanion(
+      id: id ?? this.id,
+      contains: contains ?? this.contains,
+      amount: amount ?? this.amount,
+      unitsId: unitsId ?? this.unitsId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (contains.present) {
+      map['contains'] = Variable<String>(contains.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (unitsId.present) {
+      map['units_id'] = Variable<String>(unitsId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('_MealContentsCompanion(')
+          ..write('id: $id, ')
+          ..write('contains: $contains, ')
+          ..write('amount: $amount, ')
+          ..write('unitsId: $unitsId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $_MealContentsTable extends _MealContents
+    with TableInfo<$_MealContentsTable, _MealContent> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $_MealContentsTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedTextColumn id = _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES meals(id)');
+  }
+
+  final VerificationMeta _containsMeta = const VerificationMeta('contains');
+  @override
+  late final GeneratedTextColumn contains = _constructContains();
+  GeneratedTextColumn _constructContains() {
+    return GeneratedTextColumn('contains', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES edibles(id)');
+  }
+
+  final VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedRealColumn amount = _constructAmount();
+  GeneratedRealColumn _constructAmount() {
+    return GeneratedRealColumn(
+      'amount',
+      $tableName,
+      false,
+    );
+  }
+
+  final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
+  @override
+  late final GeneratedTextColumn unitsId = _constructUnitsId();
+  GeneratedTextColumn _constructUnitsId() {
+    return GeneratedTextColumn('units_id', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES units(id)');
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, contains, amount, unitsId];
+  @override
+  $_MealContentsTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'meal_contents';
+  @override
+  final String actualTableName = 'meal_contents';
+  @override
+  VerificationContext validateIntegrity(Insertable<_MealContent> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('contains')) {
+      context.handle(_containsMeta,
+          contains.isAcceptableOrUnknown(data['contains']!, _containsMeta));
+    } else if (isInserting) {
+      context.missing(_containsMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(_amountMeta,
+          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('units_id')) {
+      context.handle(_unitsIdMeta,
+          unitsId.isAcceptableOrUnknown(data['units_id']!, _unitsIdMeta));
+    } else if (isInserting) {
+      context.missing(_unitsIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id, contains};
+  @override
+  _MealContent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return _MealContent.fromData(data, _db,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $_MealContentsTable createAlias(String alias) {
+    return $_MealContentsTable(_db, alias);
+  }
+}
+
 abstract class _$_MoorDatabase extends GeneratedDatabase {
   _$_MoorDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   late final $_ConfigTable config = $_ConfigTable(this);
@@ -1583,6 +2123,8 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
       $_BasicIngredientContentsTable(this);
   late final $_EdiblesTable edibles = $_EdiblesTable(this);
   late final $_DishContentsTable dishContents = $_DishContentsTable(this);
+  late final $_MealsTable meals = $_MealsTable(this);
+  late final $_MealContentsTable mealContents = $_MealContentsTable(this);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
@@ -1593,6 +2135,8 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
         measurables,
         basicIngredientContents,
         edibles,
-        dishContents
+        dishContents,
+        meals,
+        mealContents
       ];
 }

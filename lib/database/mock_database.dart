@@ -7,6 +7,7 @@ import '../dimensions.dart';
 import '../dish.dart';
 import '../edible.dart';
 import '../indexable.dart';
+import '../meal.dart';
 import '../measureable.dart';
 import '../units.dart';
 
@@ -23,6 +24,8 @@ class MockDatabase extends Database {
   static final _ingredients = MockDataCollection<BasicIngredient>();
 
   static final _dishes = MockDataCollection<Dish>();
+
+  static final _meals = MockDataCollection<Meal>();
 
 
   final int _version;
@@ -47,6 +50,9 @@ class MockDatabase extends Database {
 
   @override
   AsyncDataCollection<Dish> get dishes => _dishes;
+
+  @override
+  AsyncDataCollection<Meal> get meals => _meals;
 
   @override
   AsyncDataCollection<BasicIngredient> get ingredients => _ingredients;

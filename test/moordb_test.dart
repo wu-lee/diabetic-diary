@@ -3,6 +3,7 @@ import 'package:diabetic_diary/database.dart';
 import 'package:diabetic_diary/database/moor_database.dart';
 import 'package:diabetic_diary/dimensions.dart';
 import 'package:diabetic_diary/dish.dart';
+import 'package:diabetic_diary/meal.dart';
 import 'package:diabetic_diary/measureable.dart';
 import 'package:diabetic_diary/quantity.dart';
 import 'package:test/test.dart';
@@ -232,7 +233,67 @@ void main() async {
       expect(() async => await mdb.dishes.fetch(#testDish1), throwsA(TypeMatcher<ArgumentError>()), reason: 'fetching #testDish1 throws');
 
     });
-/*
+
+    test('Just Meals', () async {
+      final inThing1 = Meal(
+          id: #testMeal1,
+          title: 'Test Meal 1',
+          timestamp: DateTime(2021, 8, 1, 15, 45),
+          notes: 'Test notes 1',
+          contents: {
+            #testContent1: Quantity(1, Units(#g, #Mass, 1)),
+            #testContent2: Quantity(2, Units(#Pa, #Pressure, 1)),
+            #testContent3: Quantity(3, Units(#gg, #MassByFraction, 1)),
+          }
+      );
+      final inThing2 = Meal(
+          id: #testMeal2,
+          title: 'Test Meal 2',
+          timestamp: DateTime(2021, 8, 1, 18, 30),
+          notes: 'Test notes 2',
+          contents: {
+            #testContent1: Quantity(1, Units(#kg, #Mass, 1000)),
+            #testContent3: Quantity(3, Units(#ghg, #MassByFraction, .01)),
+            #testContent4: Quantity(4, Units(#kj, #Energy, 1)),
+          }
+      );
+      final removed = await mdb.meals.removeAll();
+      print("removed meals "+removed.toString());
+      await mdb.meals.add(inThing1);
+      await mdb.meals.add(inThing2);
+      final outThing = await mdb.meals.maybeGet(#testMeal1);
+
+      print(await mdb.formatMeal(inThing1));
+      if (outThing!=null) print(await mdb.formatMeal(outThing));
+      expect(outThing, inThing1, reason: 'outThing mismatches inThing1');
+
+      expect(await mdb.meals.containsId(#testMeal1), true);
+      expect(await mdb.meals.containsId(#testMeal2), true);
+
+      final count = await mdb.meals.count();
+      expect(count, 2, reason: 'counting meals');
+
+      final allThings = await mdb.meals.getAll();
+
+      expect(allThings.length, 2, reason: 'checking number of allThings');
+      expect(allThings[#testMeal1], inThing1, reason: 'checking allThings includes inThing1');
+      expect(allThings[#testMeal2], inThing2, reason: 'checking allThings includes inThing2');
+
+      expect(await mdb.meals.remove(#testMeal1), 4, reason: 'removing #testMeal1');
+      expect(await mdb.meals.remove(#testMeal1), 0, reason: 'removing #testMeal1 again');
+
+      expect(await mdb.meals.containsId(#testMeal1), false);
+      expect(await mdb.meals.containsId(#testMeal2), true);
+
+      expect(await mdb.meals.get(#testMeal1, inThing2), inThing2, reason: 'getting #testMeal1 defaults');
+      expect(await mdb.meals.get(#testMeal2, inThing1), inThing2, reason: 'getting #testMeal2 succeeds');
+
+      expect(await mdb.meals.fetch(#testMeal2), inThing2, reason: 'fetching #testMeal2 succeeds');
+      expect(() async => await mdb.meals.fetch(#testMeal1), throwsA(TypeMatcher<ArgumentError>()), reason: 'fetching #testMeal1 throws');
+
+    });
+
+    /*
     test('Initialise data', () async {
       Database.initialiseData(mdb);
 

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'dimensions.dart';
 import 'dish.dart';
 import 'edible.dart';
+import 'meal.dart';
 import 'quantified.dart';
 import 'indexable.dart';
 import 'quantity.dart';
@@ -89,6 +90,7 @@ abstract class Database {
   AsyncDataCollection<Edible> get edibles;
   AsyncDataCollection<BasicIngredient> get ingredients;
   AsyncDataCollection<Dish> get dishes;
+  AsyncDataCollection<Meal> get meals;
 
   /// Returns the schema version of this database object
   Future<int> get version;
@@ -145,6 +147,9 @@ abstract class Database {
   Future<String> formatDish(Dish dish) async => "Dish(id: ${TL8(dish.id)}, contents: ${await formatContents(dish.contents)})";
 
   Future<String> formatBasicIngredient(BasicIngredient ingredient) async => "BasicIngredient(id: ${TL8(ingredient.id)}, contents: ${await formatContents(ingredient.contents)})";
+
+  Future<String> formatMeal(Meal meal) async =>
+      "Meal(id: ${TL8(meal.id)}, ${meal.title}, ${meal.timestamp}, ${meal.notes}, contents: ${await formatContents(meal.contents)})";
 
   Future<String> formatContents(Map<Symbol, Quantity> contents) async {
     final entries = contents.entries.map((e) async {
