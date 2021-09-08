@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import '../database.dart';
-import '../edible.dart';
+import '../dish.dart';
 import '../entity_topic.dart';
 import '../translation.dart';
-import 'edible_edit_screen.dart';
-import 'edible_screen.dart';
+import 'dish_edit_screen.dart';
+import 'dish_screen.dart';
 
-class EdibleTopic implements EntityTopic<Edible> {
+class DishTopic implements EntityTopic<Dish> {
   final Database db;
 
   @override
@@ -17,7 +17,7 @@ class EdibleTopic implements EntityTopic<Edible> {
   @override
   final IconData icon = Icons.shopping_cart;
 
-  EdibleTopic({required this.entities, required this.db});
+  DishTopic({required this.entities, required this.db});
 
   @override
   FloatingActionButton buildFloatingActionButton(BuildContext context) {
@@ -27,7 +27,7 @@ class EdibleTopic implements EntityTopic<Edible> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EdibleEditScreen(
+            builder: (context) => DishEditScreen(
               db: db,
             ),
           ),
@@ -37,7 +37,7 @@ class EdibleTopic implements EntityTopic<Edible> {
     );
   }
 
-  Widget buildRow(Edible entity, BuildContext context, int ix) {
+  Widget buildRow(Dish entity, BuildContext context, int ix) {
     return  GestureDetector(
       child: Container(
         color: (ix % 2 == 0) ? Colors.lightBlueAccent : Colors.lightBlue,
@@ -55,7 +55,7 @@ class EdibleTopic implements EntityTopic<Edible> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EdibleScreen(edible: entity, db: db),
+            builder: (context) => DishScreen(dish: entity, db: db),
           ),
         );
       },
@@ -64,9 +64,9 @@ class EdibleTopic implements EntityTopic<Edible> {
 
   @override
   Widget buildTabContent(BuildContext context) {
-    return FutureBuilder<Map<Symbol, Edible>>(
+    return FutureBuilder<Map<Symbol, Dish>>(
       future: entities.getAll(),
-      builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Edible>> snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Dish>> snapshot) {
         final ingredients = snapshot.data?.values.toList() ?? [];
         return ListView.builder(
           padding: EdgeInsets.all(16.0),
@@ -80,5 +80,5 @@ class EdibleTopic implements EntityTopic<Edible> {
   }
 
   @override
-  final AsyncDataCollection<Edible> entities;
+  final AsyncDataCollection<Dish> entities;
 }

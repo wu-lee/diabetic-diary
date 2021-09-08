@@ -17,16 +17,16 @@ class OverviewTopic extends Topic {
   Widget buildTabContent(BuildContext context) {
     return FutureBuilder(
       future:  Future(() async {
-        final edibles = await db.edibles.getAll();
-        edibles.forEach((key, value) async {print("${await db.formatEdible(value)}"); });
-        final numDishes = edibles.values.where((e) => !(e is BasicIngredient)).length;
-        final numIngredients = edibles.length - numDishes;
+        final dishes = await db.dishes.getAll();
+        dishes.forEach((key, value) async {print("${await db.formatDish(value)}"); });
+        final numDishes = dishes.values.where((e) => !(e is BasicIngredient)).length;
+        final numIngredients = dishes.length - numDishes;
         final measurables = await db.measurables.getAll();
         final numMeasurables = measurables.length;
         return  [numDishes, numIngredients, numMeasurables];
       }),
       builder: (BuildContext context, AsyncSnapshot<List<int>> snapshot) {
-        final numEdibles = snapshot.data?[0] ?? 0;
+        final numDishes = snapshot.data?[0] ?? 0;
         final numIngredients = snapshot.data?[1] ?? 0;
         final numMeasurables = snapshot.data?[2] ?? 0;
         return LayoutBuilder(
@@ -45,7 +45,7 @@ class OverviewTopic extends Topic {
                           color: const Color(0xffeeee00),
                           height: 30.0,
                           alignment: Alignment.center,
-                          child: Text(TL8(#YouHaveNDishes, {#n: numEdibles})),
+                          child: Text(TL8(#YouHaveNDishes, {#n: numDishes})),
                         ),
                         Container(
                           // Another fixed-height child.

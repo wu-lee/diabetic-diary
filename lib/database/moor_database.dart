@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 import 'dart:io';
 
 import '../dimensions.dart';
+import '../dish.dart';
 import '../edible.dart';
 import '../indexable.dart';
 import '../quantity.dart';
@@ -53,7 +54,7 @@ class _Measurables extends Table {
 }
 
 class _BasicIngredientContents extends Table {
-  TextColumn get id => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
+  TextColumn get id => text().customConstraint('NOT NULL REFERENCES dishes(id)')();
   TextColumn get contains => text().customConstraint('NOT NULL REFERENCES measurables(id)')();
   RealColumn get amount => real()();
   TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
@@ -63,15 +64,15 @@ class _BasicIngredientContents extends Table {
 }
 
 class _Edibles extends Table {
-  TextColumn get id => text()(); // a BasicIngredient or an Edible
+  TextColumn get id => text()(); // a BasicIngredient or an Dish
   BoolColumn get isBasic => boolean()(); // True if a BasicIngredient
   @override
   Set<Column> get primaryKey => {id};
 }
 
 class _EdibleContents extends Table {
-  TextColumn get id => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
-  TextColumn get contains => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
+  TextColumn get id => text().customConstraint('NOT NULL REFERENCES dishes(id)')();
+  TextColumn get contains => text().customConstraint('NOT NULL REFERENCES dishes(id)')();
   RealColumn get amount => real()();
   TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
 
@@ -120,7 +121,7 @@ class MoorDatabase extends Database {
         units = MoorUnitsCollection(db),
         measurables = MoorMeasurablesCollection(db),
         ingredients = MoorBasicIngredientsCollection(db: db),
-        edibles = MoorEdiblesCollection(db: db);
+        dishes = MoorDishesCollection(db: db);
 
   static MoorDatabase create() {
     return MoorDatabase(_MoorDatabase());
@@ -140,7 +141,7 @@ class MoorDatabase extends Database {
   final AsyncDataCollection<BasicIngredient> ingredients;
 
   @override
-  final AsyncDataCollection<Edible> edibles;
+  final AsyncDataCollection<Dish> dishes;
 
   @override
   Future<int> get version async => db.schemaVersion;
@@ -440,7 +441,7 @@ class MoorMeasurablesCollection extends MoorDataCollection<$_MeasurablesTable, _
   }
 }
 
-abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataClass, T2 extends Table, D2 extends DataClass, I extends Indexable> implements AsyncDataCollection<I> {
+abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataClass, T2 extends Table, D2 extends DataClass, E extends Edible> implements AsyncDataCollection<E> {
   final _MoorDatabase db;
   final TableInfo<T1, D1> table;
   final TableInfo<T2, D2> joinedTable;
@@ -449,20 +450,20 @@ abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataCl
 
   MoorAbstractEdiblesCollection({required this.db, required this.table, required this.joinedTable, required this.idCol, required this.joinedIdCol});
 
-  Iterable<Insertable<D1>> edibleToRows(I value);
+  Iterable<Insertable<D1>> edibleToRows(E value);
 
-  Iterable<Insertable<D2>> contentToRows(I value);
+  Iterable<Insertable<D2>> contentToRows(E value);
 
-  Iterable<Insertable<_Unit>> valueToUnitRows(I value);
+  Iterable<Insertable<_Unit>> valueToUnitRows(E value);
 
-  Map<Symbol, I> rowsToValues(List<D1> edibleRows, Iterable<TypedResult> contentRows);
+  Map<Symbol, E> rowsToValues(List<D1> dishRows, Iterable<TypedResult> contentRows);
 
-  SimpleSelectStatement<T1, D1> get ediblesQuery;
+  SimpleSelectStatement<T1, D1> get edibleQuery;
 
   JoinedSelectStatement<Table, dynamic> get contentsQuery;
 
-  SimpleSelectStatement<T1, D1> _edibleRowsFor(Symbol index) {
-    return ediblesQuery
+  SimpleSelectStatement<T1, D1> _dishRowsFor(Symbol index) {
+    return edibleQuery
       ..where((a) => idCol.equals(symbolToString(index)));
   }
 
@@ -482,19 +483,19 @@ abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataCl
   }
 
   @override
-  Future<Symbol> add(I value) async {
+  Future<Symbol> add(E value) async {
     final unitsRows = valueToUnitRows(value);
-    final edibleRows = edibleToRows(value); // FIXME stream this?
+    final dishRows = edibleToRows(value); // FIXME stream this?
     final contentRows = contentToRows(value); // FIXME stream this?
-    final delEdibles = db.delete(table)..where((t) => idCol.equals(symbolToString(value.id)));
+    final delDishs = db.delete(table)..where((t) => idCol.equals(symbolToString(value.id)));
     final delContent = db.delete(joinedTable)..where((t) => joinedIdCol.equals(symbolToString(value.id)));
     return db.transaction(() async {
       await delContent.go();
-      await delEdibles.go();
+      await delDishs.go();
       await db.batch((batch) {
         batch.insertAll(
             table,
-            edibleRows.toList(),
+            dishRows.toList(),
         );
         batch.insertAll(
           joinedTable,
@@ -521,44 +522,44 @@ abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataCl
   }
 
   @override
-  Future<I> fetch(Symbol index) async {
-    final edibleRows = await _edibleRowsFor(index).get();
-    if (edibleRows.isEmpty)
+  Future<E> fetch(Symbol index) async {
+    final dishRows = await _dishRowsFor(index).get();
+    if (dishRows.isEmpty)
       throw ArgumentError("no value for id ${symbolToString(index)}");
     final contentRows = await _contentRowsFor(index).get();
-    return rowsToValues(edibleRows, contentRows).values.first;
+    return rowsToValues(dishRows, contentRows).values.first;
   }
 
   @override
-  Future<I> get(Symbol index, I otherwise) async {
-    final edibleRows = await _edibleRowsFor(index).get();
-    if (edibleRows.isEmpty)
+  Future<E> get(Symbol index, E otherwise) async {
+    final dishRows = await _dishRowsFor(index).get();
+    if (dishRows.isEmpty)
       return otherwise;
     final contentRows = await _contentRowsFor(index).get();
-    return rowsToValues(edibleRows, contentRows).values.first;
+    return rowsToValues(dishRows, contentRows).values.first;
   }
 
   @override
-  Future<Map<Symbol, I>> getAll() async {
-    final edibleRows =  await ediblesQuery.get();
+  Future<Map<Symbol, E>> getAll() async {
+    final dishRows =  await edibleQuery.get();
     final contentRows = await contentsQuery.get();
-    return rowsToValues(edibleRows, contentRows);
+    return rowsToValues(dishRows, contentRows);
   }
 
   @override
-  Future<I?> maybeGet(Symbol index, [I? otherwise]) async {
-    final edibleRows = await _edibleRowsFor(index).get();
-    if (edibleRows.isEmpty)
+  Future<E?> maybeGet(Symbol index, [E? otherwise]) async {
+    final dishRows = await _dishRowsFor(index).get();
+    if (dishRows.isEmpty)
       return otherwise;
     final contentRows = await _contentRowsFor(index).get();
-    return rowsToValues(edibleRows, contentRows).values.first;
+    return rowsToValues(dishRows, contentRows).values.first;
   }
 
   @override
   Future<int> remove(Symbol index) async {
-    final edibleQuery = db.delete(table)..where((a) => idCol.equals(symbolToString(index)));
+    final dishQuery = db.delete(table)..where((a) => idCol.equals(symbolToString(index)));
     final contentsQuery = db.delete(joinedTable)..where((a) => idCol.equals(symbolToString(index)));
-    int deleted = await edibleQuery.go();
+    int deleted = await dishQuery.go();
     deleted += await contentsQuery.go();
     return deleted;
   }
@@ -570,18 +571,18 @@ abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataCl
   }
 }
 
-class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_EdibleContentsTable, _EdibleContent, Edible> {
+class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_EdibleContentsTable, _EdibleContent, Dish> {
 
-  MoorEdiblesCollection({required _MoorDatabase db}) :
+  MoorDishesCollection({required _MoorDatabase db}) :
         super(
           db: db,
           table: db.edibles,
           joinedTable: db.edibleContents,
           idCol: db.edibles.id,
-          joinedIdCol: db.edibleContents.id
+          joinedIdCol: db.edibleContents.id,
       );
 
-  SimpleSelectStatement<$_EdiblesTable, _Edible> get ediblesQuery =>
+  SimpleSelectStatement<$_EdiblesTable, _Edible> get edibleQuery =>
       db.select(table)..where((tbl) => db.edibles.isBasic.equals(false));
 
   JoinedSelectStatement<Table, dynamic> get contentsQuery =>
@@ -590,7 +591,7 @@ class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable
         leftOuterJoin(db.units, db.edibleContents.unitsId.equalsExp(db.units.id))
       ]);
 
-  Iterable<Insertable<_Edible>> edibleToRows(Edible value) {
+  Iterable<Insertable<_Edible>> edibleToRows(Dish value) {
     List<Insertable<_Edible>> rows = [];
     rows.add(_Edible(
       id: symbolToString(value.id),
@@ -599,7 +600,7 @@ class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable
     return rows;
   }
 
-  Iterable<Insertable<_EdibleContent>> contentToRows(Edible value) {
+  Iterable<Insertable<_EdibleContent>> contentToRows(Dish value) {
     List<Insertable<_EdibleContent>> rows = [];
     value.contents.forEach((k, v) {
       rows.add(_EdibleContent(
@@ -611,7 +612,7 @@ class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable
     });
     return rows;
   }
-  Iterable<Insertable<_Unit>> valueToUnitRows(Edible value) {
+  Iterable<Insertable<_Unit>> valueToUnitRows(Dish value) {
     // Dedupe
     final units = value.contents.map((k, v) => MapEntry(
         v.units.id, v.units
@@ -627,17 +628,17 @@ class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable
     );
   }
 
-  Map<Symbol, Edible> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
-    final Map<Symbol, Map<Symbol, Quantity>> edibles = {};
-    edibleRows.forEach((edibleFields) {
-      final id = Symbol(edibleFields.id);
-      final dim = edibles[id] ??= <Symbol, Quantity>{};
+  Map<Symbol, Dish> rowsToValues(List<_Edible> dishRows, Iterable<TypedResult> contentRows) {
+    final Map<Symbol, Map<Symbol, Quantity>> dishes = {};
+    dishRows.forEach((dishFields) {
+      final id = Symbol(dishFields.id);
+      final dim = dishes[id] ??= <Symbol, Quantity>{};
     });
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.edibleContents);
       final id = Symbol(contentFields.id);
       final contains = Symbol(contentFields.contains);
-      final dim = edibles[id];
+      final dim = dishes[id];
       if (dim == null)
         return; // not present... FIXME signal an error?
       final unitsFields = row.readTableOrNull(db.units);
@@ -649,9 +650,9 @@ class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable
           contentFields.amount,
           units);
     });
-    return edibles.map((id, contents) => MapEntry(
+    return dishes.map((id, contents) => MapEntry(
         id,
-        Edible(id: id, contents: contents)
+        Dish(id: id, contents: contents)
     ));
   }
 
@@ -669,7 +670,7 @@ class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_Edi
           joinedIdCol: db.basicIngredientContents.id
       );
 
-  SimpleSelectStatement<$_EdiblesTable, _Edible> get ediblesQuery =>
+  SimpleSelectStatement<$_EdiblesTable, _Edible> get edibleQuery =>
       db.select(table)..where((tbl) => db.edibles.isBasic.equals(true));
 
   JoinedSelectStatement<Table, dynamic> get contentsQuery =>
@@ -678,7 +679,7 @@ class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_Edi
         leftOuterJoin(db.units, db.basicIngredientContents.unitsId.equalsExp(db.units.id))
       ]);
 
-  Iterable<Insertable<_Edible>> edibleToRows(Edible value) {
+  Iterable<Insertable<_Edible>> edibleToRows(BasicIngredient value) {
     List<Insertable<_Edible>> rows = [];
     rows.add(_Edible(
       id: symbolToString(value.id),
@@ -687,7 +688,7 @@ class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_Edi
     return rows;
   }
 
-  Iterable<Insertable<_BasicIngredientContent>> contentToRows(Edible value) {
+  Iterable<Insertable<_BasicIngredientContent>> contentToRows(BasicIngredient value) {
     List<Insertable<_BasicIngredientContent>> rows = [];
     value.contents.forEach((k, v) {
       rows.add(_BasicIngredientContent(
@@ -699,7 +700,7 @@ class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_Edi
     });
     return rows;
   }
-  Iterable<Insertable<_Unit>> valueToUnitRows(Edible value) {
+  Iterable<Insertable<_Unit>> valueToUnitRows(BasicIngredient value) {
     // Dedupe
     final units = value.contents.map((k, v) => MapEntry(
         v.units.id, v.units
@@ -715,10 +716,10 @@ class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_Edi
     );
   }
 
-  Map<Symbol, BasicIngredient> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
+  Map<Symbol, BasicIngredient> rowsToValues(List<_Edible> dishRows, Iterable<TypedResult> contentRows) {
     final Map<Symbol, Map<Symbol, Quantity>> ingredients = {};
-    edibleRows.forEach((edibleFields) {
-      final id = Symbol(edibleFields.id);
+    dishRows.forEach((dishFields) {
+      final id = Symbol(dishFields.id);
       final dim = ingredients[id] ??= <Symbol, Quantity>{};
     });
     contentRows.forEach((row) {

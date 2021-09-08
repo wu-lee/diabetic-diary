@@ -5,6 +5,7 @@ import 'package:diabetic_diary/translation.dart';
 import 'package:flutter/foundation.dart';
 
 import 'dimensions.dart';
+import 'dish.dart';
 import 'edible.dart';
 import 'quantified.dart';
 import 'indexable.dart';
@@ -86,7 +87,7 @@ abstract class Database {
   AsyncDataCollection<Units> get units;
   AsyncDataCollection<Measurable> get measurables;
   AsyncDataCollection<BasicIngredient> get ingredients;
-  AsyncDataCollection<Edible> get edibles;
+  AsyncDataCollection<Dish> get dishes;
 
   /// Returns the schema version of this database object
   Future<int> get version;
@@ -140,9 +141,9 @@ abstract class Database {
 
   String formatMeasurable(Measurable meas) => "Measurable(id: ${TL8(meas.id)}, units: ${TL8(meas.dimensionsId)})";
 
-  Future<String> formatEdible(Edible edible) async => "Edible(id: ${TL8(edible.id)}, contents: ${await formatContents(edible.contents)})";
+  Future<String> formatDish(Dish dish) async => "Dish(id: ${TL8(dish.id)}, contents: ${await formatContents(dish.contents)})";
 
-  Future<String> formatBasicIngredient(BasicIngredient ingredient) async => "${ingredient is Edible? 'Edible' : 'BasicIngredient'}(id: ${TL8(ingredient.id)}, contents: ${await formatContents(ingredient.contents)})";
+  Future<String> formatBasicIngredient(BasicIngredient ingredient) async => "BasicIngredient(id: ${TL8(ingredient.id)}, contents: ${await formatContents(ingredient.contents)})";
 
   Future<String> formatContents(Map<Symbol, Quantity> contents) async {
     final entries = contents.entries.map((e) async {
@@ -153,11 +154,11 @@ abstract class Database {
   }
 
   /// Deeply traverse the [Edible]s with the given [ids], and return an index
-  /// of all [Edible]s and [Measurable]s encountered.
+  /// of all [Quantified]s encountered.
   ///
   /// [Measurable]s are irreducible nutritional components and therefore have no contents, just a [dimensionId].
   Future<Map<Symbol, Quantified>> traverseContents(Iterable<Symbol> ids) async {
-    // expand all the symbols into Edibles recursively
+    // expand all the symbols into Dishs recursively
     final index = <Symbol, Quantified>{};
     final pending = ids.toSet();
 
@@ -168,9 +169,9 @@ abstract class Database {
       pending.remove(id);
       if (index.containsKey(id))
         continue;
-      final edible = await edibles.maybeGet(id);
-      if (edible == null) {
-        // Not a known edible, maybe an ingredient?
+      final dish = await dishes.maybeGet(id);
+      if (dish == null) {
+        // Not a known dish, maybe an ingredient?
         final ingredient = await ingredients.maybeGet(id);
 
         if (ingredient == null) {
@@ -178,7 +179,7 @@ abstract class Database {
           final measurable = await measurables.maybeGet(id);
 
           if (measurable == null)
-            throw new RangeError("Unknown edible $id"); // Nope, throw
+            throw new RangeError("Unknown edible/measurable $id"); // Nope, throw
 
           index[id] = measurable;
           continue;
@@ -189,21 +190,21 @@ abstract class Database {
         }
       }
       else {
-        index[id] = edible;
-        pending.addAll(edible.contents.keys);
+        index[id] = dish;
+        pending.addAll(dish.contents.keys);
       }
     }
     return index;
   }
 
-  /// Convert an Edible's content list into a content list of nutritional components
+  /// Convert an Dish's content list into a content list of nutritional components
   ///
-  /// [contents] should be a map defining [Quantities] of [Quantified] instances named by their ID.
-  /// There should be no null keys or values. Nor should there be any cycles, where an edible
+  /// [contents] should be a map defining [Quantities] of [Edible] instances named by their ID.
+  /// There should be no null keys or values. Nor should there be any cycles, where an dish
   /// contains itself, directly or indirectly.
   ///
-  /// Optionally, [edibleId] can identify an [Edible] which includes this content list,
-  /// in case it needs to be excluded from cycles (i.e. when aggregating an [Edible] existing in the database).
+  /// Optionally, [edibleId] can identify an [Dish] which includes this content list,
+  /// in case it needs to be excluded from cycles (i.e. when aggregating an [Dish] existing in the database).
   ///
   /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
   ///
@@ -215,15 +216,15 @@ abstract class Database {
 
   /// Convert [contents] into a table of nutritional component quantities.
   ///
-  /// [contents] should be a map defining [Quantities] of [Quantified] instances named by their ID.
-  /// There should be no null keys or values. Nor should there be any cycles, where an edible
+  /// [contents] should be a map defining [Quantities] of [Edible] instances named by their ID.
+  /// There should be no null keys or values. Nor should there be any cycles, where an dish
   /// contains itself, directly or indirectly.
   ///
-  /// All IDs in [content] must exist in [index], mapped to the appropriate instance of an [Edible]
+  /// All IDs in [content] must exist in [index], mapped to the appropriate instance of an [Dish]
   /// or a [Measurable].
   ///
   /// The function [seen] is used to detect cycles, and should return true if a symbol identifies
-  /// an [Quantified] instance including this one.
+  /// an [Edible] instance including this one.
   ///
   /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
   ///
@@ -233,7 +234,7 @@ abstract class Database {
       final id = elem.key;
       final quantity = elem.value;
 
-      // All edible contents must be in the same dimensions, i.e. fraction by mass.
+      // All dish contents must be in the same dimensions, i.e. fraction by mass.
       //assert(quantity.units.dimensionsId == #FractionByMass);
 
       // Prevent infinite loops in cyclic graphs (which should not exist: you
@@ -242,7 +243,7 @@ abstract class Database {
       if (seen(id))
         throw StateError(
             "Cannot aggregate this ingredient list as it contains "
-            "a cyclic reference to the edible ID #${symbolToString(id)} "
+            "a cyclic reference to the dish ID #${symbolToString(id)} "
         );
 
       final item = index[id];
@@ -253,9 +254,9 @@ abstract class Database {
       if (item is Measurable)
         return [elem];
 
-      final aggregated = _aggregate((item as Edible).contents, index, (newId) => id == newId || seen(newId));
+      final aggregated = _aggregate(item.contents, index, (newId) => id == newId || seen(newId));
 
-      // Multiply this edible's contents by the parent edible's quantity
+      // Multiply this dish's contents by the parent dish's quantity
       final multiplier = quantity.amount * quantity.units.multiplier;
       print("multiplier = ${quantity.amount} * ${quantity.units.multiplier} = $multiplier");
       return aggregated.entries.map((elem) => MapEntry(elem.key, elem.value.multiply(multiplier)));
@@ -306,15 +307,6 @@ abstract class Database {
             id: #FractionByMass,
             components: {},
           ),
-          MicroGrams = Units(#ug, #Mass, 0.000001),
-          MilliGrams = Units(#mg, #Mass, 0.001),
-          Grams = Units(#g, #Mass, 1),
-          KiloGrams = Units(#kg, #Mass, 1000),
-          GramsPerMilligram = Units(#g_per_mg, #FractionByMass, 0.001),
-          GramsPerCentigram = Units(#g_per_cg, #FractionByMass, 0.01),
-          GramsPerGram = Units(#g_per_g, #FractionByMass, 1),
-          GramsPerHectogram = Units(#g_per_hg, #FractionByMass, 100),
-          GramsPerKiloGram = Units(#g_per_kg, #FractionByMass, 1000),
           Carbs = Measurable(id: #Carbs, dimensionsId: #GramsPerHectogram),
           Fat = Measurable(id: #Fat, dimensionsId: #GramsPerHectogram),
           Fibre = Measurable(id: #Fibre, dimensionsId: #GramsPerHectogram),
@@ -325,31 +317,31 @@ abstract class Database {
           tahini = BasicIngredient(
             id: #Tahini,
             contents: {
-              Carbs.id: GramsPerHectogram.times(1),
-              Fat.id: GramsPerHectogram.times(2),
+              Carbs.id: Units.GramsPerHectogram.times(1),
+              Fat.id: Units.GramsPerHectogram.times(2),
             },
           ),
           cabbage = BasicIngredient(
             id: #Cabbage,
             contents: {
-              Carbs.id: GramsPerHectogram.times(1),
-              Fibre.id: GramsPerHectogram.times(1),
+              Carbs.id: Units.GramsPerHectogram.times(1),
+              Fibre.id: Units.GramsPerHectogram.times(1),
             },
           ),
-          salad = Edible(
+          salad = Dish(
             id: #Salad,
             contents: {
-              tahini.id: Grams.times(1),
-              cabbage.id: Grams.times(2),
+              tahini.id: Units.Grams.times(1),
+              cabbage.id: Units.Grams.times(2),
             },
           );
         db.dimensions..add(Mass)..add(FractionByMass);
-        db.units..add(Grams)..add(KiloGrams)
-          ..add(GramsPerHectogram)..add(GramsPerKiloGram)..add(GramsPerGram);
+        db.units..add(Units.Grams)..add(Units.KiloGrams)
+          ..add(Units.GramsPerHectogram)..add(Units.GramsPerKiloGram)..add(Units.GramsPerGram);
         db.measurables..add(Carbs)..add(Fat)..add(Fibre)..add(
             Protein)..add(Sugar)..add(Salt);
         db.ingredients..add(tahini)..add(cabbage);
-        db.edibles..add(salad);
+        db.dishes..add(salad);
       },
       upgrade: (db) {},
     )

@@ -1,44 +1,43 @@
-import 'package:diabetic_diary/basic_ingredient.dart';
 import 'package:flutter/material.dart';
 
 import '../database.dart';
-import '../edible.dart';
+import '../dish.dart';
 import '../quantity.dart';
 import '../translation.dart';
-import 'edible_edit_screen.dart';
+import 'dish_edit_screen.dart';
 
-/// The screen for inspecting an Edible
-class EdibleScreen extends StatefulWidget {
-  final Edible edible;
+/// The screen for inspecting an Dish
+class DishScreen extends StatefulWidget {
+  final Dish dish;
   final Database db;
 
-  const EdibleScreen({Key? key, required this.edible, required this.db}) : super(key: key);
+  const DishScreen({Key? key, required this.dish, required this.db}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _EdibleState(edible, db);
+    return _DishState(dish, db);
   }
 }
 
-class _EdibleState extends State<EdibleScreen> {
-  Edible _edible;
+class _DishState extends State<DishScreen> {
+  Dish _dish;
   final Database db;
 
   Future<Map<Symbol, String>> _compositionStats = Future.value({});
   Future<Map<Symbol, String>> _contentAmounts = Future.value({});
 
-  Edible get edible => _edible;
-  set edible(Edible e) {
-    _edible = e;
-    _contentAmounts = _format(edible.contents);
-    _compositionStats = db.aggregate(edible.contents).then(_format);
+  Dish get dish => _dish;
+  set dish(Dish e) {
+    _dish = e;
+    _contentAmounts = _format(dish.contents);
+    _compositionStats = db.aggregate(dish.contents).then(_format);
   }
 
-  _EdibleState(Edible edible, this.db) :
-        this._edible = edible
+  _DishState(Dish dish, this.db) :
+        this._dish = dish
   {
-    _contentAmounts = _format(edible.contents);
-    _compositionStats = db.aggregate(edible.contents).then(_format);
+    _contentAmounts = _format(dish.contents);
+    _compositionStats = db.aggregate(dish.contents).then(_format);
   }
 
   Future<Map<Symbol, String>> _format(Map<Symbol, Quantity> entities) async {
@@ -53,19 +52,19 @@ class _EdibleState extends State<EdibleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(TL8(edible.id)), actions: <Widget>[
+      appBar: AppBar(title: Text(TL8(dish.id)), actions: <Widget>[
         IconButton(
           icon: const Icon(Icons.edit),
           tooltip: TL8(#Edit),
           onPressed: () async {
-            final Edible? newEdible = await Navigator.push<Edible>(
+            final Dish? newDish = await Navigator.push<Dish>(
               context,
               MaterialPageRoute(
-                builder: (context) => EdibleEditScreen(edible: edible, db: db),
+                builder: (context) => DishEditScreen(dish: dish, db: db),
               ),
             );
-            if (newEdible != null) {
-              setState(() { edible = newEdible; });
+            if (newDish != null) {
+              setState(() { dish = newDish; });
             }
           },
         ),

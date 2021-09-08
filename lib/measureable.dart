@@ -1,6 +1,9 @@
 
+import 'package:diabetic_diary/quantity.dart';
+
 import 'quantified.dart';
 import 'translation.dart';
+import 'units.dart';
 
 /// Represents a category of dimensioned scalar measurement, like weight, volume, etc.
 class Measurable implements Quantified {
@@ -23,4 +26,7 @@ class Measurable implements Quantified {
 
   @override
   int get hashCode => dimensionsId.hashCode ^ id.hashCode;
+
+  @override
+  Map<Symbol, Quantity> get contents => Map.unmodifiable({id: Quantity(1, Units.GramsPerHectogram)});
 }

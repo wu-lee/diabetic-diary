@@ -2,28 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinbox/flutter_spinbox.dart';
 
 import '../database.dart';
-import '../edible.dart';
+import '../dish.dart';
 import '../quantity.dart';
 import '../translation.dart';
 
-/// The screen for editing an Edible
-class EdibleEditScreen extends StatefulWidget {
+/// The screen for editing an Dish
+class DishEditScreen extends StatefulWidget {
   final Database db;
-  final Edible? edible;
+  final Dish? dish;
 
-  const EdibleEditScreen({Key? key, required this.db, this.edible}) : super(key: key);
+  const DishEditScreen({Key? key, required this.db, this.dish}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    Edible? edible = this.edible;
-    if (edible != null)
-      return _EdibleEditState(db: db, edible: edible);
-    return _EdibleEditState(db: db);
+    Dish? dish = this.dish;
+    if (dish != null)
+      return _DishEditState(db: db, dish: dish);
+    return _DishEditState(db: db);
   }
 }
 
-/// Manages state for edible creation / amendment
-class _EdibleEditState extends State<EdibleEditScreen> {
+/// Manages state for dish creation / amendment
+class _DishEditState extends State<DishEditScreen> {
   bool isDish = false;
   final titleController = new TextEditingController();
   final Database db;
@@ -31,9 +31,9 @@ class _EdibleEditState extends State<EdibleEditScreen> {
   Future<Map<Symbol, Quantity>> _pendingContentAmounts = Future.value({});
   Future<Map<Symbol, String>> _pendingCompositionStats = Future.value({});
 
-  _EdibleEditState({required this.db, Edible? edible}) {
-    if (edible != null) {
-      this.edible = edible;
+  _DishEditState({required this.db, Dish? dish}) {
+    if (dish != null) {
+      this.dish = dish;
     }
   }
 
@@ -65,12 +65,12 @@ class _EdibleEditState extends State<EdibleEditScreen> {
     );
   }
 
-  Edible get edible => Edible(
+  Dish get dish => Dish(
     contents: Map.from(_contents), // Make a copy, since we're returning it
     id: id,
   );
 
-  set edible(Edible e) {
+  set dish(Dish e) {
     id = e.id;
     contents = e.contents;
   }
@@ -162,7 +162,7 @@ class _EdibleEditState extends State<EdibleEditScreen> {
             children: [
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                child: Text(TL8(#NewEdible)+':'),
+                child: Text(TL8(#NewDish)+':'),
               ),
               Expanded(
                 child: TextField(
@@ -266,9 +266,9 @@ class _EdibleEditState extends State<EdibleEditScreen> {
                       ),
                     ),
                     Expanded(
-                        child: FutureBuilder<Map<Symbol, Edible>>(
-                        future: db.edibles.getAll().then((list) => list..removeWhere((k, v) => k == id)),
-                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Edible>> snapshot) => ListView(
+                        child: FutureBuilder<Map<Symbol, Dish>>(
+                        future: db.dishes.getAll().then((list) => list..removeWhere((k, v) => k == id)),
+                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Dish>> snapshot) => ListView(
                           children: (snapshot.data?.values ?? []).map(
                             (e) => Container(
                               child: Row(
@@ -308,8 +308,8 @@ class _EdibleEditState extends State<EdibleEditScreen> {
   }
 
   Future<bool> _onPop() async {
-    final e = edible;
-    await db.edibles.add(e);
+    final e = dish;
+    await db.dishes.add(e);
     Navigator.pop(context, e);
     return true;
   }

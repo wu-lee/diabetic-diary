@@ -4,7 +4,7 @@ import 'package:diabetic_diary/translation.dart';
 import '../basic_ingredient.dart';
 import '../database.dart';
 import '../dimensions.dart';
-import '../edible.dart';
+import '../dish.dart';
 import '../indexable.dart';
 import '../measureable.dart';
 import '../units.dart';
@@ -19,7 +19,7 @@ class MockDatabase extends Database {
 
   static final _ingredients = MockDataCollection<BasicIngredient>();
 
-  static final _edibles = MockDataCollection<Edible>();
+  static final _dishes = MockDataCollection<Dish>();
 
 
   final int _version;
@@ -40,7 +40,7 @@ class MockDatabase extends Database {
   AsyncDataCollection<Measurable> get measurables => _measurables;
 
   @override
-  AsyncDataCollection<Edible> get edibles => _edibles;
+  AsyncDataCollection<Dish> get dishes => _dishes;
 
   @override
   AsyncDataCollection<BasicIngredient> get ingredients => _ingredients;
@@ -62,7 +62,7 @@ class MockDatabase extends Database {
     dimensions.removeAll();
     units.removeAll();
     measurables.removeAll();
-    edibles.removeAll();
+    dishes.removeAll();
     _deployedVersion = 0;
     return;
   }
