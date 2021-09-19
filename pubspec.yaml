@@ -35,6 +35,7 @@ dependencies:
   path:
   flutter_spinbox: ^0.5.4
   datetime_picker_formfield: ^2.0.0
+  flutter_calendar_carousel: ^2.0.3
 
 dev_dependencies:
   flutter_test:
