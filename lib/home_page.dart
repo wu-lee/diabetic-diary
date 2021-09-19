@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'database.dart';
 import 'entities/dish_topic.dart';
 import 'entities/ingredient_topic.dart';
+import 'entities/meal_topic.dart';
 import 'entity_topic.dart';
 import 'overview_topic.dart';
 import 'topic.dart';
@@ -31,6 +32,7 @@ class HomePage extends StatefulWidget {
       initialTopicIndex: 0,
       topics: [
         OverviewTopic(id: #Overview, icon: Icons.follow_the_signs, db: db),
+        MealTopic(entities: db.meals, db: db),
         IngredientTopic(entities: db.ingredients, db: db),
         DishTopic(entities: db.dishes, db: db),
       ],
