@@ -341,6 +341,15 @@ abstract class Database {
               cabbage.id: Units.Grams.times(2),
             },
           );
+        final meal1 = Meal(
+          id: #Meal1,
+          title: "Meal 1",
+          timestamp: DateTime(2021),
+          notes: "",
+          contents: {
+            salad.id: Units.Grams.times(500),
+          }
+        );
         db.dimensions..add(Mass)..add(FractionByMass);
         db.units..add(Units.Grams)..add(Units.KiloGrams)
           ..add(Units.GramsPerHectogram)..add(Units.GramsPerKiloGram)..add(Units.GramsPerGram);
