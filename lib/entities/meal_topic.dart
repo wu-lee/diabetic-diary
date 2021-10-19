@@ -70,12 +70,16 @@ class MealTopic implements EntityTopic<Meal> {
     );
   }
 
+  int _byDate(Meal a, Meal b) {
+    return a.timestamp.compareTo(b.timestamp);
+  }
+
   @override
   Widget buildTabContent(BuildContext context) {
     return FutureBuilder<Map<Symbol, Meal>>(
       future: entities.getAll(),
       builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Meal>> snapshot) {
-        final meals = snapshot.data?.values.toList() ?? [];
+        final meals = (snapshot.data?.values.toList()?..sort(_byDate)) ?? [];
         return ListView.builder(
           padding: EdgeInsets.all(16.0),
           itemCount: meals.length,
