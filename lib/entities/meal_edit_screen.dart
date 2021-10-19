@@ -200,24 +200,6 @@ class _MealEditState extends State<MealEditScreen> {
           ),
           actions: <Widget>[]
         ),
-/*        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: () {
-            print("add ingredient");
-            setState(() {
-              ingredients
-                  .add(MapEntry(ingredients.get(#Cabbage), Mass.grams(10)));
-              compositionStats = Ingredient.aggregate(ingredients);
-            });
-          / *Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => null,
-            ),
-          );* /
-          },
-          tooltip: 'Add Ingredient',
-        ),*/
         body: Container(
           padding: const EdgeInsets.all(8),
           child: Column(
