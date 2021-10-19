@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../database.dart';
 import '../meal.dart';
@@ -20,6 +21,7 @@ class MealScreen extends StatefulWidget {
 }
 
 class _MealState extends State<MealScreen> {
+  static final _dateFormat = DateFormat('yyyy-MM-dd hh:mm');
   Meal _meal;
   final Database db;
 
@@ -73,10 +75,43 @@ class _MealState extends State<MealScreen> {
         padding: const EdgeInsets.all(8),
         children: [
           Container(
-            child: Text(
-              TL8(#Meals),
+            padding: EdgeInsets.symmetric(
+                vertical: 3, horizontal: 10),
+            child:  Row(
+              children: [
+                Expanded(child: Text(TL8(#MealTitle))),
+                Text(_meal.title),
+              ],
             ),
-            height: 20,
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(
+                vertical: 3, horizontal: 10),
+            child:  Row(
+              children: [
+                Expanded(child: Text(TL8(#MealTime))),
+                Text(_dateFormat.format(_meal.timestamp.toLocal())),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(
+                vertical: 3, horizontal: 10),
+            child:  Row(
+              children: [
+                Expanded(
+                    child: Text(TL8(#MealNotes))
+                ),
+                Flexible(
+                  child: Text(
+                      _meal.notes,
+                      maxLines: 50,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis
+                  ),
+                )
+              ],
+            ),
           ),
           _buildEntityList(
             title: TL8(#CompositionStats),
