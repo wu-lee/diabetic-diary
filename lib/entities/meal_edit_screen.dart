@@ -205,32 +205,78 @@ class _MealEditState extends State<MealEditScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
-                flex: 1,
-                child: DateTimeField(
-                  format: _format,
-                  onFieldSubmitted: (datetime) { if (datetime != null) timestamp = datetime; },
-                  onShowPicker: (context, currentValue) async {
-                    final date = await showDatePicker(
-                        context: context,
-                        firstDate: DateTime(1900),
-                        initialDate: currentValue ?? DateTime.now(),
-                        lastDate: DateTime(2100));
-                    if (date != null) {
-                      final time = await showTimePicker(
-                        context: context,
-                        initialTime:
-                        TimeOfDay.fromDateTime(currentValue ?? DateTime.now()),
-                      );
-                      return DateTimeField.combine(date, time);
-                    } else {
-                      return currentValue;
-                    }
-                  },
+              Container(
+                padding: EdgeInsets.symmetric(
+                    vertical: 3, horizontal: 10),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(TL8(#MealTitle)),
+                        ),
+                        Flexible(
+                          flex: 1,
+                          child: Text(meal.title),
+                        ),
+                     ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(TL8(#MealTime)),
+                        ),
+                        Flexible(
+                          flex: 1,
+                          child: DateTimeField(
+                            format: _format,
+                            initialValue: meal.timestamp,
+                            resetIcon: null,
+                            onFieldSubmitted: (datetime) { if (datetime != null) timestamp = datetime; },
+                            onShowPicker: (context, currentValue) async {
+                              final date = await showDatePicker(
+                                  context: context,
+                                  firstDate: DateTime(1900),
+                                  initialDate: currentValue ?? DateTime.now(),
+                                  lastDate: DateTime(2100));
+                              if (date != null) {
+                                final time = await showTimePicker(
+                                  context: context,
+                                  initialTime:
+                                  TimeOfDay.fromDateTime(currentValue ?? DateTime.now()),
+                                );
+                                return DateTimeField.combine(date, time);
+                              } else {
+                                return currentValue;
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(TL8(#MealNotes)),
+                        ),
+                        Flexible(
+                          flex: 1,
+                          child: TextField(
+                            controller: notesController,
+                            //showCursor: true,
+                            textAlignVertical: TextAlignVertical.bottom,
+                            maxLines: 5,
+                            minLines: 1,
+                          )
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
               Flexible( // Composition Stats
-              flex: 6,
+                flex: 6,
                 fit: FlexFit.tight,
                 child: _buildEntityList<String>(
                   title: TL8(#CompositionStats),
