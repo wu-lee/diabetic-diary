@@ -9,16 +9,16 @@ import './date-utils.dart' as DU;
 
 class CalendarStrip extends StatefulWidget {
   // This widget is the root of your application.
-  final Function onDateSelected;
+  final Function? onDateSelected;
   final Function? onWeekSelected;
   final Function? dateTileBuilder;
   final BoxDecoration? containerDecoration;
   final double? containerHeight;
   final Function? monthNameWidget;
   final Color? iconColor;
-  final DateTime selectedDate;
-  final DateTime startDate;
-  final DateTime endDate;
+  final DateTime? selectedDate;
+  final DateTime? startDate;
+  final DateTime? endDate;
   final List<DateTime>? markedDates;
   final bool addSwipeGesture;
   final bool weekStartsOnSunday;
@@ -28,16 +28,16 @@ class CalendarStrip extends StatefulWidget {
   CalendarStrip({
     this.addSwipeGesture = false,
     this.weekStartsOnSunday = false,
-    required this.onDateSelected,
+    this.onDateSelected,
     this.onWeekSelected,
     this.dateTileBuilder,
     this.containerDecoration,
     this.containerHeight,
     this.monthNameWidget,
     this.iconColor,
-    required this.selectedDate,
-    required this.startDate,
-    required this.endDate,
+    this.selectedDate,
+    this.startDate,
+    this.endDate,
     this.markedDates,
     this.rightIcon,
     this.leftIcon,
@@ -50,7 +50,7 @@ class CalendarStrip extends StatefulWidget {
 class CalendarStripState extends State<CalendarStrip>
     with TickerProviderStateMixin {
   DateTime currentDate;
-  DateTime selectedDate;
+  DateTime? selectedDate;
   String monthLabel;
   bool inBetweenMonths = false;
   DateTime rowStartingDate;
@@ -82,7 +82,7 @@ class CalendarStripState extends State<CalendarStrip>
   List<String> dayLabels = ["Mon", "Tue", "Wed", "Thr", "Fri", "Sat", "Sun"];
 
   factory CalendarStripState(
-      DateTime selectedDate, DateTime? startDate, DateTime? endDate) {
+      DateTime? selectedDate, DateTime? startDate, DateTime? endDate) {
     final now = DateTime.now();
     final currentDate = DateTime.utc(
         now.year,
@@ -93,7 +93,7 @@ class CalendarStripState extends State<CalendarStrip>
     final lastDayOfMonth = DU.DateUtils.getLastDayOfMonth(currentDate);
     final obj = CalendarStripState._internal(
         today: today, lastDayOfMonth: lastDayOfMonth, currentDate: currentDate,
-        selectedDate: selectedDate, monthLabel: '',
+        monthLabel: '', selectedDate: selectedDate,
         rowStartingDate: currentDate
     );
     obj.runPresetsAndExceptions(selectedDate, startDate, endDate);
@@ -106,29 +106,29 @@ class CalendarStripState extends State<CalendarStrip>
     required this.monthLabel, required this.rowStartingDate,
   });
 
-  runPresetsAndExceptions(DateTime selectedDate, DateTime? startDate, DateTime? endDate) {
+  runPresetsAndExceptions(DateTime? selectedDate, DateTime? startDate, DateTime? endDate) {
     if ((startDate == null && endDate != null) ||
         (startDate != null && endDate == null)) {
       throw Exception(
           "Both 'startDate' and 'endDate' are mandatory to specify range");
-    } else if (selectedDate != null &&
-        (isDateBefore(selectedDate, startDate) ||
-            isDateAfter(selectedDate, endDate))) {
-      throw Exception("Selected Date is out of range from start and end dates");
-    } else if (startDate == null && startDate == null) {
+    } else if (startDate == null && endDate == null) {
       doesDateRangeExists = false;
+    } else if (selectedDate != null &&
+        (isDateBefore(selectedDate, startDate!) ||
+            isDateAfter(selectedDate, endDate!))) {
+      throw Exception("Selected Date is out of range from start and end dates");
     } else {
       doesDateRangeExists = true;
     }
     if (doesDateRangeExists) {
       if (endDate != null && isDateAfter(currentDate, endDate)) {
         currentDate = getDateOnly(startDate!);
-      } else if (isDateBefore(currentDate, startDate)) {
-        currentDate = getDateOnly(startDate!);
+      } else if (isDateBefore(currentDate, startDate!)) {
+        currentDate = getDateOnly(startDate);
       }
     }
     if (selectedDate != null) {
-      currentDate = getDateOnly(nullOrDefault(selectedDate, currentDate));
+      currentDate = getDateOnly(selectedDate);
     }
   }
 
@@ -136,13 +136,14 @@ class CalendarStripState extends State<CalendarStrip>
   void didUpdateWidget(CalendarStrip oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selectedDate != oldWidget.selectedDate &&
-        widget.selectedDate != null &&
-        (isDateBefore(widget.selectedDate, widget.startDate) ||
-            isDateAfter(widget.selectedDate, widget.endDate))) {
+        widget.selectedDate != null && widget.startDate != null && widget.endDate != null &&
+        (isDateBefore(widget.selectedDate!, widget.startDate!) ||
+            isDateAfter(widget.selectedDate!, widget.endDate!))) {
       throw Exception("Selected Date is out of range from start and end dates");
     } else {
       setState(() {
-        selectedDate = getDateOnly(widget.selectedDate);
+        if (widget.selectedDate != null)
+          selectedDate = getDateOnly(widget.selectedDate!);
       });
     }
   }
@@ -191,13 +192,13 @@ class CalendarStripState extends State<CalendarStrip>
     return label;
   }
 
-  isDateBefore(date1, date2) {
+  isDateBefore(DateTime date1, DateTime date2) {
     DateTime _date1 = DateTime(date1.year, date1.month, date1.day);
     DateTime _date2 = DateTime(date2.year, date2.month, date2.day);
     return _date1.isBefore(_date2);
   }
 
-  isDateAfter(date1, date2) {
+  isDateAfter(DateTime date1, DateTime date2) {
     DateTime _date1 = DateTime(date1.year, date1.month, date1.day);
     DateTime _date2 = DateTime(date2.year, date2.month, date2.day);
     return _date1.isAfter(_date2);
@@ -231,9 +232,10 @@ class CalendarStripState extends State<CalendarStrip>
       }
       weekStartingDate = getDateOnly(_nextRowStartingDate);
       weekEndingDate = getDateOnly(_nextRowStartingDate.add(Duration(days: 6)));
-      bool isStartingWeekOnRange =
-          isDateAfter(widget.startDate, weekStartingDate);
-      bool isEndingWeekOnRange = isDateBefore(widget.endDate, weekEndingDate);
+      bool isStartingWeekOnRange = widget.startDate != null &&
+          isDateAfter(widget.startDate!, weekStartingDate);
+      bool isEndingWeekOnRange = widget.endDate != null &&
+          isDateBefore(widget.endDate!, weekEndingDate);
       return {
         "isEndingWeekOnRange": isEndingWeekOnRange,
         "isStartingWeekOnRange": isStartingWeekOnRange
@@ -269,13 +271,15 @@ class CalendarStripState extends State<CalendarStrip>
     if (!doesDateRangeExists) {
       setState(() {
         selectedDate = date;
-        widget.onDateSelected(date);
+        if (widget.onDateSelected != null)
+          widget.onDateSelected!(date);
       });
-    } else if (!isDateBefore(date, widget.startDate) &&
-        !isDateAfter(date, widget.endDate)) {
+    } else if (!isDateBefore(date, widget.startDate!) &&
+        !isDateAfter(date, widget.endDate!)) {
       setState(() {
         selectedDate = date;
-        widget.onDateSelected(date);
+        if (widget.onDateSelected != null)
+           widget.onDateSelected!(date);
       });
     } else {}
   }
@@ -333,8 +337,8 @@ class CalendarStripState extends State<CalendarStrip>
   checkOutOfRangeStatus(DateTime date) {
     date = DateTime(date.year, date.month, date.day);
     if (widget.startDate != null && widget.endDate != null) {
-      if (!isDateBefore(date, widget.startDate) &&
-          !isDateAfter(date, widget.endDate)) {
+      if (!isDateBefore(date, widget.startDate!) &&
+          !isDateAfter(date, widget.endDate!)) {
         return false;
       } else {
         return true;
@@ -382,7 +386,7 @@ class CalendarStripState extends State<CalendarStrip>
     ]);
   }
 
-  Widget dateTileBuilder(DateTime date, DateTime selectedDate, int rowIndex) {
+  Widget dateTileBuilder(DateTime date, DateTime? selectedDate, int rowIndex) {
     bool isDateOutOfRange = checkOutOfRangeStatus(date);
     String dayName = dayLabels[date.weekday - 1];
     if (widget.dateTileBuilder != null) {
@@ -403,7 +407,7 @@ class CalendarStripState extends State<CalendarStrip>
       );
     }
 
-    bool isSelectedDate = date.compareTo(selectedDate) == 0;
+    bool isSelectedDate = selectedDate != null && date.compareTo(selectedDate) == 0;
     var normalStyle = TextStyle(
         fontSize: 17,
         fontWeight: FontWeight.w800,
