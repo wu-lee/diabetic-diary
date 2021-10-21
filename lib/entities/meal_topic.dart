@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
+import '../calendar_strip.dart';
 import '../database.dart';
 import '../meal.dart';
 import '../entity_topic.dart';
@@ -14,6 +15,7 @@ class MealTopic implements EntityTopic<Meal> {
   static final _dateFormat = DateFormat('yyyy-MM-dd hh:mm');
 
   final Database db;
+  DateTime selectedDate = DateTime.now();
 
   @override
   final Symbol id = #Meals;
@@ -70,8 +72,11 @@ class MealTopic implements EntityTopic<Meal> {
     );
   }
 
-  int _byDate(Meal a, Meal b) {
-    return a.timestamp.compareTo(b.timestamp);
+  bool _isSelectedDate(Meal m) {
+    return
+        m.timestamp.year == selectedDate.year &&
+        m.timestamp.month == selectedDate.month &&
+        m.timestamp.day == selectedDate.day;
   }
 
   @override
@@ -79,13 +84,38 @@ class MealTopic implements EntityTopic<Meal> {
     return FutureBuilder<Map<Symbol, Meal>>(
       future: entities.getAll(),
       builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Meal>> snapshot) {
-        final meals = (snapshot.data?.values.toList()?..sort(_byDate)) ?? [];
-        return ListView.builder(
-          padding: EdgeInsets.all(16.0),
-          itemCount: meals.length,
-          itemBuilder: (context, ix) {
-            return buildRow(meals[ix], context, ix);
-          },
+        final meals = (snapshot.data?.values.where(_isSelectedDate).toList()) ?? [];
+        const duration = const Duration(days:1);
+        return Column(
+          children: [
+            Container(
+              child: CalendarStrip(
+                selectedDate: selectedDate,
+ //               startDate: today.subtract(duration),
+//                endDate: selectedDate.add(duration),
+                onDateSelected: (DateTime date) {
+                  setBuilderState(() {
+                    selectedDate = date;
+                  });
+                },
+  //              onWeekSelected: onWeekSelect,
+  //              dateTileBuilder: dateTileBuilder,
+                iconColor: Colors.black87,
+  //              monthNameWidget: _monthNameWidget,
+  //              markedDates: markedDates,
+                containerDecoration: BoxDecoration(color: Colors.black12),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.all(16.0),
+                itemCount: meals.length,
+                itemBuilder: (context, ix) {
+                  return buildRow(meals[ix], context, ix);
+                },
+              ),
+            ),
+          ]
         );
       },
     );
