@@ -13,6 +13,7 @@ class Topic implements Indexable {
 
   Topic({required this.id, required this.icon});
 
-  Widget buildTabContent(BuildContext context) => Center(child: Text(TL8(id)));
+  Widget buildTabContent(BuildContext context, StateSetter setBuilderState) =>
+      Center(child: Text(TL8(id)));
 }
 

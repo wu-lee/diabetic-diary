@@ -63,7 +63,7 @@ class IngredientTopic implements EntityTopic<BasicIngredient> {
   }
 
   @override
-  Widget buildTabContent(BuildContext context) {
+  Widget buildTabContent(BuildContext context, StateSetter setBuilderState) {
     return FutureBuilder<Map<Symbol, BasicIngredient>>(
       future: entities.getAll(),
       builder: (BuildContext context, AsyncSnapshot<Map<Symbol, BasicIngredient>> snapshot) {

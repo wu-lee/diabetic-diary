@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             body: TabBarView(
-              children: topics.map((topic) => topic.buildTabContent(context))
+              children: topics.map((topic) => topic.buildTabContent(context, setBuilderState))
                   .toList(),
             ),
             floatingActionButton: floatingActionButton,

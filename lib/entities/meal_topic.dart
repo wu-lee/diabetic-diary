@@ -75,7 +75,7 @@ class MealTopic implements EntityTopic<Meal> {
   }
 
   @override
-  Widget buildTabContent(BuildContext context) {
+  Widget buildTabContent(BuildContext context, StateSetter setBuilderState) {
     return FutureBuilder<Map<Symbol, Meal>>(
       future: entities.getAll(),
       builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Meal>> snapshot) {

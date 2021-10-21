@@ -14,7 +14,7 @@ class OverviewTopic extends Topic {
   OverviewTopic({required this.db, required Symbol id, required IconData icon}) : super(id: id, icon: icon);
 
   @override
-  Widget buildTabContent(BuildContext context) {
+  Widget buildTabContent(BuildContext context, StateSetter setBuilderState) {
     return FutureBuilder(
       future:  Future(() async {
         final dishes = await db.dishes.getAll();

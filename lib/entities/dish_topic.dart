@@ -63,7 +63,7 @@ class DishTopic implements EntityTopic<Dish> {
   }
 
   @override
-  Widget buildTabContent(BuildContext context) {
+  Widget buildTabContent(BuildContext context, StateSetter setBuilderState) {
     return FutureBuilder<Map<Symbol, Dish>>(
       future: entities.getAll(),
       builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Dish>> snapshot) {
