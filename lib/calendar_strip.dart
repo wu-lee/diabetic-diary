@@ -9,7 +9,7 @@ import './date-utils.dart' as DU;
 
 class CalendarStrip extends StatefulWidget {
   // This widget is the root of your application.
-  final Function? onDateSelected;
+  final Function(DateTime d)? onDateSelected;
   final Function? onWeekSelected;
   final Function? dateTileBuilder;
   final BoxDecoration? containerDecoration;
