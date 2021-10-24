@@ -84,7 +84,8 @@ class MealTopic implements EntityTopic<Meal> {
     return FutureBuilder<Map<Symbol, Meal>>(
       future: entities.getAll(),
       builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Meal>> snapshot) {
-        final meals = (snapshot.data?.values.where(_isSelectedDate).toList()) ?? [];
+        final meals = snapshot.data?.values ?? [];
+        final selectedDateMeals = meals.where(_isSelectedDate).toList();
         const duration = const Duration(days:1);
         return Column(
           children: [
@@ -102,16 +103,20 @@ class MealTopic implements EntityTopic<Meal> {
   //              dateTileBuilder: dateTileBuilder,
                 iconColor: Colors.black87,
   //              monthNameWidget: _monthNameWidget,
-  //              markedDates: markedDates,
+                isDateMarked: (date) => meals.any((meal) =>
+                  meal.timestamp.year == date.year &&
+                  meal.timestamp.month == date.month &&
+                  meal.timestamp.day == date.day
+                ),
                 containerDecoration: BoxDecoration(color: Colors.black12),
               ),
             ),
             Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.all(16.0),
-                itemCount: meals.length,
+                itemCount: selectedDateMeals.length,
                 itemBuilder: (context, ix) {
-                  return buildRow(meals[ix], context, ix);
+                  return buildRow(selectedDateMeals[ix], context, ix);
                 },
               ),
             ),
