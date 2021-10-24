@@ -416,10 +416,10 @@ class CalendarStripState extends State<CalendarStrip>
           onTap: () => onDateTap(date),
           child: Container(
             alignment: Alignment.center,
-            padding: EdgeInsets.only(top: 8, left: 5, right: 5, bottom: 5),
+            padding: EdgeInsets.only(top: 8, left: 6, right: 6, bottom: 6),
             decoration: BoxDecoration(
               color: !isSelectedDate ? Colors.transparent : Colors.blue,
-              border: _isDateMarked(date)? Border.all(width: 2, color: Colors.black26) : null,
+              border: Border.all(width: 2, color: _isDateMarked(date)? Colors.black26 : Colors.transparent),
               borderRadius: BorderRadius.all(Radius.circular(60)),
             ),
             child: Column(
