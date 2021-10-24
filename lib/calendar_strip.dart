@@ -10,11 +10,11 @@ import './date-utils.dart' as DU;
 class CalendarStrip extends StatefulWidget {
   // This widget is the root of your application.
   final Function(DateTime d)? onDateSelected;
-  final Function? onWeekSelected;
-  final Function? dateTileBuilder;
+  final Function(DateTime d)? onWeekSelected;
+  final Function(DateTime, DateTime?, int, String, bool, bool)? dateTileBuilder;
   final BoxDecoration? containerDecoration;
   final double? containerHeight;
-  final Function? monthNameWidget;
+  final Widget Function(String name)? monthNameWidget;
   final Color? iconColor;
   final DateTime? selectedDate;
   final DateTime? startDate;
@@ -286,7 +286,7 @@ class CalendarStripState extends State<CalendarStrip>
     return normalValue;
   }
 
-  monthLabelWidget(monthLabel) {
+  Widget monthLabelWidget(monthLabel) {
     if (widget.monthNameWidget != null) {
       return widget.monthNameWidget!(monthLabel);
     }
