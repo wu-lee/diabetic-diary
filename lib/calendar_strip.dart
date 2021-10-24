@@ -419,6 +419,7 @@ class CalendarStripState extends State<CalendarStrip>
             padding: EdgeInsets.only(top: 8, left: 5, right: 5, bottom: 5),
             decoration: BoxDecoration(
               color: !isSelectedDate ? Colors.transparent : Colors.blue,
+              border: _isDateMarked(date)? Border.all(width: 2, color: Colors.black26) : null,
               borderRadius: BorderRadius.all(Radius.circular(60)),
             ),
             child: Column(
