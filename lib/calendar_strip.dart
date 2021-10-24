@@ -19,9 +19,9 @@ class CalendarStrip extends StatefulWidget {
   final DateTime? selectedDate;
   final DateTime? startDate;
   final DateTime? endDate;
-  final List<DateTime>? markedDates;
   final bool addSwipeGesture;
   final bool weekStartsOnSunday;
+  final bool Function(DateTime)? isDateMarked;
   final Icon? rightIcon;
   final Icon? leftIcon;
 
@@ -38,7 +38,7 @@ class CalendarStrip extends StatefulWidget {
     this.selectedDate,
     this.startDate,
     this.endDate,
-    this.markedDates,
+    this.isDateMarked,
     this.rightIcon,
     this.leftIcon,
   });
@@ -208,15 +208,10 @@ class CalendarStripState extends State<CalendarStrip>
     return DateTime.utc(dateTimeObj.year, dateTimeObj.month, dateTimeObj.day);
   }
 
-  bool isDateMarked(date) {
-    date = getDateOnly(date);
-    bool _isDateMarked = false;
-    widget.markedDates?.forEach((DateTime eachMarkedDate) {
-      if (getDateOnly(eachMarkedDate) == date) {
-        _isDateMarked = true;
-      }
-    });
-    return _isDateMarked;
+  bool _isDateMarked(date) {
+    if (widget.isDateMarked != null)
+      return widget.isDateMarked!(getDateOnly(date));
+    return false;
   }
 
   Map<String, bool> calculateDateRange(mode) {
@@ -400,7 +395,7 @@ class CalendarStripState extends State<CalendarStrip>
             onTap: () => onDateTap(date),
             child: Container(
               child: widget.dateTileBuilder!(date, selectedDate, rowIndex,
-                  dayName, isDateMarked(date), isDateOutOfRange),
+                  dayName, _isDateMarked(date), isDateOutOfRange),
             ),
           ),
         ),
