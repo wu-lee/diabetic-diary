@@ -19,6 +19,12 @@ class Dimensions implements Indexable {
   /// and time (^-1)
   final Map<Symbol, int> components;
 
+  static const Mass = Dimensions(id: #Mass, components: {#Mass:1});
+  static const FractionByMass = Dimensions(id: #FractionByMass, components: {});
+  static const Energy = Dimensions(id: #Energy, components: {#Energy:1});
+  static const EnergyByMass = Dimensions(id: #EnergyByMass, components: {#Energy:1,#Mass:-1});
+
+
   const Dimensions({required this.id, required this.components});
 
   @override

@@ -266,34 +266,19 @@ abstract class Database {
       init: (Database db) {
         const version = 1;
         print("Initialising $db as version $version");
-        const
-          Mass = Dimensions(
-            id: #Mass,
-            components: {#Mass:1},
-          ),
-          FractionByMass = Dimensions(
-            id: #FractionByMass,
-            components: {},
-          ),
-          Carbs = Measurable(id: #Carbs, dimensionsId: #GramsPerHectogram),
-          Fat = Measurable(id: #Fat, dimensionsId: #GramsPerHectogram),
-          Fibre = Measurable(id: #Fibre, dimensionsId: #GramsPerHectogram),
-          Protein = Measurable(id: #Protein, dimensionsId: #GramsPerHectogram),
-          Sugar = Measurable(id: #Sugar, dimensionsId: #GramsPerHectogram),
-          Salt = Measurable(id: #Salt, dimensionsId: #GramsPerHectogram);
         final
           tahini = BasicIngredient(
             id: #Tahini,
             contents: {
-              Carbs.id: Units.GramsPerHectogram.times(1),
-              Fat.id: Units.GramsPerHectogram.times(2),
+              Measurable.Carbs.id: Units.GramsPerHectogram.times(1),
+              Measurable.Fat.id: Units.GramsPerHectogram.times(2),
             },
           ),
           cabbage = BasicIngredient(
             id: #Cabbage,
             contents: {
-              Carbs.id: Units.GramsPerHectogram.times(1),
-              Fibre.id: Units.GramsPerHectogram.times(1),
+              Measurable.Carbs.id: Units.GramsPerHectogram.times(1),
+              Measurable.Fibre.id: Units.GramsPerHectogram.times(1),
             },
           ),
           salad = Dish(
@@ -312,11 +297,12 @@ abstract class Database {
             salad.id: Units.Grams.times(500),
           }
         );
-        db.dimensions..add(Mass)..add(FractionByMass);
-        db.units..add(Units.Grams)..add(Units.KiloGrams)
-          ..add(Units.GramsPerHectogram)..add(Units.GramsPerKiloGram)..add(Units.GramsPerGram);
-        db.measurables..add(Carbs)..add(Fat)..add(Fibre)..add(
-            Protein)..add(Sugar)..add(Salt);
+        db.dimensions..add(Dimensions.Mass)..add(Dimensions.FractionByMass)
+          ..add(Dimensions.Energy)..add(Dimensions.EnergyByMass);
+        db.units..add(Units.Grams)..add(Units.Kilograms)
+          ..add(Units.GramsPerHectogram)..add(Units.GramsPerKilogram)..add(Units.GramsPerGram);
+        db.measurables..add(Measurable.Carbs)..add(Measurable.Fat)..add(Measurable.Fibre)..add(
+            Measurable.Protein)..add(Measurable.Sugar)..add(Measurable.Salt)..add(Measurable.Energy);
         db.ingredients..add(tahini)..add(cabbage);
         db.dishes..add(salad);
       },
