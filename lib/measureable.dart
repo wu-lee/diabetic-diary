@@ -1,4 +1,5 @@
 
+import 'package:diabetic_diary/database.dart';
 import 'package:diabetic_diary/quantity.dart';
 
 import 'quantified.dart';
@@ -6,7 +7,7 @@ import 'translation.dart';
 import 'units.dart';
 
 /// Represents a category of dimensioned scalar measurement, like weight, volume, etc.
-class Measurable implements Quantified {
+class Measurable extends Quantified {
   final Symbol id;
   final Symbol dimensionsId;
   const Measurable({required this.id, required this.dimensionsId});
@@ -41,4 +42,8 @@ class Measurable implements Quantified {
   Map<Symbol, Quantity> get contents => Map.unmodifiable({id: Quantity(1, Units.GramsPerHectogram)});
 
   String format() => "Measurable(id: ${symbolToString(id)}, units: ${symbolToString(dimensionsId)})";
+
+  @override
+  Future<Map<Symbol, Quantity>> invalidContents(Database db, [Map<Symbol, Measurable>? cache]) async =>
+      const <Symbol, Quantity>{};
 }

@@ -1,14 +1,20 @@
 import 'package:diabetic_diary/quantified.dart';
 import 'package:flutter/foundation.dart';
+import 'database.dart';
 import 'edible.dart';
+import 'measureable.dart';
 import 'quantity.dart';
 import 'translation.dart';
 
 
-class BasicIngredient implements Edible {
+class BasicIngredient extends Edible {
   final Symbol id;
   final Map<Symbol, Quantity> contents;
 
+  /// Constant, therefore non-validating constructor.
+  ///
+  /// Make sure you only put IDs of [Measurables] in, and use the appropriate units,
+  /// which should be fractional by mass (#FractionalMass, #EnergyByMass, etc.).
   const BasicIngredient({required this.id, required this.contents});
 
   @override
@@ -26,5 +32,9 @@ class BasicIngredient implements Edible {
 
   String format() =>
       "BasicIngredient(id: ${symbolToString(id)}, contents: ${Quantified.formatContents(contents)})";
+
+  @override
+  Future<Map<Symbol, Quantity>> invalidContents(Database db, [Map<Symbol, Measurable>? cache]) =>
+      invalidMeasurableContents(db, cache);
 }
 

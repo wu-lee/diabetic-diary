@@ -1,5 +1,7 @@
 
 
+import 'package:diabetic_diary/database.dart';
+import 'package:diabetic_diary/measureable.dart';
 import 'package:flutter/foundation.dart';
 
 import 'edible.dart';
@@ -8,7 +10,7 @@ import 'quantity.dart';
 import 'translation.dart';
 
 /// Represents a meal diary entry
-class Meal implements Edible {
+class Meal extends Edible {
 
   Meal({
     required this.id,
@@ -45,4 +47,8 @@ class Meal implements Edible {
 
   String format() =>
       "Meal(id: ${symbolToString(id)}, $title, $timestamp, $notes, contents: ${Quantified.formatContents(contents)})";
+
+  @override
+  Future<Map<Symbol, Quantity>> invalidContents(Database db, [Map<Symbol, Measurable>? cache]) =>
+      invalidMassContents(db, cache);
 }

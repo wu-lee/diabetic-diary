@@ -117,6 +117,19 @@ abstract class Database {
     return nextSmallest.id;
   }
 
+  /// Checks a list of [Edibles] for invalid contents.
+  ///
+  /// Returns if they are all valid, otherwise throws an exception.
+  Future<void> validateEdibles(List<Edible> edibles) async {
+    final cache = <Symbol, Measurable>{};
+    for(final edible in edibles) {
+      final invalids = await edible.invalidContents(this, cache);
+      if (invalids.isNotEmpty)
+        throw StateError("invalid units in contents ${Quantified.formatContents(invalids)}");
+    }
+    return;
+  }
+
   /// Deeply traverse the [Edible]s with the given [ids], and return an index
   /// of all [Quantified]s encountered.
   ///
@@ -225,7 +238,7 @@ abstract class Database {
       debugPrint("multiplier = ${quantity.amount} * ${quantity.units.multiplier} = $multiplier");
       return aggregated.entries.map((elem) {
         debugPrint("multiply ${elem.value.format()} by $quantity");
-        assert(quantity.units.dimensionsId == elem.value.units.dimensionsId);
+        //assert(quantity.units.dimensionsId == elem.value.units.dimensionsId);
         return MapEntry(elem.key, elem.value.multiply(multiplier));
       });
     });
@@ -300,7 +313,9 @@ abstract class Database {
         db.dimensions..add(Dimensions.Mass)..add(Dimensions.FractionByMass)
           ..add(Dimensions.Energy)..add(Dimensions.EnergyByMass);
         db.units..add(Units.Grams)..add(Units.Kilograms)
-          ..add(Units.GramsPerHectogram)..add(Units.GramsPerKilogram)..add(Units.GramsPerGram);
+          ..add(Units.GramsPerHectogram)..add(Units.GramsPerKilogram)..add(Units.GramsPerGram)
+          ..add(Units.CaloriesPerGram)..add(Units.KilocaloriesPerHectogram)
+          ..add(Units.JoulesPerGram)..add(Units.JoulesPerHectogram)..add(Units.JoulesPerKilogram);
         db.measurables..add(Measurable.Carbs)..add(Measurable.Fat)..add(Measurable.Fibre)..add(
             Measurable.Protein)..add(Measurable.Sugar)..add(Measurable.Salt)..add(Measurable.Energy);
         db.ingredients..add(tahini)..add(cabbage);
