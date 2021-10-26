@@ -1,6 +1,8 @@
+import 'package:diabetic_diary/quantified.dart';
 import 'package:flutter/foundation.dart';
 import 'edible.dart';
 import 'quantity.dart';
+import 'translation.dart';
 
 
 class BasicIngredient implements Edible {
@@ -21,5 +23,8 @@ class BasicIngredient implements Edible {
 
   @override
   int get hashCode => contents.hashCode ^ id.hashCode;
+
+  String format() =>
+      "BasicIngredient(id: ${symbolToString(id)}, contents: ${Quantified.formatContents(contents)})";
 }
 

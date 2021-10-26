@@ -46,7 +46,7 @@ class _MealState extends State<MealScreen> {
     // Format the quantities into strings
     final Map<Symbol, String> result = {};
     for(final entry in entities.entries) {
-      result[entry.key] = await db.formatQuantity(entry.value);
+      result[entry.key] = entry.value.format();
     }
     return result;
   }

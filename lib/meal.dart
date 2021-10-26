@@ -3,7 +3,9 @@
 import 'package:flutter/foundation.dart';
 
 import 'edible.dart';
+import 'quantified.dart';
 import 'quantity.dart';
+import 'translation.dart';
 
 /// Represents a meal diary entry
 class Meal implements Edible {
@@ -40,4 +42,7 @@ class Meal implements Edible {
 
   @override
   int get hashCode => contents.hashCode ^ id.hashCode;
+
+  String format() =>
+      "Meal(id: ${symbolToString(id)}, $title, $timestamp, $notes, contents: ${Quantified.formatContents(contents)})";
 }

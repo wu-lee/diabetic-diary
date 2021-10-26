@@ -18,7 +18,7 @@ class OverviewTopic extends Topic {
     return FutureBuilder(
       future:  Future(() async {
         final dishes = await db.dishes.getAll();
-        dishes.forEach((key, value) async {print("${await db.formatDish(value)}"); });
+        dishes.forEach((key, value) async {print("${value.format()}"); });
         final numDishes = dishes.values.where((e) => !(e is BasicIngredient)).length;
         final numIngredients = dishes.length - numDishes;
         final measurables = await db.measurables.getAll();

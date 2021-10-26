@@ -25,8 +25,8 @@ void main() async {
       await mdb.dimensions.add(inThing2);
       final outThing1 = await mdb.dimensions.maybeGet(#testDim1);
 
-      print(mdb.formatDimensions(inThing1));
-      if (outThing1!=null) print(mdb.formatDimensions(outThing1));
+      print(inThing1.format());
+      if (outThing1!=null) print(outThing1.format());
       expect(outThing1, inThing1);
 
       final count = await mdb.dimensions.count();
@@ -151,8 +151,8 @@ void main() async {
       await mdb.ingredients.add(inThing2);
       final outThing = await mdb.ingredients.maybeGet(#testBasicIngredient1);
 
-      print(await mdb.formatBasicIngredient(inThing1));
-      if (outThing!=null) print(await mdb.formatBasicIngredient(outThing));
+      print(inThing1.format());
+      if (outThing!=null) print(outThing.format());
       expect(outThing, inThing1, reason: 'outThing mismatches inThing1');
 
       expect(await mdb.ingredients.containsId(#testBasicIngredient1), true);
@@ -204,8 +204,8 @@ void main() async {
       await mdb.dishes.add(inThing2);
       final outThing = await mdb.dishes.maybeGet(#testDish1);
 
-      print(await mdb.formatDish(inThing1));
-      if (outThing!=null) print(await mdb.formatDish(outThing));
+      print(inThing1.format());
+      if (outThing!=null) print(outThing.format());
       expect(outThing, inThing1, reason: 'outThing mismatches inThing1');
 
       expect(await mdb.dishes.containsId(#testDish1), true);
@@ -263,8 +263,8 @@ void main() async {
       await mdb.meals.add(inThing2);
       final outThing = await mdb.meals.maybeGet(#testMeal1);
 
-      print(await mdb.formatMeal(inThing1));
-      if (outThing!=null) print(await mdb.formatMeal(outThing));
+      print(inThing1.format());
+      if (outThing!=null) print(outThing.format());
       expect(outThing, inThing1, reason: 'outThing mismatches inThing1');
 
       expect(await mdb.meals.containsId(#testMeal1), true);

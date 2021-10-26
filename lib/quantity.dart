@@ -62,4 +62,14 @@ class Quantity {
 
   @override
   String toString() => "Quantity(amount: $amount, units: $units)";
+
+  String formatWith(Units units) {
+    num multAmount = amount * units.multiplier;
+
+    final abs = multAmount.abs();
+    final formatted = multAmount.toStringAsFixed(abs < 1? 2 : abs < 10? 1 : 0);
+    return "$formatted ${TL8(units.id)}";
+  }
+
+  String format() => formatWith(units);
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'edible.dart';
+import 'quantified.dart';
 import 'quantity.dart';
+import 'translation.dart';
 
 
 class Dish implements Edible {
@@ -21,5 +23,8 @@ class Dish implements Edible {
 
   @override
   int get hashCode => contents.hashCode ^ id.hashCode;
+
+  String format() =>
+      "Dish(id: ${symbolToString(id)}, contents: ${Quantified.formatContents(contents)})";
 }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+import 'edible.dart';
 import 'indexable.dart';
+import 'translation.dart';
 import 'units.dart';
 
 /// Represents a measurement dimension, in the sense of dimensional analysis of quantities
@@ -30,4 +32,8 @@ class Dimensions implements Indexable {
       mapEquals(components, that.components);
 
   Units units(Symbol unitsId, multiplier) => Units(unitsId, id, multiplier);
+
+  String format() => "Dimensions(id: ${symbolToString(id)}, components: ${_formatComponents()})";
+
+  String _formatComponents() => "{"+components.entries.map((e) => "${symbolToString(e.key)}: ${e.value}").join(",")+"}";
 }

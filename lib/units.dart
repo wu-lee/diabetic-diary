@@ -39,8 +39,9 @@ class Units extends Indexable {
   }
 
   @override
-  String toString() => "Units(id: ${TL8(id)}, dims: ${TL8(dimensionsId)}, multiplier: $multiplier)";
+  String toString() => format();
 
+  String format() => "Units(id: ${symbolToString(id)}, dimensionId: ${symbolToString(dimensionsId)}, multiplier: ${multiplier})";
 
   static Units get rogueValue => Units(Symbol(''), Symbol(''), 0);
 }

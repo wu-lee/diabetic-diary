@@ -58,7 +58,7 @@ class _DishEditState extends State<DishEditScreen> {
         (stats) async {
           final Map<Symbol, String> result = {};
           for(final entry in stats.entries) {
-            result[entry.key] = await db.formatQuantity(entry.value);
+            result[entry.key] = entry.value.format();
           }
 
           return result;

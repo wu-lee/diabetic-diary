@@ -89,8 +89,8 @@ void main() async {
       };
       final aggregateStats = await db.aggregate(ingredients);
 
-      print("cabbage: "+await db.formatBasicIngredient(cabbage));
-      print("tahini: "+await db.formatBasicIngredient(tahini));
+      print("cabbage: "+cabbage.format());
+      print("tahini: "+tahini.format());
       expect(aggregateStats, {
         carbs.id: Quantity(10, gramsPerHectagram),
         fat.id: Quantity(40, gramsPerHectagram),

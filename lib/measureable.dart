@@ -29,4 +29,6 @@ class Measurable implements Quantified {
 
   @override
   Map<Symbol, Quantity> get contents => Map.unmodifiable({id: Quantity(1, Units.GramsPerHectogram)});
+
+  String format() => "Measurable(id: ${symbolToString(id)}, units: ${symbolToString(dimensionsId)})";
 }

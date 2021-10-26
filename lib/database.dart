@@ -117,54 +117,12 @@ abstract class Database {
     return nextSmallest.id;
   }
 
-  Future<Quantity> quantity(num amount, Symbol unitId) async {
-    return Quantity(amount, await units.fetch(unitId));
-  }
-
-  Future<String> formatQuantity(Quantity quantity, [Symbol? unitsId]) async {
-    num amount = quantity.amount;
-    if (unitsId != null) {
-      amount *= (await units.fetch(unitsId))
-          .multiplier;
-    }
-    else {
-      unitsId = quantity.units.id;
-    }
-
-    final abs = amount.abs();
-    var formatted = amount.toStringAsFixed(abs < 1? 2 : abs < 10? 1 : 0);
-    return "$formatted ${TL8(unitsId)}";
-  }
-
-  String formatDimensions(Dimensions dims) => "Dimensions(id: ${TL8(dims.id)}, components: ${formatComponents(dims.components)})";
-
-  String formatComponents(Map<Symbol, int> comps) => "{"+comps.entries.map((e) => "${TL8(e.key)}: ${e.value}").join(",")+"}";
-
-  String formatUnits(Units units) => "Units(id: ${TL8(units.id)}, dimensionId: ${units.dimensionsId}, multiplier: ${units.multiplier})";
-
-  String formatMeasurable(Measurable meas) => "Measurable(id: ${TL8(meas.id)}, units: ${TL8(meas.dimensionsId)})";
-
-  Future<String> formatDish(Dish dish) async => "Dish(id: ${TL8(dish.id)}, contents: ${await formatContents(dish.contents)})";
-
-  Future<String> formatBasicIngredient(BasicIngredient ingredient) async => "BasicIngredient(id: ${TL8(ingredient.id)}, contents: ${await formatContents(ingredient.contents)})";
-
-  Future<String> formatMeal(Meal meal) async =>
-      "Meal(id: ${TL8(meal.id)}, ${meal.title}, ${meal.timestamp}, ${meal.notes}, contents: ${await formatContents(meal.contents)})";
-
-  Future<String> formatContents(Map<Symbol, Quantity> contents) async {
-    final entries = contents.entries.map((e) async {
-      final quantity = await formatQuantity(e.value);
-      return "#${TL8(e.key)}: $quantity";
-    });
-    return "{"+(await Future.wait(entries)).join(",")+"}";
-  }
-
   /// Deeply traverse the [Edible]s with the given [ids], and return an index
   /// of all [Quantified]s encountered.
   ///
   /// [Measurable]s are irreducible nutritional components and therefore have no contents, just a [dimensionId].
   Future<Map<Symbol, Quantified>> traverseContents(Iterable<Symbol> ids) async {
-    // expand all the symbols into Dishs recursively
+    // expand all the symbols into Dishes recursively
     final index = <Symbol, Quantified>{};
     final pending = ids.toSet();
 
@@ -264,8 +222,12 @@ abstract class Database {
 
       // Multiply this dish's contents by the parent dish's quantity
       final multiplier = quantity.amount * quantity.units.multiplier;
-      print("multiplier = ${quantity.amount} * ${quantity.units.multiplier} = $multiplier");
-      return aggregated.entries.map((elem) => MapEntry(elem.key, elem.value.multiply(multiplier)));
+      debugPrint("multiplier = ${quantity.amount} * ${quantity.units.multiplier} = $multiplier");
+      return aggregated.entries.map((elem) {
+        debugPrint("multiply ${elem.value.format()} by $quantity");
+        assert(quantity.units.dimensionsId == elem.value.units.dimensionsId);
+        return MapEntry(elem.key, elem.value.multiply(multiplier));
+      });
     });
 
     final result = expanded.fold<Map<Symbol, Quantity>>({}, (map, entry) =>
