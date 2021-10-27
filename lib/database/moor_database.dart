@@ -224,14 +224,21 @@ abstract class MoorAbstractDataCollection<T extends Table, D extends DataClass, 
 
   MoorAbstractDataCollection(this.db, this.tableInfo, this.idCol);
 
-  Insertable<D> valueToRow(X val);
-  X rowToValue(D row);
+  JoinedSelectStatement<Table, dynamic> get _query =>
+  // We use .addColumns to ensure we get a JoinedSelectStatement
+  // instead of a SimpleSelectStatement. This allows us to be more
+  // flexible by overriding this method to join in extra columns when needed.
+  // Note, we don't support *writing* extra columns, only reading them.
+    db.select(tableInfo).addColumns(tableInfo.$columns);
 
-  SimpleSelectStatement<T, D> _rowFor(Symbol index) {
-    return db
-      .select(tableInfo)
-      ..where((a) => idCol.equals(symbolToString(index)));
-  }
+  Future<TypedResult?> _rowFor(Symbol index) => (
+      _query
+      ..where(idCol.equals(symbolToString(index)))
+  ).getSingleOrNull();
+
+  Insertable<D> valueToRow(X val);
+
+  X rowToValue(TypedResult row);
 
   @override
   Future<bool> containsId(Symbol index) async {
@@ -260,7 +267,7 @@ abstract class MoorAbstractDataCollection<T extends Table, D extends DataClass, 
 
   @override
   Future<X> fetch(Symbol index) async {
-    final row = await _rowFor(index).getSingleOrNull();
+    final row = await _rowFor(index);
     if (row == null)
       throw ArgumentError("no $X value for id ${symbolToString(index)}");
 
@@ -270,7 +277,7 @@ abstract class MoorAbstractDataCollection<T extends Table, D extends DataClass, 
 
   @override
   Future<X> get(Symbol index, X otherwise) async {
-    final row = await _rowFor(index).getSingleOrNull();
+    final row = await _rowFor(index);
     if (row == null)
       return otherwise;
     return rowToValue(row);
@@ -278,8 +285,7 @@ abstract class MoorAbstractDataCollection<T extends Table, D extends DataClass, 
 
   @override
   Future<Map<Symbol, X>> getAll() async {
-    final query = db.select(tableInfo);
-    final rows = await query.get();
+    final rows = await _query.get();
     return Map.fromEntries(rows.map((row) {
       final value = rowToValue(row);
       return MapEntry(value.id, value);
@@ -288,7 +294,7 @@ abstract class MoorAbstractDataCollection<T extends Table, D extends DataClass, 
 
   @override
   Future<X?> maybeGet(Symbol index, [X? otherwise]) async {
-    final row = await _rowFor(index).getSingleOrNull();
+    final row = await _rowFor(index);
     if (row == null)
       return otherwise;
     return rowToValue(row);
@@ -438,7 +444,8 @@ class MoorUnitsCollection extends MoorAbstractDataCollection<$_UnitsTable, _Unit
   MoorUnitsCollection(_MoorDatabase db) : super(db, db.units, db.units.id);
 
   @override
-  Units rowToValue(_Unit row) {
+  Units rowToValue(TypedResult result) {
+    final row = result.readTable(tableInfo);
     return Units(Symbol(row.id), Symbol(row.dimensionsId), row.multiplier);
   }
 
@@ -457,7 +464,8 @@ class MoorMeasurablesCollection extends MoorAbstractDataCollection<$_Measurables
   MoorMeasurablesCollection(_MoorDatabase db) : super(db, db.measurables, db.measurables.id);
 
   @override
-  Measurable rowToValue(_Measurable row) {
+  Measurable rowToValue(TypedResult result) {
+    final row = result.readTable(tableInfo);
     return Measurable(id: Symbol(row.id), dimensionsId: Symbol(row.dimensionsId));
   }
 
@@ -469,6 +477,7 @@ class MoorMeasurablesCollection extends MoorAbstractDataCollection<$_Measurables
     );
   }
 }
+
 /// Represents a class stored in a table joined 1:N with another, which is joined 1:1 with a third.
 ///
 /// So for example, a Widget which contains a map of [Indexable] components, each of which has a type of Foo
