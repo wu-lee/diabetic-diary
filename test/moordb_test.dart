@@ -20,7 +20,7 @@ void main() async {
       final inThing1 = Dimensions(id: #testDim1, components: {#TestComp1: 1, #TestComp2: 2});
       final inThing2 = Dimensions(id: #testDim2, components: {#TestComp1: 2, #TestComp3: 1});
       final removed = await mdb.dimensions.removeAll();
-      print("removed "+removed.toString());
+      print("removed "+removed.toString()+" dimensions");
       await mdb.dimensions.add(inThing1);
       await mdb.dimensions.add(inThing2);
       final outThing1 = await mdb.dimensions.maybeGet(#testDim1);
@@ -58,7 +58,7 @@ void main() async {
       final inThing1 = Units(#testUnit1, #TestDimension1, 1);
       final inThing2 = Units(#testUnit2, #TestDimension2, 2);
       final removed = await mdb.units.removeAll();
-      print("removed "+removed.toString());
+      print("removed "+removed.toString()+" units");
       await mdb.units.add(inThing1);
       await mdb.units.add(inThing2);
       final outThing1 = await mdb.units.maybeGet(#testUnit1);
@@ -96,7 +96,7 @@ void main() async {
       final inThing1 = Measurable(id: #testMeasurable1, dimensionsId: #TestDimension1);
       final inThing2 = Measurable(id: #testMeasurable2, dimensionsId: #TestDimension2);
       final removed = await mdb.measurables.removeAll();
-      print("removed "+removed.toString());
+      print("removed "+removed.toString()+" measurables");
       await mdb.measurables.add(inThing1);
       await mdb.measurables.add(inThing2);
       final outThing1 = await mdb.measurables.maybeGet(#testMeasurable1);
