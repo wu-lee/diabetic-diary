@@ -217,15 +217,15 @@ class MoorDatabase extends Database {
   }
 }
 
-abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 extends Indexable> implements AsyncDataCollection<D2> {
+abstract class MoorAbstractDataCollection<T extends Table, D extends DataClass, X extends Indexable> implements AsyncDataCollection<X> {
   final _MoorDatabase db;
   final TableInfo<T, D> tableInfo;
   final GeneratedTextColumn idCol;
 
-  MoorDataCollection(this.db, this.tableInfo, this.idCol);
+  MoorAbstractDataCollection(this.db, this.tableInfo, this.idCol);
 
-  Insertable<D> valueToRow(D2 val);
-  D2 rowToValue(D row);
+  Insertable<D> valueToRow(X val);
+  X rowToValue(D row);
 
   SimpleSelectStatement<T, D> _rowFor(Symbol index) {
     return db
@@ -244,9 +244,8 @@ abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 exten
   }
 
   @override
-  Future<Symbol> add(D2 value) async {
+  Future<Symbol> add(X value) async {
     final row = valueToRow(value);
-//    final result = await db.into(tableInfo).insertOnConflictUpdate(row);
     final result = await db.into(tableInfo).insert(row);
     return value.id;
   }
@@ -260,17 +259,17 @@ abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 exten
   }
 
   @override
-  Future<D2> fetch(Symbol index) async {
+  Future<X> fetch(Symbol index) async {
     final row = await _rowFor(index).getSingleOrNull();
     if (row == null)
-      throw ArgumentError("no $D2 value for id ${symbolToString(index)}");
+      throw ArgumentError("no $X value for id ${symbolToString(index)}");
 
     // Convert the list of rows into a map from dimension id to exponent
     return rowToValue(row);
   }
 
   @override
-  Future<D2> get(Symbol index, D2 otherwise) async {
+  Future<X> get(Symbol index, X otherwise) async {
     final row = await _rowFor(index).getSingleOrNull();
     if (row == null)
       return otherwise;
@@ -278,7 +277,7 @@ abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 exten
   }
 
   @override
-  Future<Map<Symbol, D2>> getAll() async {
+  Future<Map<Symbol, X>> getAll() async {
     final query = db.select(tableInfo);
     final rows = await query.get();
     return Map.fromEntries(rows.map((row) {
@@ -288,7 +287,7 @@ abstract class MoorDataCollection<T extends Table, D extends DataClass, D2 exten
   }
 
   @override
-  Future<D2?> maybeGet(Symbol index, [D2? otherwise]) async {
+  Future<X?> maybeGet(Symbol index, [X? otherwise]) async {
     final row = await _rowFor(index).getSingleOrNull();
     if (row == null)
       return otherwise;
@@ -434,7 +433,7 @@ class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
 }
 
 
-class MoorUnitsCollection extends MoorDataCollection<$_UnitsTable, _Unit, Units> {
+class MoorUnitsCollection extends MoorAbstractDataCollection<$_UnitsTable, _Unit, Units> {
 
   MoorUnitsCollection(_MoorDatabase db) : super(db, db.units, db.units.id);
 
@@ -453,7 +452,7 @@ class MoorUnitsCollection extends MoorDataCollection<$_UnitsTable, _Unit, Units>
   }
 }
 
-class MoorMeasurablesCollection extends MoorDataCollection<$_MeasurablesTable, _Measurable, Measurable> {
+class MoorMeasurablesCollection extends MoorAbstractDataCollection<$_MeasurablesTable, _Measurable, Measurable> {
 
   MoorMeasurablesCollection(_MoorDatabase db) : super(db, db.measurables, db.measurables.id);
 
