@@ -470,35 +470,53 @@ class MoorMeasurablesCollection extends MoorDataCollection<$_MeasurablesTable, _
     );
   }
 }
-
-abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataClass, T2 extends Table, D2 extends DataClass, E extends Edible> implements AsyncDataCollection<E> {
+/// Represents a class stored in a table joined 1:N with another, which is joined 1:1 with a third.
+///
+/// So for example, a Widget which contains a map of [Indexable] components, each of which has a type of Foo
+///
+/// The third table is assumed pre-exisiting, and not created and deleted like the other two.
+abstract class MoorAbstract1ToNTo1Collection<Tx extends Table, Dx extends DataClass, Ty extends Table, Dy extends DataClass, Tz extends Table, Dz extends DataClass, X extends Indexable> implements AsyncDataCollection<X> {
   final _MoorDatabase db;
-  final TableInfo<T1, D1> table;
-  final TableInfo<T2, D2> joinedTable;
+  final TableInfo<Tx, Dx> table;
+  final TableInfo<Ty, Dy> joinedTable;
+  final TableInfo<Tz, Dz> farJoinedTable;
   final GeneratedTextColumn idCol;
   final GeneratedTextColumn joinedIdCol;
+  final GeneratedTextColumn joinedIdCol2;
+  final GeneratedTextColumn farJoinedIdCol;
 
-  MoorAbstractEdiblesCollection({required this.db, required this.table, required this.joinedTable, required this.idCol, required this.joinedIdCol});
+  MoorAbstract1ToNTo1Collection({
+    required this.db,
+    required this.table, required this.joinedTable, required this.farJoinedTable,
+    required this.idCol,
+    required this.joinedIdCol, required this.joinedIdCol2,
+    required this.farJoinedIdCol,
+  });
 
-  Iterable<Insertable<D1>> edibleToRows(E value);
+  Iterable<Insertable<Dx>> contentToPrimaryRows(X value);
 
-  Iterable<Insertable<D2>> contentToRows(E value);
+  Iterable<Insertable<Dy>> contentToJoinedRows(X value);
 
-  Iterable<Insertable<_Unit>> valueToUnitRows(E value);
+  Iterable<Insertable<Dz>> contentToFarJoinedRows(X value);
 
-  Map<Symbol, E> rowsToValues(List<D1> dishRows, Iterable<TypedResult> contentRows);
+  Map<Symbol, X> rowsToValues(List<Dx> rowsX, Iterable<TypedResult> joinedRows);
 
-  SimpleSelectStatement<T1, D1> get edibleQuery;
+  SimpleSelectStatement<Tx, Dx> get primaryQuery =>
+      db.select(table);
 
-  JoinedSelectStatement<Table, dynamic> get contentsQuery;
+  JoinedSelectStatement<Table, dynamic> get joinedQuery =>
+      db.select(joinedTable)
+          .join([
+        leftOuterJoin(farJoinedTable, joinedIdCol2.equalsExp(farJoinedIdCol))
+      ]);
 
-  SimpleSelectStatement<T1, D1> _dishRowsFor(Symbol index) {
-    return edibleQuery
+  SimpleSelectStatement<Tx, Dx> _primaryRowsFor(Symbol index) {
+    return primaryQuery
       ..where((a) => idCol.equals(symbolToString(index)));
   }
 
-  JoinedSelectStatement<Table, dynamic> _contentRowsFor(Symbol index) {
-    return contentsQuery
+  JoinedSelectStatement<Table, dynamic> _joinedRowsFor(Symbol index) {
+    return joinedQuery
       ..where(joinedIdCol.equals(symbolToString(index)));
   }
 
@@ -513,27 +531,27 @@ abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataCl
   }
 
   @override
-  Future<Symbol> add(E value) async {
-    final unitsRows = valueToUnitRows(value);
-    final dishRows = edibleToRows(value); // FIXME stream this?
-    final contentRows = contentToRows(value); // FIXME stream this?
-    final delDishs = db.delete(table)..where((t) => idCol.equals(symbolToString(value.id)));
-    final delContent = db.delete(joinedTable)..where((t) => joinedIdCol.equals(symbolToString(value.id)));
+  Future<Symbol> add(X value) async {
+    final farJoinedRows = contentToFarJoinedRows(value);
+    final primaryQuery = contentToPrimaryRows(value); // FIXME stream this?
+    final joinedQuery = contentToJoinedRows(value); // FIXME stream this?
+    final primaryDelete = db.delete(table)..where((t) => idCol.equals(symbolToString(value.id)));
+    final joinedDelete = db.delete(joinedTable)..where((t) => joinedIdCol.equals(symbolToString(value.id)));
     return db.transaction(() async {
-      await delContent.go();
-      await delDishs.go();
+      await joinedDelete.go();
+      await primaryDelete.go();
       await db.batch((batch) {
         batch.insertAll(
             table,
-            dishRows.toList(),
+            primaryQuery.toList(),
         );
         batch.insertAll(
           joinedTable,
-          contentRows.toList(),
+          joinedQuery.toList(),
         );
         batch.insertAll(
-            db.units,
-            unitsRows.toList(),
+            farJoinedTable,
+            farJoinedRows.toList(),
             mode: InsertMode.insertOrReplace
         );
       });
@@ -552,45 +570,45 @@ abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataCl
   }
 
   @override
-  Future<E> fetch(Symbol index) async {
-    final dishRows = await _dishRowsFor(index).get();
-    if (dishRows.isEmpty)
+  Future<X> fetch(Symbol index) async {
+    final primaryRows = await _primaryRowsFor(index).get();
+    if (primaryRows.isEmpty)
       throw ArgumentError("no value for id ${symbolToString(index)}");
-    final contentRows = await _contentRowsFor(index).get();
-    return rowsToValues(dishRows, contentRows).values.first;
+    final joinedRows = await _joinedRowsFor(index).get();
+    return rowsToValues(primaryRows, joinedRows).values.first;
   }
 
   @override
-  Future<E> get(Symbol index, E otherwise) async {
-    final dishRows = await _dishRowsFor(index).get();
-    if (dishRows.isEmpty)
+  Future<X> get(Symbol index, X otherwise) async {
+    final primaryRows = await _primaryRowsFor(index).get();
+    if (primaryRows.isEmpty)
       return otherwise;
-    final contentRows = await _contentRowsFor(index).get();
-    return rowsToValues(dishRows, contentRows).values.first;
+    final joinedRows = await _joinedRowsFor(index).get();
+    return rowsToValues(primaryRows, joinedRows).values.first;
   }
 
   @override
-  Future<Map<Symbol, E>> getAll() async {
-    final dishRows =  await edibleQuery.get();
-    final contentRows = await contentsQuery.get();
-    return rowsToValues(dishRows, contentRows);
+  Future<Map<Symbol, X>> getAll() async {
+    final primaryRows =  await primaryQuery.get();
+    final joinedRows = await joinedQuery.get();
+    return rowsToValues(primaryRows, joinedRows);
   }
 
   @override
-  Future<E?> maybeGet(Symbol index, [E? otherwise]) async {
-    final dishRows = await _dishRowsFor(index).get();
-    if (dishRows.isEmpty)
+  Future<X?> maybeGet(Symbol index, [X? otherwise]) async {
+    final primaryRows = await _primaryRowsFor(index).get();
+    if (primaryRows.isEmpty)
       return otherwise;
-    final contentRows = await _contentRowsFor(index).get();
-    return rowsToValues(dishRows, contentRows).values.first;
+    final joinedRows = await _joinedRowsFor(index).get();
+    return rowsToValues(primaryRows, joinedRows).values.first;
   }
 
   @override
   Future<int> remove(Symbol index) async {
-    final dishQuery = db.delete(table)..where((a) => idCol.equals(symbolToString(index)));
-    final contentsQuery = db.delete(joinedTable)..where((a) => idCol.equals(symbolToString(index)));
-    int deleted = await dishQuery.go();
-    deleted += await contentsQuery.go();
+    final primaryQuery = db.delete(table)..where((a) => idCol.equals(symbolToString(index)));
+    final joinedQuery = db.delete(joinedTable)..where((a) => idCol.equals(symbolToString(index)));
+    int deleted = await primaryQuery.go();
+    deleted += await joinedQuery.go();
     return deleted;
   }
 
@@ -601,27 +619,21 @@ abstract class MoorAbstractEdiblesCollection<T1 extends Table, D1 extends DataCl
   }
 }
 
-class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_DishContentsTable, _DishContent, Edible> {
+class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable, _Edible, $_DishContentsTable, _DishContent, $_UnitsTable, _Unit, Edible> {
 
   MoorEdiblesCollection({required _MoorDatabase db}) :
         super(
         db: db,
         table: db.edibles,
         joinedTable: db.dishContents,
+        farJoinedTable: db.units,
         idCol: db.edibles.id,
         joinedIdCol: db.dishContents.id,
+        joinedIdCol2: db.dishContents.unitsId,
+        farJoinedIdCol: db.units.id,
       );
 
-  SimpleSelectStatement<$_EdiblesTable, _Edible> get edibleQuery =>
-      db.select(table);
-
-  JoinedSelectStatement<Table, dynamic> get contentsQuery =>
-      db.select(joinedTable)
-          .join([
-        leftOuterJoin(db.units, db.dishContents.unitsId.equalsExp(db.units.id))
-      ]);
-
-  Iterable<Insertable<_Edible>> edibleToRows(Edible value) {
+  Iterable<Insertable<_Edible>> contentToPrimaryRows(Edible value) {
     List<Insertable<_Edible>> rows = [];
     rows.add(_Edible(
       id: symbolToString(value.id),
@@ -630,7 +642,7 @@ class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable
     return rows;
   }
 
-  Iterable<Insertable<_DishContent>> contentToRows(Edible value) {
+  Iterable<Insertable<_DishContent>> contentToJoinedRows(Edible value) {
     List<Insertable<_DishContent>> rows = [];
     value.contents.forEach((k, v) {
       rows.add(_DishContent(
@@ -642,7 +654,7 @@ class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable
     });
     return rows;
   }
-  Iterable<Insertable<_Unit>> valueToUnitRows(Edible value) {
+  Iterable<Insertable<_Unit>> contentToFarJoinedRows(Edible value) {
     // Dedupe
     final units = value.contents.map((k, v) => MapEntry(
         v.units.id, v.units
@@ -692,27 +704,24 @@ class MoorEdiblesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable
 }
 
 
-class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_DishContentsTable, _DishContent, Dish> {
+class MoorDishesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable, _Edible, $_DishContentsTable, _DishContent, $_UnitsTable, _Unit, Dish> {
 
   MoorDishesCollection({required _MoorDatabase db}) :
         super(
           db: db,
           table: db.edibles,
           joinedTable: db.dishContents,
+          farJoinedTable: db.units,
           idCol: db.edibles.id,
           joinedIdCol: db.dishContents.id,
+          joinedIdCol2: db.dishContents.unitsId,
+          farJoinedIdCol: db.units.id,
       );
 
-  SimpleSelectStatement<$_EdiblesTable, _Edible> get edibleQuery =>
+  SimpleSelectStatement<$_EdiblesTable, _Edible> get primaryQuery =>
       db.select(table)..where((tbl) => db.edibles.isBasic.equals(false));
 
-  JoinedSelectStatement<Table, dynamic> get contentsQuery =>
-      db.select(joinedTable)
-          .join([
-        leftOuterJoin(db.units, db.dishContents.unitsId.equalsExp(db.units.id))
-      ]);
-
-  Iterable<Insertable<_Edible>> edibleToRows(Dish value) {
+  Iterable<Insertable<_Edible>> contentToPrimaryRows(Dish value) {
     List<Insertable<_Edible>> rows = [];
     rows.add(_Edible(
       id: symbolToString(value.id),
@@ -721,7 +730,7 @@ class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable,
     return rows;
   }
 
-  Iterable<Insertable<_DishContent>> contentToRows(Dish value) {
+  Iterable<Insertable<_DishContent>> contentToJoinedRows(Dish value) {
     List<Insertable<_DishContent>> rows = [];
     value.contents.forEach((k, v) {
       rows.add(_DishContent(
@@ -733,7 +742,7 @@ class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable,
     });
     return rows;
   }
-  Iterable<Insertable<_Unit>> valueToUnitRows(Dish value) {
+  Iterable<Insertable<_Unit>> contentToFarJoinedRows(Dish value) {
     // Dedupe
     final units = value.contents.map((k, v) => MapEntry(
         v.units.id, v.units
@@ -780,27 +789,24 @@ class MoorDishesCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable,
 
 }
 
-class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_EdiblesTable, _Edible, $_BasicIngredientContentsTable, _BasicIngredientContent, BasicIngredient> {
+class MoorBasicIngredientsCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable, _Edible, $_BasicIngredientContentsTable, _BasicIngredientContent, $_UnitsTable, _Unit, BasicIngredient> {
 
   MoorBasicIngredientsCollection({required _MoorDatabase db}) :
         super(
           db: db,
           table: db.edibles,
           joinedTable: db.basicIngredientContents,
+          farJoinedTable: db.units,
           idCol: db.edibles.id,
-          joinedIdCol: db.basicIngredientContents.id
+          joinedIdCol: db.basicIngredientContents.id,
+          joinedIdCol2: db.basicIngredientContents.unitsId,
+          farJoinedIdCol: db.units.id,
       );
 
-  SimpleSelectStatement<$_EdiblesTable, _Edible> get edibleQuery =>
+  SimpleSelectStatement<$_EdiblesTable, _Edible> get primaryQuery =>
       db.select(table)..where((tbl) => db.edibles.isBasic.equals(true));
 
-  JoinedSelectStatement<Table, dynamic> get contentsQuery =>
-      db.select(joinedTable)
-          .join([
-        leftOuterJoin(db.units, db.basicIngredientContents.unitsId.equalsExp(db.units.id))
-      ]);
-
-  Iterable<Insertable<_Edible>> edibleToRows(BasicIngredient value) {
+  Iterable<Insertable<_Edible>> contentToPrimaryRows(BasicIngredient value) {
     List<Insertable<_Edible>> rows = [];
     rows.add(_Edible(
       id: symbolToString(value.id),
@@ -809,7 +815,7 @@ class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_Edi
     return rows;
   }
 
-  Iterable<Insertable<_BasicIngredientContent>> contentToRows(BasicIngredient value) {
+  Iterable<Insertable<_BasicIngredientContent>> contentToJoinedRows(BasicIngredient value) {
     List<Insertable<_BasicIngredientContent>> rows = [];
     value.contents.forEach((k, v) {
       rows.add(_BasicIngredientContent(
@@ -821,7 +827,7 @@ class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_Edi
     });
     return rows;
   }
-  Iterable<Insertable<_Unit>> valueToUnitRows(BasicIngredient value) {
+  Iterable<Insertable<_Unit>> contentToFarJoinedRows(BasicIngredient value) {
     // Dedupe
     final units = value.contents.map((k, v) => MapEntry(
         v.units.id, v.units
@@ -866,27 +872,21 @@ class MoorBasicIngredientsCollection extends MoorAbstractEdiblesCollection<$_Edi
   }
 }
 
-class MoorMealsCollection extends MoorAbstractEdiblesCollection<$_MealsTable, _Meal, $_MealContentsTable, _MealContent, Meal> {
+class MoorMealsCollection extends MoorAbstract1ToNTo1Collection<$_MealsTable, _Meal, $_MealContentsTable, _MealContent, $_UnitsTable, _Unit, Meal> {
 
   MoorMealsCollection({required _MoorDatabase db}) :
         super(
           db: db,
           table: db.meals,
           joinedTable: db.mealContents,
+          farJoinedTable: db.units,
           idCol: db.meals.id,
-          joinedIdCol: db.mealContents.id
+          joinedIdCol: db.mealContents.id,
+          joinedIdCol2: db.mealContents.unitsId,
+          farJoinedIdCol: db.units.id,
       );
 
-  SimpleSelectStatement<$_MealsTable, _Meal> get edibleQuery =>
-      db.select(table);
-
-  JoinedSelectStatement<Table, dynamic> get contentsQuery =>
-      db.select(joinedTable)
-          .join([
-        leftOuterJoin(db.units, db.mealContents.unitsId.equalsExp(db.units.id))
-      ]);
-
-  Iterable<Insertable<_Meal>> edibleToRows(Meal value) {
+  Iterable<Insertable<_Meal>> contentToPrimaryRows(Meal value) {
     List<Insertable<_Meal>> rows = [];
     rows.add(_Meal(
       id: symbolToString(value.id),
@@ -897,7 +897,7 @@ class MoorMealsCollection extends MoorAbstractEdiblesCollection<$_MealsTable, _M
     return rows;
   }
 
-  Iterable<Insertable<_MealContent>> contentToRows(Meal value) {
+  Iterable<Insertable<_MealContent>> contentToJoinedRows(Meal value) {
     List<Insertable<_MealContent>> rows = [];
     value.contents.forEach((k, v) {
       rows.add(_MealContent(
@@ -909,7 +909,7 @@ class MoorMealsCollection extends MoorAbstractEdiblesCollection<$_MealsTable, _M
     });
     return rows;
   }
-  Iterable<Insertable<_Unit>> valueToUnitRows(Meal value) {
+  Iterable<Insertable<_Unit>> contentToFarJoinedRows(Meal value) {
     // Dedupe
     final units = value.contents.map((k, v) => MapEntry(
         v.units.id, v.units
