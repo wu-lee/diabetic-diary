@@ -223,7 +223,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
                                       final gramsPerHectagram = await db.units.fetch(#g_per_hg);
                                       final newContents = await _pendingContentAmounts;
                                       final quantity = newContents[e.id] ?? Quantity(0, gramsPerHectagram);
-                                      final aggregated = await db.aggregate(newContents);
+                                      final aggregated = await db.aggregate(newContents, 1);
                                       newContents[e.id] = quantity.add(1);
 
                                       setState(() {

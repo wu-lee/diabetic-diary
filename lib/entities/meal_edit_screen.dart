@@ -3,6 +3,7 @@ import 'package:flutter_spinbox/flutter_spinbox.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
 
+import '../composite_edible.dart';
 import '../database.dart';
 import '../meal.dart';
 import '../edible.dart';
@@ -67,7 +68,8 @@ class _MealEditState extends State<MealEditScreen> {
 
     // This does, because the calculation is asynchronous. Add a handler to
     // update our state when it's done.
-    _pendingCompositionStats = db.aggregate(newContents, id).then(
+    final totalMass = CompositeEdible.getTotalMass(contents);
+    _pendingCompositionStats = db.aggregate(newContents, totalMass).then(
       // Format the quantities into strings
         (stats) async {
           final Map<Symbol, String> result = {};

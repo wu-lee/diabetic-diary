@@ -13,6 +13,20 @@ class Quantity {
 //  Quantity operator* (num n) => Quantity(this.dims, amount * n);
 //  Quantity operator+ (Quantity that) => Quantity(dims, amount+that.amount);
 
+  /// Convert this quantity into the given units
+  ///
+  /// No conversion is attempted if the units identifiers match.
+  /// But an exception will be thrown if the dimension identifiers don't.
+  Quantity toUnits(Units units) {
+    if (units.id == this.units.id)
+      return this;
+    if (units.dimensionsId == this.units.dimensionsId)
+      return Quantity(amount*this.units.multiplier/units.multiplier, units);
+
+    throw ArgumentError("can't convert ${this.units.format()} "
+        "into units with different dimensions, ${units.format()}");
+  }
+
   // Add an amount in a an optionally different unit
   Quantity add(num amount, [Units? units]) {
     if (units == null) { // Simple case

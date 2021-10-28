@@ -48,7 +48,7 @@ class _Units extends Table {
 
 class _Measurables extends Table {
   TextColumn get id => text()();
-  TextColumn get dimensionsId => text().customConstraint('NOT NULL REFERENCES dimensions(id)')();
+  TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -464,16 +464,37 @@ class MoorMeasurablesCollection extends MoorAbstractDataCollection<$_Measurables
   MoorMeasurablesCollection(_MoorDatabase db) : super(db, db.measurables, db.measurables.id);
 
   @override
+  JoinedSelectStatement<Table, dynamic> get _query =>
+      db.select(tableInfo)
+      .join([
+        leftOuterJoin(db.units, db.measurables.unitsId.equalsExp(db.units.id))
+      ]);
+
+  @override
+  Future<TypedResult?> _rowFor(Symbol index) => (
+      _query..where(idCol.equals(symbolToString(index)))
+  ).getSingleOrNull();
+
+  @override
   Measurable rowToValue(TypedResult result) {
     final row = result.readTable(tableInfo);
-    return Measurable(id: Symbol(row.id), dimensionsId: Symbol(row.dimensionsId));
+    final dimensionsId = result.read(db.units.dimensionsId)!;
+    final multiplier = result.read(db.units.multiplier)!;
+    return Measurable(
+        id: Symbol(row.id),
+        defaultUnits: Units(
+            Symbol(row.unitsId),
+            Symbol(dimensionsId),
+            multiplier
+        )
+    );
   }
 
   @override
   Insertable<_Measurable> valueToRow(Measurable val)  {
     return _Measurable(
       id: symbolToString(val.id),
-      dimensionsId: symbolToString(val.dimensionsId),
+      unitsId: symbolToString(val.defaultUnits.id),
     );
   }
 }

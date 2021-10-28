@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_spinbox/flutter_spinbox.dart';
 
+import '../composite_edible.dart';
 import '../database.dart';
 import '../dish.dart';
 import '../edible.dart';
@@ -53,7 +54,8 @@ class _DishEditState extends State<DishEditScreen> {
 
     // This does, because the calculation is asynchronous. Add a handler to
     // update our state when it's done.
-    _pendingCompositionStats = db.aggregate(newContents, id).then(
+    final totalMass = CompositeEdible.getTotalMass(contents);
+    _pendingCompositionStats = db.aggregate(newContents, totalMass, id).then(
       // Format the quantities into strings
         (stats) async {
           final Map<Symbol, String> result = {};

@@ -31,14 +31,14 @@ class _IngredientState extends State<IngredientScreen> {
   set ingredient(BasicIngredient e) {
     _ingredient = e;
     _contentAmounts = _format(ingredient.contents);
-    _compositionStats = db.aggregate(ingredient.contents).then(_format);
+    _compositionStats = db.aggregate(ingredient.contents, 1).then(_format);
   }
 
   _IngredientState(BasicIngredient ingredient, this.db) :
         this._ingredient = ingredient
   {
     _contentAmounts = _format(ingredient.contents);
-    _compositionStats = db.aggregate(ingredient.contents).then(_format);
+    _compositionStats = db.aggregate(ingredient.contents, 1).then(_format);
   }
 
   Future<Map<Symbol, String>> _format(Map<Symbol, Quantity> entities) async {

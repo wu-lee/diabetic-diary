@@ -30,14 +30,14 @@ class _DishState extends State<DishScreen> {
   set dish(Dish e) {
     _dish = e;
     _contentAmounts = _format(dish.contents);
-    _compositionStats = db.aggregate(dish.contents).then(_format);
+    _compositionStats = db.aggregate(dish.contents, dish.totalMass).then(_format);
   }
 
   _DishState(Dish dish, this.db) :
         this._dish = dish
   {
     _contentAmounts = _format(dish.contents);
-    _compositionStats = db.aggregate(dish.contents).then(_format);
+    _compositionStats = db.aggregate(dish.contents, dish.totalMass).then(_format);
   }
 
   Future<Map<Symbol, String>> _format(Map<Symbol, Quantity> entities) async {

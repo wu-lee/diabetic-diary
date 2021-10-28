@@ -11,6 +11,7 @@ import 'meal.dart';
 import 'quantified.dart';
 import 'indexable.dart';
 import 'quantity.dart';
+import 'seen_check.dart';
 import 'units.dart';
 
 abstract class DataCollection<T extends Indexable> {
@@ -147,6 +148,7 @@ abstract class Database {
       if (index.containsKey(id))
         continue;
       final dish = await dishes.maybeGet(id);
+
       if (dish == null) {
         // Not a known dish, maybe an ingredient?
         final ingredient = await ingredients.maybeGet(id);
@@ -158,6 +160,7 @@ abstract class Database {
           if (measurable == null)
             throw new RangeError("Unknown edible/measurable $id"); // Nope, throw
 
+          // Create a fake ingredient with one item
           index[id] = measurable;
           continue;
         }
@@ -186,67 +189,9 @@ abstract class Database {
   /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
   ///
   /// May throw a [StateError] if a cycle is detected.
-  Future<Map<Symbol, Quantity>> aggregate(Map<Symbol, Quantity> contents, [Symbol? edibleId]) async {
+  Future<Map<Symbol, Quantity>> aggregate(Map<Symbol, Quantity> contents, num totalMass, [Symbol? edibleId]) async {
     final seen = edibleId == null? (id) => false : (id) => id == edibleId;
-    return _aggregate(contents, await traverseContents(contents.keys), seen);
-  }
-
-  /// Convert [contents] into a table of nutritional component quantities.
-  ///
-  /// [contents] should be a map defining [Quantities] of [Edible] instances named by their ID.
-  /// There should be no null keys or values. Nor should there be any cycles, where an dish
-  /// contains itself, directly or indirectly.
-  ///
-  /// All IDs in [content] must exist in [index], mapped to the appropriate instance of an [Dish]
-  /// or a [Measurable].
-  ///
-  /// The function [seen] is used to detect cycles, and should return true if a symbol identifies
-  /// an [Edible] instance including this one.
-  ///
-  /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
-  ///
-  /// May throw a [StateError] if a cycle is detected.
-  Map<Symbol, Quantity> _aggregate(Map<Symbol, Quantity> contents, Map<Symbol, Quantified> index, bool Function(Symbol) seen) {
-    final expanded = contents.entries.expand((elem) {
-      final id = elem.key;
-      final quantity = elem.value;
-
-      // All dish contents must be in the same dimensions, i.e. fraction by mass.
-      //assert(quantity.units.dimensionsId == #FractionByMass);
-
-      // Prevent infinite loops in cyclic graphs (which should not exist: you
-      // should not include an ingredient as an ingredient of itself, even
-      // indirectly).
-      if (seen(id))
-        throw StateError(
-            "Cannot aggregate this ingredient list as it contains "
-            "a cyclic reference to the dish ID #${symbolToString(id)} "
-        );
-
-      final item = index[id];
-      if (item == null) {
-        return <MapEntry<Symbol, Quantity>>[]; // Probably shouldn't ever happen
-      }
-
-      if (item is Measurable)
-        return [elem];
-
-      final aggregated = _aggregate(item.contents, index, (newId) => id == newId || seen(newId));
-
-      // Multiply this dish's contents by the parent dish's quantity
-      final multiplier = quantity.amount * quantity.units.multiplier;
-      debugPrint("multiplier = ${quantity.amount} * ${quantity.units.multiplier} = $multiplier");
-      return aggregated.entries.map((elem) {
-        debugPrint("multiply ${elem.value.format()} by $quantity");
-        //assert(quantity.units.dimensionsId == elem.value.units.dimensionsId);
-        return MapEntry(elem.key, elem.value.multiply(multiplier));
-      });
-    });
-
-    final result = expanded.fold<Map<Symbol, Quantity>>({}, (map, entry) =>
-      map..update(entry.key, (value) => entry.value.addQuantity(value), ifAbsent: () => entry.value)
-    );
-    return result;
+    return Quantified.aggregate(contents, totalMass, await traverseContents(contents.keys), seen);
   }
 
   /// Sets up an empty database
@@ -282,7 +227,7 @@ abstract class Database {
         final
           tahini = BasicIngredient(
             id: #Tahini,
-            contents: {
+          contents: {
               Measurable.Carbs.id: Units.GramsPerHectogram.times(1),
               Measurable.Fat.id: Units.GramsPerHectogram.times(2),
             },
@@ -306,7 +251,7 @@ abstract class Database {
           title: "Meal 1",
           timestamp: DateTime(2021),
           notes: "",
-          contents: {
+            contents: {
             salad.id: Units.Grams.times(500),
           }
         );

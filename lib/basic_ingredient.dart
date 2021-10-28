@@ -18,6 +18,10 @@ class BasicIngredient extends Edible {
   const BasicIngredient({required this.id, required this.contents});
 
   @override
+  Map<Symbol, Quantity> aggregateContents(Map<Symbol, Quantified> index, bool Function(Symbol) seen) =>
+      contents;
+
+  @override
   bool operator== (Object that) {
     if (identical(that, this)) return true;
     if (that is BasicIngredient &&
@@ -28,7 +32,7 @@ class BasicIngredient extends Edible {
   }
 
   @override
-  int get hashCode => contents.hashCode ^ id.hashCode;
+  int get hashCode => aggregateContents.hashCode ^ id.hashCode;
 
   String format() =>
       "BasicIngredient(id: ${symbolToString(id)}, contents: ${Quantified.formatContents(contents)})";

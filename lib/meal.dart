@@ -1,16 +1,17 @@
 
 
-import 'package:diabetic_diary/database.dart';
-import 'package:diabetic_diary/measureable.dart';
 import 'package:flutter/foundation.dart';
 
-import 'edible.dart';
+import 'composite_edible.dart';
+import 'database.dart';
+import 'measureable.dart';
 import 'quantified.dart';
 import 'quantity.dart';
+import 'seen_check.dart';
 import 'translation.dart';
 
 /// Represents a meal diary entry
-class Meal extends Edible {
+class Meal extends CompositeEdible {
 
   Meal({
     required this.id,
@@ -29,8 +30,12 @@ class Meal extends Edible {
 
   final String notes;
 
-  @override
   final Map<Symbol, Quantity> contents;
+
+  @override
+  Map<Symbol, Quantity> aggregateContents(Map<Symbol, Quantified> index, bool Function(Symbol) seen) =>
+      Quantified.aggregate(contents, totalMass, index, chainSeenChecker(id, seen));
+
 
   @override
   bool operator== (Object that) {

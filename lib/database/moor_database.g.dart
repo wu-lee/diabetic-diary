@@ -662,30 +662,30 @@ class $_DimensionsTable extends _Dimensions
 
 class _Measurable extends DataClass implements Insertable<_Measurable> {
   final String id;
-  final String dimensionsId;
-  _Measurable({required this.id, required this.dimensionsId});
+  final String unitsId;
+  _Measurable({required this.id, required this.unitsId});
   factory _Measurable.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return _Measurable(
       id: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      dimensionsId: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}dimensions_id'])!,
+      unitsId: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}units_id'])!,
     );
   }
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['dimensions_id'] = Variable<String>(dimensionsId);
+    map['units_id'] = Variable<String>(unitsId);
     return map;
   }
 
   _MeasurablesCompanion toCompanion(bool nullToAbsent) {
     return _MeasurablesCompanion(
       id: Value(id),
-      dimensionsId: Value(dimensionsId),
+      unitsId: Value(unitsId),
     );
   }
 
@@ -694,7 +694,7 @@ class _Measurable extends DataClass implements Insertable<_Measurable> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return _Measurable(
       id: serializer.fromJson<String>(json['id']),
-      dimensionsId: serializer.fromJson<String>(json['dimensionsId']),
+      unitsId: serializer.fromJson<String>(json['unitsId']),
     );
   }
   @override
@@ -702,60 +702,59 @@ class _Measurable extends DataClass implements Insertable<_Measurable> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'dimensionsId': serializer.toJson<String>(dimensionsId),
+      'unitsId': serializer.toJson<String>(unitsId),
     };
   }
 
-  _Measurable copyWith({String? id, String? dimensionsId}) => _Measurable(
+  _Measurable copyWith({String? id, String? unitsId}) => _Measurable(
         id: id ?? this.id,
-        dimensionsId: dimensionsId ?? this.dimensionsId,
+        unitsId: unitsId ?? this.unitsId,
       );
   @override
   String toString() {
     return (StringBuffer('_Measurable(')
           ..write('id: $id, ')
-          ..write('dimensionsId: $dimensionsId')
+          ..write('unitsId: $unitsId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode, dimensionsId.hashCode));
+  int get hashCode => $mrjf($mrjc(id.hashCode, unitsId.hashCode));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is _Measurable &&
           other.id == this.id &&
-          other.dimensionsId == this.dimensionsId);
+          other.unitsId == this.unitsId);
 }
 
 class _MeasurablesCompanion extends UpdateCompanion<_Measurable> {
   final Value<String> id;
-  final Value<String> dimensionsId;
+  final Value<String> unitsId;
   const _MeasurablesCompanion({
     this.id = const Value.absent(),
-    this.dimensionsId = const Value.absent(),
+    this.unitsId = const Value.absent(),
   });
   _MeasurablesCompanion.insert({
     required String id,
-    required String dimensionsId,
+    required String unitsId,
   })  : id = Value(id),
-        dimensionsId = Value(dimensionsId);
+        unitsId = Value(unitsId);
   static Insertable<_Measurable> custom({
     Expression<String>? id,
-    Expression<String>? dimensionsId,
+    Expression<String>? unitsId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (dimensionsId != null) 'dimensions_id': dimensionsId,
+      if (unitsId != null) 'units_id': unitsId,
     });
   }
 
-  _MeasurablesCompanion copyWith(
-      {Value<String>? id, Value<String>? dimensionsId}) {
+  _MeasurablesCompanion copyWith({Value<String>? id, Value<String>? unitsId}) {
     return _MeasurablesCompanion(
       id: id ?? this.id,
-      dimensionsId: dimensionsId ?? this.dimensionsId,
+      unitsId: unitsId ?? this.unitsId,
     );
   }
 
@@ -765,8 +764,8 @@ class _MeasurablesCompanion extends UpdateCompanion<_Measurable> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (dimensionsId.present) {
-      map['dimensions_id'] = Variable<String>(dimensionsId.value);
+    if (unitsId.present) {
+      map['units_id'] = Variable<String>(unitsId.value);
     }
     return map;
   }
@@ -775,7 +774,7 @@ class _MeasurablesCompanion extends UpdateCompanion<_Measurable> {
   String toString() {
     return (StringBuffer('_MeasurablesCompanion(')
           ..write('id: $id, ')
-          ..write('dimensionsId: $dimensionsId')
+          ..write('unitsId: $unitsId')
           ..write(')'))
         .toString();
   }
@@ -797,17 +796,16 @@ class $_MeasurablesTable extends _Measurables
     );
   }
 
-  final VerificationMeta _dimensionsIdMeta =
-      const VerificationMeta('dimensionsId');
+  final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
   @override
-  late final GeneratedTextColumn dimensionsId = _constructDimensionsId();
-  GeneratedTextColumn _constructDimensionsId() {
-    return GeneratedTextColumn('dimensions_id', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES dimensions(id)');
+  late final GeneratedTextColumn unitsId = _constructUnitsId();
+  GeneratedTextColumn _constructUnitsId() {
+    return GeneratedTextColumn('units_id', $tableName, false,
+        $customConstraints: 'NOT NULL REFERENCES units(id)');
   }
 
   @override
-  List<GeneratedColumn> get $columns => [id, dimensionsId];
+  List<GeneratedColumn> get $columns => [id, unitsId];
   @override
   $_MeasurablesTable get asDslTable => this;
   @override
@@ -824,13 +822,11 @@ class $_MeasurablesTable extends _Measurables
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('dimensions_id')) {
-      context.handle(
-          _dimensionsIdMeta,
-          dimensionsId.isAcceptableOrUnknown(
-              data['dimensions_id']!, _dimensionsIdMeta));
+    if (data.containsKey('units_id')) {
+      context.handle(_unitsIdMeta,
+          unitsId.isAcceptableOrUnknown(data['units_id']!, _unitsIdMeta));
     } else if (isInserting) {
-      context.missing(_dimensionsIdMeta);
+      context.missing(_unitsIdMeta);
     }
     return context;
   }

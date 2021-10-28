@@ -1,13 +1,14 @@
 import 'package:flutter/foundation.dart';
+import 'composite_edible.dart';
 import 'database.dart';
-import 'edible.dart';
 import 'measureable.dart';
 import 'quantified.dart';
 import 'quantity.dart';
+import 'seen_check.dart';
 import 'translation.dart';
 
 
-class Dish extends Edible {
+class Dish extends CompositeEdible {
   final Symbol id;
   final Map<Symbol, Quantity> contents;
 
@@ -26,6 +27,10 @@ class Dish extends Edible {
     }
     return false;
   }
+
+  @override
+  Map<Symbol, Quantity> aggregateContents(Map<Symbol, Quantified> index, SeenChecker seen) =>
+      Quantified.aggregate(contents, totalMass, index, chainSeenChecker(id, seen));
 
   @override
   int get hashCode => contents.hashCode ^ id.hashCode;

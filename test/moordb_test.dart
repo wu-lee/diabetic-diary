@@ -93,10 +93,16 @@ void main() async {
 
 
     test('Just Measurables', () async {
-      final inThing1 = Measurable(id: #testMeasurable1, dimensionsId: #TestDimension1);
-      final inThing2 = Measurable(id: #testMeasurable2, dimensionsId: #TestDimension2);
+      final units1 = Units(#TestUnits1, #TestDim1, 1);
+      final units2 = Units(#TestUnits2, #TestDim2, 1);
+      final inThing1 = Measurable(id: #testMeasurable1, defaultUnits: units1);
+      final inThing2 = Measurable(id: #testMeasurable2, defaultUnits: units2);
       final removed = await mdb.measurables.removeAll();
       print("removed "+removed.toString()+" measurables");
+      final removed2 = await mdb.units.removeAll();
+      print("removed "+removed2.toString()+" units");
+      await mdb.units.add(units1);
+      await mdb.units.add(units2);
       await mdb.measurables.add(inThing1);
       await mdb.measurables.add(inThing2);
       final outThing1 = await mdb.measurables.maybeGet(#testMeasurable1);

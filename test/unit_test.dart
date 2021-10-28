@@ -63,7 +63,7 @@ void main() async {
       final energy = Measurable(id: #Energy, dimensionsId: energyFraction.id);
       final cabbage = BasicIngredient(
           id: #Cabbage,
-          contents: {
+          aggregateContents: {
             carbs.id: Quantity(10, gramsPerHectagram),
             fat.id: Quantity(0, gramsPerHectagram),
             energy.id: Quantity(30, kcalPerHectagram),
@@ -71,7 +71,7 @@ void main() async {
       );
       final tahini = BasicIngredient(
           id: #Tahini,
-          contents: {
+          aggregateContents: {
             carbs.id: Quantity(10, gramsPerHectagram),
             fat.id: Quantity(0.8, gramsPerGram),
             energy.id: Quantity(100, kcalPerHectagram),
