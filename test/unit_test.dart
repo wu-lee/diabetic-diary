@@ -1,4 +1,5 @@
 import 'package:diabetic_diary/basic_ingredient.dart';
+import 'package:diabetic_diary/composite_edible.dart';
 import 'package:diabetic_diary/database.dart';
 import 'package:diabetic_diary/database/mock_database.dart';
 import 'package:diabetic_diary/dimensions.dart';
@@ -54,16 +55,17 @@ void main() async {
         id: #EnergyByMass,
         components: {},
       );
+      final kilocaloriesPerHectagram = energyFraction.units(#kilocaloriesPerHectagram, 41.84);
       final joulesPerGram = energyFraction.units(#joulesPerGram, 1);
       final joulesPerHectagram = energyFraction.units(#joulesPerHectagram, 1/100);
       final kcalPerGram = energyFraction.units(#kcalPerGram, 4184);
       final kcalPerHectagram = energyFraction.units(#kcalPerHectagram, 4184/100);
-      final carbs = Measurable(id: #Carbs, dimensionsId: massFraction.id);
-      final fat = Measurable(id: #Fat, dimensionsId: massFraction.id);
-      final energy = Measurable(id: #Energy, dimensionsId: energyFraction.id);
+      final carbs = Measurable(id: #Carbs, defaultUnits: gramsPerHectagram);
+      final fat = Measurable(id: #Fat, defaultUnits: gramsPerHectagram);
+      final energy = Measurable(id: #Energy, defaultUnits: kilocaloriesPerHectagram);
       final cabbage = BasicIngredient(
           id: #Cabbage,
-          aggregateContents: {
+          contents: {
             carbs.id: Quantity(10, gramsPerHectagram),
             fat.id: Quantity(0, gramsPerHectagram),
             energy.id: Quantity(30, kcalPerHectagram),
@@ -71,7 +73,7 @@ void main() async {
       );
       final tahini = BasicIngredient(
           id: #Tahini,
-          aggregateContents: {
+          contents: {
             carbs.id: Quantity(10, gramsPerHectagram),
             fat.id: Quantity(0.8, gramsPerGram),
             energy.id: Quantity(100, kcalPerHectagram),
@@ -87,7 +89,8 @@ void main() async {
         cabbage.id: Quantity(50, gramsPerHectagram),
         tahini.id: Quantity(50, gramsPerHectagram),
       };
-      final aggregateStats = await db.aggregate(ingredients);
+      final totalMass = CompositeEdible.getTotalMass(ingredients);
+      final aggregateStats = await db.aggregate(ingredients, totalMass);
 
       print("cabbage: "+cabbage.format());
       print("tahini: "+tahini.format());

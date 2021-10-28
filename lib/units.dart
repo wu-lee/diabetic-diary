@@ -26,8 +26,8 @@ class Units extends Indexable {
   static const Calories = Units(#cal, #Energy, 4.184);
   static const Kilocalories = Units(#kcal, #Energy, 4184);
   static const JoulesPerGram = Units(#J_per_g, #EnergyByMass, 1);
-  static const JoulesPerHectogram = Units(#J_per_hg, #Energy, 0.01);
-  static const JoulesPerKilogram = Units(#J_per_kg, #Energy, 0.001);
+  static const JoulesPerHectogram = Units(#J_per_hg, #EnergyByMass, 0.01);
+  static const JoulesPerKilogram = Units(#J_per_kg, #EnergyByMass, 0.001);
   static const KilojoulesPerGram = Units(#kJ_per_g, #EnergyByMass, 1000);
   static const KilojoulesPerHectogram = Units(#kJ_per_g, #EnergyByMass, 10);
   static const CaloriesPerGram = Units(#cal_per_g, #EnergyByMass, 4.184);
