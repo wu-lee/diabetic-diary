@@ -77,13 +77,14 @@ class Quantity {
   @override
   String toString() => "Quantity(amount: $amount, units: $units)";
 
-  String formatWith(Units units) {
-    num multAmount = amount * units.multiplier;
+  String formatWith(Units units) =>
+    _format(amount * units.multiplier / this.units.multiplier, units.id);
 
-    final abs = multAmount.abs();
-    final formatted = multAmount.toStringAsFixed(abs < 1? 2 : abs < 10? 1 : 0);
-    return "$formatted ${TL8(units.id)}";
+  String format() => _format(amount, units.id);
+
+  static String _format(num amount, Symbol unitsId) {
+    final abs = amount.abs();
+    final formatted = amount.toStringAsFixed(abs < 1? 2 : abs < 10? 1 : 0);
+    return "$formatted ${symbolToString(unitsId)}";
   }
-
-  String format() => formatWith(units);
 }
