@@ -63,7 +63,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
   Widget _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
     return SpinBox(
       min: 0,
-      max: 100,
+      max: double.maxFinite,
       decimals: 1,
       value: quantity.amount.toDouble(),
       onChanged: (value) {
