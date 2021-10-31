@@ -90,13 +90,7 @@ class _DishEditState extends State<DishEditScreen> {
       value: quantity.amount.toDouble(),
       onChanged: (value) {
         setState(() {
-          if (value <= 0) {
-            _contents.remove(id);
-          }
-          else {
-            _contents[id] = Quantity(value, quantity.units);
-          }
-
+          _contents[id] = Quantity(value, quantity.units);
           this.contents = _contents; // updates the stats too
         });
       },
