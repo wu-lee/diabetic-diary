@@ -87,7 +87,8 @@ class _MealEditState extends State<MealEditScreen> {
     title: titleController.text,
     timestamp: timestamp,
     notes: notesController.text,
-    contents: Map.from(_contents), // Make a copy, since we're returning it
+    contents: Map.from(_contents) // Make a copy before modifying and returning
+        ..removeWhere((id, quantity) => quantity.amount == 0),
   );
 
   set meal(Meal e) {
@@ -213,7 +214,7 @@ class _MealEditState extends State<MealEditScreen> {
                         ),
                         Flexible(
                           flex: 1,
-                          child: Text(meal.title),
+                          child: Text(titleController.text),
                         ),
                      ],
                     ),
@@ -226,7 +227,7 @@ class _MealEditState extends State<MealEditScreen> {
                           flex: 1,
                           child: DateTimeField(
                             format: _format,
-                            initialValue: meal.timestamp,
+                            initialValue: timestamp,
                             resetIcon: null,
                             onFieldSubmitted: (datetime) { if (datetime != null) timestamp = datetime; },
                             onShowPicker: (context, currentValue) async {

@@ -69,7 +69,8 @@ class _DishEditState extends State<DishEditScreen> {
   }
 
   Dish get dish => Dish(
-    contents: Map.from(_contents), // Make a copy, since we're returning it
+    contents: Map.from(_contents) // Make a copy before modifying and returning
+      ..removeWhere((id, quantity) => quantity.amount == 0),
     id: id,
   );
 

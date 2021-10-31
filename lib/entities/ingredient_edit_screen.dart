@@ -51,7 +51,8 @@ class _IngredientEditState extends State<IngredientEditScreen> {
   }
 
   BasicIngredient get ingredient => BasicIngredient(
-    contents: Map.from(_contents), // Make a copy, since we're returning it
+    contents: Map.from(_contents) // Make a copy before modifying and returning
+      ..removeWhere((id, quantity) => quantity.amount == 0),
     id: id,
   );
 
