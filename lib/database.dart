@@ -262,7 +262,8 @@ abstract class Database {
           ..add(Units.CaloriesPerGram)..add(Units.KilocaloriesPerHectogram)
           ..add(Units.JoulesPerGram)..add(Units.JoulesPerHectogram)..add(Units.JoulesPerKilogram);
         db.measurables..add(Measurable.Carbs)..add(Measurable.Fat)..add(Measurable.Fibre)..add(
-            Measurable.Protein)..add(Measurable.Sugar)..add(Measurable.Salt)..add(Measurable.Energy);
+            Measurable.Protein)..add(Measurable.Sugar)..add(Measurable.Salt)..add(Measurable.Energy)
+            ..add(Measurable.Sodium)..add(Measurable.SaturatedFat)..add(Measurable.Caffeine);
         db.ingredients..add(tahini)..add(cabbage);
         db.dishes..add(salad);
       },

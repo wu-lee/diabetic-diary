@@ -13,6 +13,7 @@ class Measurable extends Quantified {
 
   const Measurable({required this.id, required this.defaultUnits});
 
+  static const Caffeine = Measurable(id: #Caffeine, defaultUnits: Units.GramsPerHectogram);
   static const Carbs = Measurable(id: #Carbs, defaultUnits: Units.GramsPerHectogram);
   static const Fat = Measurable(id: #Fat, defaultUnits: Units.GramsPerHectogram);
   static const SaturatedFat = Measurable(id: #SaturatedFat, defaultUnits: Units.GramsPerHectogram);
@@ -20,6 +21,7 @@ class Measurable extends Quantified {
   static const Protein = Measurable(id: #Protein, defaultUnits: Units.GramsPerHectogram);
   static const Sugar = Measurable(id: #Sugar, defaultUnits: Units.GramsPerHectogram);
   static const Salt = Measurable(id: #Salt, defaultUnits: Units.GramsPerHectogram);
+  static const Sodium = Measurable(id: #Sodium, defaultUnits: Units.GramsPerHectogram);
   static const Energy = Measurable(id: #Energy, defaultUnits: Units.KilocaloriesPerHectogram);
 
   @override

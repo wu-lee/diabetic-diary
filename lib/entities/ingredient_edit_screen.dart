@@ -4,6 +4,7 @@ import 'package:flutter_spinbox/flutter_spinbox.dart';
 
 import '../database.dart';
 import '../basic_ingredient.dart';
+import '../open_food_facts_search_dialog.dart';
 import '../quantity.dart';
 import '../translation.dart';
 
@@ -27,6 +28,9 @@ class IngredientEditScreen extends StatefulWidget {
 class _IngredientEditState extends State<IngredientEditScreen> {
   final titleController = new TextEditingController();
   final Database db;
+  // This flag indicates whether the search button should be disabled
+  bool isSearchDisabled = true;
+
   Map<Symbol, Quantity> _contents = {};
   Future<Map<Symbol, Quantity>> _pendingContentAmounts = Future.value({});
 
@@ -34,6 +38,17 @@ class _IngredientEditState extends State<IngredientEditScreen> {
     if (ingredient != null) {
       this.ingredient = ingredient;
     }
+    // Check for changes which mean we enable/disable the search button
+    titleController.addListener(() {
+      final isEmpty = titleController.text.length == 0;
+      if (isEmpty != isSearchDisabled) {
+        // Trigger a state change when updating this flag
+        // which will redraw the search button in the intended state
+        setState(() {
+          isSearchDisabled = isEmpty;
+        });
+      }
+    });
   }
 
   Symbol get id => Symbol(titleController.text);
@@ -134,24 +149,9 @@ class _IngredientEditState extends State<IngredientEditScreen> {
       onWillPop: _onPop,
       child: Scaffold(
         appBar: AppBar(
-          title: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                child: Text(TL8(#NewIngredient)+':'),
-              ),
-              Expanded(
-                child: TextField(
-                  controller: titleController,
-                  showCursor: true,
-                  textAlignVertical: TextAlignVertical.bottom,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20, // FIXME get from media query
-                  ),
-                ),
-              ),
-            ],
+          title: Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            child: Text(TL8(#NewIngredient)+':'),
           ),
           actions: <Widget>[]
         ),
@@ -178,6 +178,46 @@ class _IngredientEditState extends State<IngredientEditScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: titleController,
+                      showCursor: true,
+                      textAlignVertical: TextAlignVertical.bottom,
+                      decoration: InputDecoration(
+                        hintText: 'Name or search terms...',
+                        hintStyle: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 18,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+/*                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20, // FIXME get from media query
+                      ),*/
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: isSearchDisabled? null : () async {
+                      // FIXME do something with the result
+                      final ingredient = await OpenFoodFactsSearchDialog.show(
+                        context: context,
+                        searchTerms: titleController.text
+                      );
+                      if (ingredient == null)
+                        return; // Nothing to do
+
+                      setState(() {
+                        id = ingredient.id; // FIXME need a name!
+                        contents = ingredient.contents;
+                      });
+                    },
+                    icon: const Icon(Icons.search),
+                  )
+                ],
+              ),
               Flexible( // Contents
                 flex: 6,
                 fit: FlexFit.tight,
