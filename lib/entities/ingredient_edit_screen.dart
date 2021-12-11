@@ -143,6 +143,20 @@ class _IngredientEditState extends State<IngredientEditScreen> {
         ],
       );
 
+  void doOffSearch(BuildContext context) async {
+    final ingredient = await OpenFoodFactsSearchDialog.show(
+        context: context,
+        searchTerms: titleController.text
+    );
+    if (ingredient == null)
+      return; // Nothing to do
+
+    setState(() {
+      id = ingredient.id; // FIXME need a name!
+      contents = ingredient.contents;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -185,6 +199,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
                       controller: titleController,
                       showCursor: true,
                       textAlignVertical: TextAlignVertical.bottom,
+                      onSubmitted: (txt) => doOffSearch(context),
                       decoration: InputDecoration(
                         hintText: 'Name or search terms...',
                         hintStyle: TextStyle(
@@ -200,20 +215,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
                     ),
                   ),
                   IconButton(
-                    onPressed: isSearchDisabled? null : () async {
-                      // FIXME do something with the result
-                      final ingredient = await OpenFoodFactsSearchDialog.show(
-                        context: context,
-                        searchTerms: titleController.text
-                      );
-                      if (ingredient == null)
-                        return; // Nothing to do
-
-                      setState(() {
-                        id = ingredient.id; // FIXME need a name!
-                        contents = ingredient.contents;
-                      });
-                    },
+                    onPressed: isSearchDisabled? null : () => doOffSearch(context),
                     icon: const Icon(Icons.search),
                   )
                 ],
