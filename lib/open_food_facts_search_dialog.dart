@@ -1,16 +1,15 @@
 import 'package:diabetic_diary/measureable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:openfoodfacts/model/parameter/Page.dart' as OFF;
 import 'package:openfoodfacts/model/parameter/SearchTerms.dart';
 import 'package:openfoodfacts/model/parameter/TagFilter.dart';
 import 'package:openfoodfacts/model/UserAgent.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 import 'package:openfoodfacts/utils/OpenFoodAPIConfiguration.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 import 'basic_ingredient.dart';
 import 'quantity.dart';
-import 'units.dart';
 
 
 // Used to aggregate OFF search results
@@ -94,8 +93,12 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
         fields: [
           ProductField.NAME,
           ProductField.BARCODE,
+          ProductField.QUANTITY,
+          ProductField.PACKAGING_QUANTITY,
           ProductField.INGREDIENTS,
-          ProductField.NUTRIMENTS
+          ProductField.NUTRIMENTS,
+          ProductField.COUNTRIES_TAGS,
+          ProductField.IMAGE_FRONT_SMALL_URL,
         ],
         language: OpenFoodFactsLanguage.ENGLISH);
 
@@ -105,9 +108,14 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
   Future<List<Product>> getProducts() async {
     SearchResult result = await searchOfn();
     final products = result.products;
+    const locality = 'en:united-kingdom';
     if (products == null)
       return [];
-    else
+      // sort local products to the top
+      products.sort((a,b) => (
+        (b.countriesTags?.contains(locality) == true? 1:0) -
+        (a.countriesTags?.contains(locality) == true? 1:0)
+      ));
       return products;
   }
 
@@ -186,6 +194,7 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
   }
 
   Widget _buildDialog(BuildContext context, Iterable<Product> products, [Object? error]) {
+    const imageSize = 50.0;
     final content = error != null? [Text(error.toString())] :
                     products.length == 0? [Text("no matches...")] :
       products.map((product) =>
@@ -193,7 +202,39 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
             onPressed: () {
               Navigator.pop(context, convertOfnIngredient(product));
             },
-            child: Text(product.productName ?? "barcode ${product.barcode}"),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                product.imageFrontSmallUrl == null?
+                Icon(Icons.image_not_supported, size: imageSize) :
+                FadeInImage.memoryNetwork(
+                  width: imageSize,
+                  placeholder: kTransparentImage,
+                  image: product.imageFrontSmallUrl!
+                ),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.only(left: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          product.productName ?? "barcode ${product.barcode}",
+                          textAlign: TextAlign.left,
+                          softWrap: true,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          (product.quantity == null? '-' : "${product.quantity}"),
+                          textAlign: TextAlign.left,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           )
       ).toList();
 
