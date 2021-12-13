@@ -64,7 +64,7 @@ void main() async {
       final fat = Measurable(id: #Fat, defaultUnits: gramsPerHectagram);
       final energy = Measurable(id: #Energy, defaultUnits: kilocaloriesPerHectagram);
       final cabbage = BasicIngredient(
-          id: #Cabbage,
+          id: #Cabbage, label: "Cabbage",
           contents: {
             carbs.id: Quantity(10, gramsPerHectagram),
             fat.id: Quantity(0, gramsPerHectagram),
@@ -72,7 +72,7 @@ void main() async {
           }
       );
       final tahini = BasicIngredient(
-          id: #Tahini,
+          id: #Tahini, label: "Tahini",
           contents: {
             carbs.id: Quantity(10, gramsPerHectagram),
             fat.id: Quantity(0.8, gramsPerGram),

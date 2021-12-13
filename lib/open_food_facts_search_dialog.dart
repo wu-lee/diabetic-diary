@@ -10,6 +10,7 @@ import 'package:transparent_image/transparent_image.dart';
 
 import 'basic_ingredient.dart';
 import 'quantity.dart';
+import 'utils.dart';
 
 
 // Used to aggregate OFF search results
@@ -120,15 +121,17 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
   }
 
   BasicIngredient convertOfnIngredient(Product product) {
-    final Symbol id = Symbol(
-        (product.productName ?? '').replaceAll(
-            r'\s+', '')); // FIXME use barcode
+    final id = Symbol(
+        product.barcode == null? ID('ingr:').toString() : "off:${product.barcode}"
+    );
 
     final nutriments = product.nutriments;
     final Map<String, OffNutrimentInfo> info = {};
+    final label = product.productName ?? product.barcode.toString();
     if (nutriments == null) {
-      return BasicIngredient(id: id, contents: {});
+      return BasicIngredient(id: id, label: label, contents: {});
     }
+
     nutriments.toJson().forEach((key, value) {
       final components = key.split('_');
       if (components.length < 2)
@@ -172,7 +175,7 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
         .map((elem) => MapEntry(elem.key.id, Quantity(elem.value!, elem.key.defaultUnits)));
 
 
-  return BasicIngredient(id: id, contents: Map.fromEntries(contents));
+    return BasicIngredient(id: id, label: label, contents: Map.fromEntries(contents));
   }
 
   @override

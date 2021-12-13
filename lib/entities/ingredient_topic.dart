@@ -46,7 +46,7 @@ class IngredientTopic implements EntityTopic<BasicIngredient> {
           children: [
             Container(
               padding: EdgeInsets.symmetric(horizontal: 3, vertical: 5),
-              child: Text(TL8(entity.id)),
+              child: Text(entity.label),
             ),
           ],
         ),

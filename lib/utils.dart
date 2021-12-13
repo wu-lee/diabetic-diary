@@ -23,3 +23,15 @@ Widget dbc(Widget w, {color: Colors.red}) {
   );
 }
 
+/// Rudimentary ID generator
+class ID {
+  final String prefix;
+  final int value;
+
+  ID([this.prefix = '']) :
+        value = DateTime.now().millisecondsSinceEpoch;
+
+  @override
+  String toString() => "$prefix${value.toRadixString(16)}";
+}
+

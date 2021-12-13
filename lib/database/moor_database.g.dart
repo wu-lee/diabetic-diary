@@ -1094,14 +1094,17 @@ class $_BasicIngredientContentsTable extends _BasicIngredientContents
 
 class _Edible extends DataClass implements Insertable<_Edible> {
   final String id;
+  final String label;
   final bool isBasic;
-  _Edible({required this.id, required this.isBasic});
+  _Edible({required this.id, required this.label, required this.isBasic});
   factory _Edible.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return _Edible(
       id: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      label: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}label'])!,
       isBasic: const BoolType()
           .mapFromDatabaseResponse(data['${effectivePrefix}is_basic'])!,
     );
@@ -1110,6 +1113,7 @@ class _Edible extends DataClass implements Insertable<_Edible> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    map['label'] = Variable<String>(label);
     map['is_basic'] = Variable<bool>(isBasic);
     return map;
   }
@@ -1117,6 +1121,7 @@ class _Edible extends DataClass implements Insertable<_Edible> {
   _EdiblesCompanion toCompanion(bool nullToAbsent) {
     return _EdiblesCompanion(
       id: Value(id),
+      label: Value(label),
       isBasic: Value(isBasic),
     );
   }
@@ -1126,6 +1131,7 @@ class _Edible extends DataClass implements Insertable<_Edible> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return _Edible(
       id: serializer.fromJson<String>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
       isBasic: serializer.fromJson<bool>(json['isBasic']),
     );
   }
@@ -1134,58 +1140,71 @@ class _Edible extends DataClass implements Insertable<_Edible> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'label': serializer.toJson<String>(label),
       'isBasic': serializer.toJson<bool>(isBasic),
     };
   }
 
-  _Edible copyWith({String? id, bool? isBasic}) => _Edible(
+  _Edible copyWith({String? id, String? label, bool? isBasic}) => _Edible(
         id: id ?? this.id,
+        label: label ?? this.label,
         isBasic: isBasic ?? this.isBasic,
       );
   @override
   String toString() {
     return (StringBuffer('_Edible(')
           ..write('id: $id, ')
+          ..write('label: $label, ')
           ..write('isBasic: $isBasic')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode, isBasic.hashCode));
+  int get hashCode =>
+      $mrjf($mrjc(id.hashCode, $mrjc(label.hashCode, isBasic.hashCode)));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is _Edible &&
           other.id == this.id &&
+          other.label == this.label &&
           other.isBasic == this.isBasic);
 }
 
 class _EdiblesCompanion extends UpdateCompanion<_Edible> {
   final Value<String> id;
+  final Value<String> label;
   final Value<bool> isBasic;
   const _EdiblesCompanion({
     this.id = const Value.absent(),
+    this.label = const Value.absent(),
     this.isBasic = const Value.absent(),
   });
   _EdiblesCompanion.insert({
     required String id,
+    required String label,
     required bool isBasic,
   })  : id = Value(id),
+        label = Value(label),
         isBasic = Value(isBasic);
   static Insertable<_Edible> custom({
     Expression<String>? id,
+    Expression<String>? label,
     Expression<bool>? isBasic,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (label != null) 'label': label,
       if (isBasic != null) 'is_basic': isBasic,
     });
   }
 
-  _EdiblesCompanion copyWith({Value<String>? id, Value<bool>? isBasic}) {
+  _EdiblesCompanion copyWith(
+      {Value<String>? id, Value<String>? label, Value<bool>? isBasic}) {
     return _EdiblesCompanion(
       id: id ?? this.id,
+      label: label ?? this.label,
       isBasic: isBasic ?? this.isBasic,
     );
   }
@@ -1195,6 +1214,9 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
     }
     if (isBasic.present) {
       map['is_basic'] = Variable<bool>(isBasic.value);
@@ -1206,6 +1228,7 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
   String toString() {
     return (StringBuffer('_EdiblesCompanion(')
           ..write('id: $id, ')
+          ..write('label: $label, ')
           ..write('isBasic: $isBasic')
           ..write(')'))
         .toString();
@@ -1224,6 +1247,14 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
         $customConstraints: 'NOT NULL');
   }
 
+  final VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedTextColumn label = _constructLabel();
+  GeneratedTextColumn _constructLabel() {
+    return GeneratedTextColumn('label', $tableName, false,
+        $customConstraints: 'NOT NULL');
+  }
+
   final VerificationMeta _isBasicMeta = const VerificationMeta('isBasic');
   @override
   late final GeneratedBoolColumn isBasic = _constructIsBasic();
@@ -1233,7 +1264,7 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
   }
 
   @override
-  List<GeneratedColumn> get $columns => [id, isBasic];
+  List<GeneratedColumn> get $columns => [id, label, isBasic];
   @override
   $_EdiblesTable get asDslTable => this;
   @override
@@ -1249,6 +1280,12 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+          _labelMeta, label.isAcceptableOrUnknown(data['label']!, _labelMeta));
+    } else if (isInserting) {
+      context.missing(_labelMeta);
     }
     if (data.containsKey('is_basic')) {
       context.handle(_isBasicMeta,

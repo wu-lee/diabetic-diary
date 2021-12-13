@@ -136,7 +136,7 @@ void main() async {
 
     test('Just BasicIngredients', () async {
       final inThing1 = BasicIngredient(
-          id: #testBasicIngredient1,
+          id: #testBasicIngredient1, label: "Ingredient1",
           contents: {
             #testContent1: Quantity(1, Units(#g, #Mass, 1)),
             #testContent2: Quantity(2, Units(#Pa, #Pressure, 1)),
@@ -144,7 +144,7 @@ void main() async {
           }
       );
       final inThing2 = BasicIngredient(
-          id: #testBasicIngredient2,
+          id: #testBasicIngredient2, label: "Ingredient2",
           contents: {
             #testContent1: Quantity(1, Units(#kg, #Mass, 1000)),
             #testContent3: Quantity(3, Units(#ghg, #MassByFraction, .01)),
@@ -189,7 +189,7 @@ void main() async {
 
     test('Just Dishes', () async {
       final inThing1 = Dish(
-          id: #testDish1,
+          id: #testDish1, label: "testDish1",
           contents: {
             #testContent1: Quantity(1, Units(#g, #Mass, 1)),
             #testContent2: Quantity(2, Units(#Pa, #Pressure, 1)),
@@ -197,7 +197,7 @@ void main() async {
           }
         );
       final inThing2 = Dish(
-          id: #testDish2,
+          id: #testDish2, label: "testDish2",
           contents: {
             #testContent1: Quantity(1, Units(#kg, #Mass, 1000)),
             #testContent3: Quantity(3, Units(#ghg, #MassByFraction, .01)),

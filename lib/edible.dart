@@ -1,5 +1,6 @@
 import 'database.dart';
 import 'dimensions.dart';
+import 'labelled.dart';
 import 'measureable.dart';
 import 'quantified.dart';
 import 'quantity.dart';
@@ -8,10 +9,8 @@ import 'quantity.dart';
 ///
 /// The physical contents may be expressed differently in some cases -
 /// specifically see [Dish]
-abstract class Edible extends Quantified {
+abstract class Edible extends Quantified implements Labelled {
   const Edible();
-
-  Map<Symbol, Quantity> get contents;
 
   Future<Map<Symbol, Quantity>> invalidContents(Database db, [Map<Symbol, Measurable>? cache]);
 

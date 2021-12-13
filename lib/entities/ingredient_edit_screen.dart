@@ -7,6 +7,7 @@ import '../basic_ingredient.dart';
 import '../open_food_facts_search_dialog.dart';
 import '../quantity.dart';
 import '../translation.dart';
+import '../utils.dart';
 
 /// The screen for editing an Ingredient
 class IngredientEditScreen extends StatefulWidget {
@@ -26,7 +27,10 @@ class IngredientEditScreen extends StatefulWidget {
 
 /// Manages state for ingredient creation / amendment
 class _IngredientEditState extends State<IngredientEditScreen> {
-  final titleController = new TextEditingController();
+  // FIXME temp datetime generated identifier
+  static Symbol newId() => Symbol(ID('ingr:').toString());
+
+  final labelController = new TextEditingController();
   final Database db;
   // This flag indicates whether the search button should be disabled
   bool isSearchDisabled = true;
@@ -39,8 +43,8 @@ class _IngredientEditState extends State<IngredientEditScreen> {
       this.ingredient = ingredient;
     }
     // Check for changes which mean we enable/disable the search button
-    titleController.addListener(() {
-      final isEmpty = titleController.text.length == 0;
+    labelController.addListener(() {
+      final isEmpty = labelController.text.length == 0;
       if (isEmpty != isSearchDisabled) {
         // Trigger a state change when updating this flag
         // which will redraw the search button in the intended state
@@ -51,9 +55,11 @@ class _IngredientEditState extends State<IngredientEditScreen> {
     });
   }
 
-  Symbol get id => Symbol(titleController.text);
-  set id(Symbol newId) {
-    titleController.text = symbolToString(newId);
+  Symbol id = newId();
+
+  String get label => labelController.text;
+  set label(String newLabel) {
+    labelController.text = newLabel;
   }
 
   Map<Symbol, Quantity> get contents => _contents;
@@ -69,6 +75,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
     contents: Map.from(_contents) // Make a copy before modifying and returning
       ..removeWhere((id, quantity) => quantity.amount == 0),
     id: id,
+    label: label,
   );
 
   set ingredient(BasicIngredient e) {
@@ -146,14 +153,15 @@ class _IngredientEditState extends State<IngredientEditScreen> {
   void doOffSearch(BuildContext context) async {
     final ingredient = await OpenFoodFactsSearchDialog.show(
         context: context,
-        searchTerms: titleController.text
+        searchTerms: labelController.text
     );
     if (ingredient == null)
       return; // Nothing to do
 
     setState(() {
-      id = ingredient.id; // FIXME need a name!
+      id = ingredient.id;
       contents = ingredient.contents;
+      label = ingredient.label;
     });
   }
 
@@ -196,7 +204,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
                 children: [
                   Expanded(
                     child: TextField(
-                      controller: titleController,
+                      controller: labelController,
                       showCursor: true,
                       textAlignVertical: TextAlignVertical.bottom,
                       onSubmitted: (txt) => doOffSearch(context),

@@ -53,7 +53,7 @@ class _IngredientState extends State<IngredientScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(TL8(ingredient.id)), actions: <Widget>[
+      appBar: AppBar(title: Text(ingredient.label), actions: <Widget>[
         IconButton(
           icon: const Icon(Icons.edit),
           tooltip: TL8(#Edit),
@@ -75,7 +75,7 @@ class _IngredientState extends State<IngredientScreen> {
         children: [
           Container(
             child: Text(
-              TL8(#Ingredients),
+              symbolToString(ingredient.id),
             ),
             height: 20,
           ),

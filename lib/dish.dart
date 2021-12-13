@@ -9,14 +9,20 @@ import 'translation.dart';
 
 
 class Dish extends CompositeEdible {
+  @override
   final Symbol id;
+
+  @override
+  final String label;
+
+  @override
   final Map<Symbol, Quantity> contents;
 
   /// Constant, therefore non-validating constructor.
   ///
   /// Make sure you only put IDs of [Edibles] in, and use the appropriate units,
   /// which should be mass.
-  const Dish({required this.id, required this.contents});
+  const Dish({required this.id, required this.label, required this.contents});
 
   @override
   bool operator== (Object that) {

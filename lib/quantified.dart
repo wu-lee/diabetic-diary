@@ -2,14 +2,9 @@
 
 import 'package:flutter/foundation.dart';
 
-import 'basic_ingredient.dart';
-import 'database.dart';
-import 'dimensions.dart';
 import 'indexable.dart';
-import 'meal.dart';
 import 'measureable.dart';
 import 'quantity.dart';
-import 'seen_check.dart';
 import 'translation.dart';
 
 /// Something with an ID which has a list of zero or more [Measurable]s.

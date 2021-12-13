@@ -52,7 +52,7 @@ class _DishState extends State<DishScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(TL8(dish.id)), actions: <Widget>[
+      appBar: AppBar(title: Text(dish.label), actions: <Widget>[
         IconButton(
           icon: const Icon(Icons.edit),
           tooltip: TL8(#Edit),
@@ -74,7 +74,7 @@ class _DishState extends State<DishScreen> {
         children: [
           Container(
             child: Text(
-              TL8(#Dishes),
+              symbolToString(dish.id),
             ),
             height: 20,
           ),

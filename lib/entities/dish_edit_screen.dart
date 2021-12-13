@@ -7,6 +7,7 @@ import '../dish.dart';
 import '../edible.dart';
 import '../quantity.dart';
 import '../translation.dart';
+import '../utils.dart';
 
 /// The screen for editing an Dish
 class DishEditScreen extends StatefulWidget {
@@ -26,8 +27,11 @@ class DishEditScreen extends StatefulWidget {
 
 /// Manages state for dish creation / amendment
 class _DishEditState extends State<DishEditScreen> {
+  // FIXME temp datetime generated identifier
+  static Symbol newId() => Symbol(ID('dish:').toString());
+
   bool isDish = false;
-  final titleController = new TextEditingController();
+  final labelController = new TextEditingController();
   final Database db;
   Map<Symbol, Quantity> _contents = {};
   Future<Map<Symbol, Quantity>> _pendingContentAmounts = Future.value({});
@@ -39,9 +43,11 @@ class _DishEditState extends State<DishEditScreen> {
     }
   }
 
-  Symbol get id => Symbol(titleController.text);
-  set id(Symbol newId) {
-    titleController.text = symbolToString(newId);
+  Symbol id = newId();
+
+  String get label => labelController.text;
+  set label(String newLabel) {
+    labelController.text = newLabel;
   }
 
   Map<Symbol, Quantity> get contents => _contents;
@@ -72,10 +78,12 @@ class _DishEditState extends State<DishEditScreen> {
     contents: Map.from(_contents) // Make a copy before modifying and returning
       ..removeWhere((id, quantity) => quantity.amount == 0),
     id: id,
+    label: label,
   );
 
   set dish(Dish e) {
     id = e.id;
+    label = e.label;
     contents = e.contents;
   }
 
@@ -164,7 +172,7 @@ class _DishEditState extends State<DishEditScreen> {
               ),
               Expanded(
                 child: TextField(
-                  controller: titleController,
+                  controller: labelController,
                   showCursor: true,
                   textAlignVertical: TextAlignVertical.bottom,
                   style: TextStyle(

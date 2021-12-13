@@ -26,6 +26,7 @@ class Meal extends CompositeEdible {
 
   final DateTime timestamp;
 
+  @override
   final String label;
 
   final String notes;

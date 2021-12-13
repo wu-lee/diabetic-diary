@@ -61,6 +61,7 @@ class _Measurables extends Table {
 
 class _Edibles extends Table {
   TextColumn get id => text().customConstraint('NOT NULL')(); // a BasicIngredient or an Dish
+  TextColumn get label => text().customConstraint('NOT NULL')(); // These labels are user-entered, so not localised
   BoolColumn get isBasic => boolean().customConstraint('NOT NULL')(); // True if a BasicIngredient
   @override
   Set<Column> get primaryKey => {id};
@@ -671,6 +672,7 @@ class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable
     List<Insertable<_Edible>> rows = [];
     rows.add(_Edible(
       id: symbolToString(value.id),
+      label: value.label,
       isBasic: value is BasicIngredient,
     ));
     return rows;
@@ -707,10 +709,13 @@ class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable
   Map<Symbol, Edible> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
     final Map<Symbol, Map<Symbol, Quantity>> edibles = {};
     final Map<Symbol, bool> isBasic = {};
+    final Map<Symbol, String> labels = {};
     edibleRows.forEach((edibleFields) {
       final id = Symbol(edibleFields.id);
+      final label = edibleFields.label;
       edibles[id] ??= <Symbol, Quantity>{};
       isBasic[id] = edibleFields.isBasic;
+      labels[id] = label;
     });
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.dishContents);
@@ -730,7 +735,9 @@ class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable
     });
     return edibles.map((id, contents) => MapEntry(
         id,
-        isBasic[id] == true? BasicIngredient(id: id, contents: contents) : Dish(id: id, contents: contents)
+        isBasic[id] == true?
+          BasicIngredient(id: id, label: labels[id] ?? '', contents: contents) :
+          Dish(id: id, label: labels[id] ?? '', contents: contents)
     ));
   }
 
@@ -759,6 +766,7 @@ class MoorDishesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable,
     List<Insertable<_Edible>> rows = [];
     rows.add(_Edible(
       id: symbolToString(value.id),
+      label: value.label,
       isBasic: false,
     ));
     return rows;
@@ -793,10 +801,10 @@ class MoorDishesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable,
   }
 
   Map<Symbol, Dish> rowsToValues(List<_Edible> dishRows, Iterable<TypedResult> contentRows) {
-    final Map<Symbol, Map<Symbol, Quantity>> dishes = {};
+    final Map<Symbol, MapEntry<String, Map<Symbol, Quantity>>> dishes = {};
     dishRows.forEach((dishFields) {
       final id = Symbol(dishFields.id);
-      dishes[id] ??= <Symbol, Quantity>{};
+      dishes[id] ??= MapEntry(dishFields.label, <Symbol, Quantity>{});
     });
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.dishContents);
@@ -810,13 +818,13 @@ class MoorDishesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable,
       Units.rogueValue :
       Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
-      dim[contains] = Quantity(
+      dim.value[contains] = Quantity(
           contentFields.amount,
           units);
     });
     return dishes.map((id, contents) => MapEntry(
         id,
-        Dish(id: id, contents: contents)
+        Dish(id: id, label: contents.key, contents: contents.value)
     ));
   }
 
@@ -844,6 +852,7 @@ class MoorBasicIngredientsCollection extends MoorAbstract1ToNTo1Collection<$_Edi
     List<Insertable<_Edible>> rows = [];
     rows.add(_Edible(
       id: symbolToString(value.id),
+      label: value.label,
       isBasic: true,
     ));
     return rows;
@@ -878,10 +887,10 @@ class MoorBasicIngredientsCollection extends MoorAbstract1ToNTo1Collection<$_Edi
   }
 
   Map<Symbol, BasicIngredient> rowsToValues(List<_Edible> dishRows, Iterable<TypedResult> contentRows) {
-    final Map<Symbol, Map<Symbol, Quantity>> ingredients = {};
+    final Map<Symbol, MapEntry<String, Map<Symbol, Quantity>>> ingredients = {};
     dishRows.forEach((dishFields) {
       final id = Symbol(dishFields.id);
-      ingredients[id] ??= <Symbol, Quantity>{};
+      ingredients[id] ??= MapEntry(dishFields.label, <Symbol, Quantity>{});
     });
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.basicIngredientContents);
@@ -895,13 +904,13 @@ class MoorBasicIngredientsCollection extends MoorAbstract1ToNTo1Collection<$_Edi
       Units.rogueValue :
       Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
-      dim[contains] = Quantity(
+      dim.value[contains] = Quantity(
           contentFields.amount,
           units);
     });
     return ingredients.map((id, contents) => MapEntry(
         id,
-        BasicIngredient(id: id, contents: contents)
+        BasicIngredient(id: id, label: contents.key, contents: contents.value)
     ));
   }
 }

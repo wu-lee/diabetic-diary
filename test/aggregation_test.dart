@@ -15,7 +15,7 @@ void main() async {
   // Define common database
   await mdb.clear();
   final ingredient1 = BasicIngredient(
-      id: #Ingredient1,
+      id: #Ingredient1, label: "Ingredient1",
       contents: {
         Measurable.Carbs.id: Quantity(1, Units.GramsPerHectogram),
         Measurable.Fat.id: Quantity(3, Units.GramsPerHectogram),
@@ -24,7 +24,7 @@ void main() async {
       }
   );
   final ingredient2 = BasicIngredient(
-      id: #Ingredient2,
+      id: #Ingredient2, label: "Ingredient2",
       contents: {
         Measurable.Carbs.id: Quantity(1, Units.GramsPerHectogram),
         Measurable.Protein.id: Quantity(3, Units.GramsPerHectogram),
@@ -33,7 +33,7 @@ void main() async {
       }
   );
   final ingredient3 = BasicIngredient(
-      id: #Ingredient3,
+      id: #Ingredient3, label: "Ingredient3",
       contents: {
         Measurable.Carbs.id: Quantity(500, Units.GramsPerKilogram),
         Measurable.Protein.id: Quantity(2, Units.GramsPerKilogram),

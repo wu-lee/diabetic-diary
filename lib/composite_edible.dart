@@ -12,8 +12,6 @@ import 'quantity.dart';
 abstract class CompositeEdible extends Edible {
   const CompositeEdible();
 
-  Map<Symbol, Quantity> get contents;
-
   /// Get the total mass of the contents in grams
   ///
   /// Assumes that the contents all have units of mass and do not overlap!

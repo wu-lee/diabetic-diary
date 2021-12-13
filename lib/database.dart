@@ -227,20 +227,21 @@ abstract class Database {
         final
           tahini = BasicIngredient(
             id: #Tahini,
-          contents: {
+            label: "Tahini",
+            contents: {
               Measurable.Carbs.id: Units.GramsPerHectogram.times(1),
               Measurable.Fat.id: Units.GramsPerHectogram.times(2),
             },
           ),
           cabbage = BasicIngredient(
-            id: #Cabbage,
+            id: #Cabbage, label: "Cabbage",
             contents: {
               Measurable.Carbs.id: Units.GramsPerHectogram.times(1),
               Measurable.Fibre.id: Units.GramsPerHectogram.times(1),
             },
           ),
           salad = Dish(
-            id: #Salad,
+            id: #Salad, label: "Salad",
             contents: {
               tahini.id: Units.Grams.times(1),
               cabbage.id: Units.Grams.times(2),
