@@ -28,6 +28,11 @@ part 'moor_database.g.dart';
 //  To continuously rebuild the generated code when changed:
 //      flutter packages pub run build_runner watch
 
+class _Labels extends Table {
+  TextColumn get id => text().customConstraint('NOT NULL')();
+  TextColumn get label => text().customConstraint('NOT NULL')();
+}
+
 class _Dimensions extends Table {
   TextColumn get id => text().customConstraint('NOT NULL')();
   TextColumn get componentId => text().customConstraint('NOT NULL')();
@@ -123,7 +128,7 @@ LazyDatabase _openConnection() {
 }
 
 @UseMoor(tables: [_Config, _Units, _Dimensions, _Measurables, _BasicIngredientContents, _Edibles, _DishContents,
-                  _Meals, _MealContents])
+                  _Meals, _MealContents, _Labels])
 class _MoorDatabase extends _$_MoorDatabase {
   // we tell the database where to store the data with this constructor
   _MoorDatabase() : super(_openConnection());

@@ -2061,6 +2061,185 @@ class $_MealContentsTable extends _MealContents
   }
 }
 
+class _Label extends DataClass implements Insertable<_Label> {
+  final String id;
+  final String label;
+  _Label({required this.id, required this.label});
+  factory _Label.fromData(Map<String, dynamic> data, GeneratedDatabase db,
+      {String? prefix}) {
+    final effectivePrefix = prefix ?? '';
+    return _Label(
+      id: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
+      label: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}label'])!,
+    );
+  }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['label'] = Variable<String>(label);
+    return map;
+  }
+
+  _LabelsCompanion toCompanion(bool nullToAbsent) {
+    return _LabelsCompanion(
+      id: Value(id),
+      label: Value(label),
+    );
+  }
+
+  factory _Label.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return _Label(
+      id: serializer.fromJson<String>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'label': serializer.toJson<String>(label),
+    };
+  }
+
+  _Label copyWith({String? id, String? label}) => _Label(
+        id: id ?? this.id,
+        label: label ?? this.label,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('_Label(')
+          ..write('id: $id, ')
+          ..write('label: $label')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $mrjf($mrjc(id.hashCode, label.hashCode));
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is _Label && other.id == this.id && other.label == this.label);
+}
+
+class _LabelsCompanion extends UpdateCompanion<_Label> {
+  final Value<String> id;
+  final Value<String> label;
+  const _LabelsCompanion({
+    this.id = const Value.absent(),
+    this.label = const Value.absent(),
+  });
+  _LabelsCompanion.insert({
+    required String id,
+    required String label,
+  })  : id = Value(id),
+        label = Value(label);
+  static Insertable<_Label> custom({
+    Expression<String>? id,
+    Expression<String>? label,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (label != null) 'label': label,
+    });
+  }
+
+  _LabelsCompanion copyWith({Value<String>? id, Value<String>? label}) {
+    return _LabelsCompanion(
+      id: id ?? this.id,
+      label: label ?? this.label,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('_LabelsCompanion(')
+          ..write('id: $id, ')
+          ..write('label: $label')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $_LabelsTable extends _Labels with TableInfo<$_LabelsTable, _Label> {
+  final GeneratedDatabase _db;
+  final String? _alias;
+  $_LabelsTable(this._db, [this._alias]);
+  final VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedTextColumn id = _constructId();
+  GeneratedTextColumn _constructId() {
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL');
+  }
+
+  final VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedTextColumn label = _constructLabel();
+  GeneratedTextColumn _constructLabel() {
+    return GeneratedTextColumn('label', $tableName, false,
+        $customConstraints: 'NOT NULL');
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, label];
+  @override
+  $_LabelsTable get asDslTable => this;
+  @override
+  String get $tableName => _alias ?? 'labels';
+  @override
+  final String actualTableName = 'labels';
+  @override
+  VerificationContext validateIntegrity(Insertable<_Label> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+          _labelMeta, label.isAcceptableOrUnknown(data['label']!, _labelMeta));
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => <GeneratedColumn>{};
+  @override
+  _Label map(Map<String, dynamic> data, {String? tablePrefix}) {
+    return _Label.fromData(data, _db,
+        prefix: tablePrefix != null ? '$tablePrefix.' : null);
+  }
+
+  @override
+  $_LabelsTable createAlias(String alias) {
+    return $_LabelsTable(_db, alias);
+  }
+}
+
 abstract class _$_MoorDatabase extends GeneratedDatabase {
   _$_MoorDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
   late final $_ConfigTable config = $_ConfigTable(this);
@@ -2073,6 +2252,7 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
   late final $_DishContentsTable dishContents = $_DishContentsTable(this);
   late final $_MealsTable meals = $_MealsTable(this);
   late final $_MealContentsTable mealContents = $_MealContentsTable(this);
+  late final $_LabelsTable labels = $_LabelsTable(this);
   @override
   Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
   @override
@@ -2085,6 +2265,7 @@ abstract class _$_MoorDatabase extends GeneratedDatabase {
         edibles,
         dishContents,
         meals,
-        mealContents
+        mealContents,
+        labels
       ];
 }
