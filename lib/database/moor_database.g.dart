@@ -135,11 +135,8 @@ class $_ConfigTable extends _Config with TableInfo<$_ConfigTable, _ConfigData> {
   @override
   late final GeneratedTextColumn id = _constructId();
   GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _valueMeta = const VerificationMeta('value');
@@ -349,11 +346,8 @@ class $_UnitsTable extends _Units with TableInfo<$_UnitsTable, _Unit> {
   @override
   late final GeneratedTextColumn id = _constructId();
   GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _dimensionsIdMeta =
@@ -369,11 +363,8 @@ class $_UnitsTable extends _Units with TableInfo<$_UnitsTable, _Unit> {
   @override
   late final GeneratedRealColumn multiplier = _constructMultiplier();
   GeneratedRealColumn _constructMultiplier() {
-    return GeneratedRealColumn(
-      'multiplier',
-      $tableName,
-      false,
-    );
+    return GeneratedRealColumn('multiplier', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   @override
@@ -581,11 +572,8 @@ class $_DimensionsTable extends _Dimensions
   @override
   late final GeneratedTextColumn id = _constructId();
   GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _componentIdMeta =
@@ -593,22 +581,16 @@ class $_DimensionsTable extends _Dimensions
   @override
   late final GeneratedTextColumn componentId = _constructComponentId();
   GeneratedTextColumn _constructComponentId() {
-    return GeneratedTextColumn(
-      'component_id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('component_id', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _exponentMeta = const VerificationMeta('exponent');
   @override
   late final GeneratedIntColumn exponent = _constructExponent();
   GeneratedIntColumn _constructExponent() {
-    return GeneratedIntColumn(
-      'exponent',
-      $tableName,
-      false,
-    );
+    return GeneratedIntColumn('exponent', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   @override
@@ -789,11 +771,8 @@ class $_MeasurablesTable extends _Measurables
   @override
   late final GeneratedTextColumn id = _constructId();
   GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
@@ -1046,11 +1025,8 @@ class $_BasicIngredientContentsTable extends _BasicIngredientContents
   @override
   late final GeneratedRealColumn amount = _constructAmount();
   GeneratedRealColumn _constructAmount() {
-    return GeneratedRealColumn(
-      'amount',
-      $tableName,
-      false,
-    );
+    return GeneratedRealColumn('amount', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
@@ -1244,22 +1220,16 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
   @override
   late final GeneratedTextColumn id = _constructId();
   GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _isBasicMeta = const VerificationMeta('isBasic');
   @override
   late final GeneratedBoolColumn isBasic = _constructIsBasic();
   GeneratedBoolColumn _constructIsBasic() {
-    return GeneratedBoolColumn(
-      'is_basic',
-      $tableName,
-      false,
-    );
+    return GeneratedBoolColumn('is_basic', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   @override
@@ -1501,11 +1471,8 @@ class $_DishContentsTable extends _DishContents
   @override
   late final GeneratedRealColumn amount = _constructAmount();
   GeneratedRealColumn _constructAmount() {
-    return GeneratedRealColumn(
-      'amount',
-      $tableName,
-      false,
-    );
+    return GeneratedRealColumn('amount', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
@@ -1750,44 +1717,32 @@ class $_MealsTable extends _Meals with TableInfo<$_MealsTable, _Meal> {
   @override
   late final GeneratedTextColumn id = _constructId();
   GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn(
-      'id',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('id', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedTextColumn title = _constructTitle();
   GeneratedTextColumn _constructTitle() {
-    return GeneratedTextColumn(
-      'title',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('title', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedTextColumn notes = _constructNotes();
   GeneratedTextColumn _constructNotes() {
-    return GeneratedTextColumn(
-      'notes',
-      $tableName,
-      false,
-    );
+    return GeneratedTextColumn('notes', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _timestampMeta = const VerificationMeta('timestamp');
   @override
   late final GeneratedDateTimeColumn timestamp = _constructTimestamp();
   GeneratedDateTimeColumn _constructTimestamp() {
-    return GeneratedDateTimeColumn(
-      'timestamp',
-      $tableName,
-      false,
-    );
+    return GeneratedDateTimeColumn('timestamp', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   @override
@@ -2041,11 +1996,8 @@ class $_MealContentsTable extends _MealContents
   @override
   late final GeneratedRealColumn amount = _constructAmount();
   GeneratedRealColumn _constructAmount() {
-    return GeneratedRealColumn(
-      'amount',
-      $tableName,
-      false,
-    );
+    return GeneratedRealColumn('amount', $tableName, false,
+        $customConstraints: 'NOT NULL');
   }
 
   final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');

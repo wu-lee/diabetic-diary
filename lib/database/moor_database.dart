@@ -29,25 +29,25 @@ part 'moor_database.g.dart';
 //      flutter packages pub run build_runner watch
 
 class _Dimensions extends Table {
-  TextColumn get id => text()();
-  TextColumn get componentId => text()();
-  IntColumn get exponent => integer()();
+  TextColumn get id => text().customConstraint('NOT NULL')();
+  TextColumn get componentId => text().customConstraint('NOT NULL')();
+  IntColumn get exponent => integer().customConstraint('NOT NULL')();
 
   @override
   Set<Column> get primaryKey => {id, componentId};
 }
 
 class _Units extends Table {
-  TextColumn get id => text()();
+  TextColumn get id => text().customConstraint('NOT NULL')();
   TextColumn get dimensionsId => text().customConstraint('NOT NULL REFERENCES dimensions(id)')();
-  RealColumn get multiplier => real()();
+  RealColumn get multiplier => real().customConstraint('NOT NULL')();
 
   @override
   Set<Column> get primaryKey => {dimensionsId, id};
 }
 
 class _Measurables extends Table {
-  TextColumn get id => text()();
+  TextColumn get id => text().customConstraint('NOT NULL')();
   TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
 
   @override
@@ -55,8 +55,8 @@ class _Measurables extends Table {
 }
 
 class _Edibles extends Table {
-  TextColumn get id => text()(); // a BasicIngredient or an Dish
-  BoolColumn get isBasic => boolean()(); // True if a BasicIngredient
+  TextColumn get id => text().customConstraint('NOT NULL')(); // a BasicIngredient or an Dish
+  BoolColumn get isBasic => boolean().customConstraint('NOT NULL')(); // True if a BasicIngredient
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -64,7 +64,7 @@ class _Edibles extends Table {
 class _BasicIngredientContents extends Table {
   TextColumn get id => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
   TextColumn get contains => text().customConstraint('NOT NULL REFERENCES measurables(id)')();
-  RealColumn get amount => real()();
+  RealColumn get amount => real().customConstraint('NOT NULL')();
   TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
 
   @override
@@ -74,7 +74,7 @@ class _BasicIngredientContents extends Table {
 class _DishContents extends Table {
   TextColumn get id => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
   TextColumn get contains => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
-  RealColumn get amount => real()();
+  RealColumn get amount => real().customConstraint('NOT NULL')();
   TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
 
   @override
@@ -82,10 +82,10 @@ class _DishContents extends Table {
 }
 
 class _Meals extends Table {
-  TextColumn get id => text()();
-  TextColumn get title => text()();
-  TextColumn get notes => text()();
-  DateTimeColumn get timestamp => dateTime()();
+  TextColumn get id => text().customConstraint('NOT NULL')();
+  TextColumn get title => text().customConstraint('NOT NULL')();
+  TextColumn get notes => text().customConstraint('NOT NULL')();
+  DateTimeColumn get timestamp => dateTime().customConstraint('NOT NULL')();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -94,7 +94,7 @@ class _Meals extends Table {
 class _MealContents extends Table {
   TextColumn get id => text().customConstraint('NOT NULL REFERENCES meals(id)')();
   TextColumn get contains => text().customConstraint('NOT NULL REFERENCES edibles(id)')();
-  RealColumn get amount => real()();
+  RealColumn get amount => real().customConstraint('NOT NULL')();
   TextColumn get unitsId => text().customConstraint('NOT NULL REFERENCES units(id)')();
 
   @override
@@ -102,7 +102,7 @@ class _MealContents extends Table {
 }
 
 class _Config extends Table {
-  TextColumn get id => text()();
+  TextColumn get id => text().customConstraint('NOT NULL')();
   TextColumn get value => text()();
 
   @override
