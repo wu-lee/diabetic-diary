@@ -243,7 +243,7 @@ void main() async {
     test('Just Meals', () async {
       final inThing1 = Meal(
           id: #testMeal1,
-          title: 'Test Meal 1',
+          label: 'Test Meal 1',
           timestamp: DateTime(2021, 8, 1, 15, 45),
           notes: 'Test notes 1',
           contents: {
@@ -254,7 +254,7 @@ void main() async {
       );
       final inThing2 = Meal(
           id: #testMeal2,
-          title: 'Test Meal 2',
+          label: 'Test Meal 2',
           timestamp: DateTime(2021, 8, 1, 18, 30),
           notes: 'Test notes 2',
           contents: {

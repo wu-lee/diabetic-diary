@@ -248,7 +248,7 @@ abstract class Database {
           );
         final meal1 = Meal(
           id: #Meal1,
-          title: "Meal 1",
+          label: "Meal 1",
           timestamp: DateTime(2021),
           notes: "",
             contents: {

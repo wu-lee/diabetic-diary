@@ -84,7 +84,7 @@ class _MealEditState extends State<MealEditScreen> {
 
   Meal get meal => Meal(
     id: id,
-    title: titleController.text,
+    label: titleController.text,
     timestamp: timestamp,
     notes: notesController.text,
     contents: Map.from(_contents) // Make a copy before modifying and returning
@@ -93,7 +93,7 @@ class _MealEditState extends State<MealEditScreen> {
 
   set meal(Meal e) {
     id = e.id;
-    title = e.title;
+    title = e.label;
     timestamp = e.timestamp;
     notes = e.notes;
     contents = e.contents;

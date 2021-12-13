@@ -83,7 +83,7 @@ class _DishContents extends Table {
 
 class _Meals extends Table {
   TextColumn get id => text().customConstraint('NOT NULL')();
-  TextColumn get title => text().customConstraint('NOT NULL')();
+  TextColumn get label => text().customConstraint('NOT NULL')();
   TextColumn get notes => text().customConstraint('NOT NULL')();
   DateTimeColumn get timestamp => dateTime().customConstraint('NOT NULL')();
 
@@ -920,7 +920,7 @@ class MoorMealsCollection extends MoorAbstract1ToNTo1Collection<$_MealsTable, _M
     rows.add(_Meal(
       id: symbolToString(value.id),
       timestamp: value.timestamp,
-      title: value.title,
+      label: value.label,
       notes: value.notes,
     ));
     return rows;
@@ -982,7 +982,7 @@ class MoorMealsCollection extends MoorAbstract1ToNTo1Collection<$_MealsTable, _M
         id,
         Meal(
             id: id,
-            title: meal.title,
+            label: meal.label,
             notes: meal.notes,
             timestamp: meal.timestamp,
             contents: mealContents[id] ?? {},

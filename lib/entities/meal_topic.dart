@@ -56,7 +56,7 @@ class MealTopic implements EntityTopic<Meal> {
               child: Text(_dateFormat.format(entity.timestamp.toLocal())),
             ),
             Expanded(
-              child: Text(entity.title, textAlign: TextAlign.right),
+              child: Text(entity.label, textAlign: TextAlign.right),
             ),
           ],
         ),

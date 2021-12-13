@@ -1538,12 +1538,12 @@ class $_DishContentsTable extends _DishContents
 
 class _Meal extends DataClass implements Insertable<_Meal> {
   final String id;
-  final String title;
+  final String label;
   final String notes;
   final DateTime timestamp;
   _Meal(
       {required this.id,
-      required this.title,
+      required this.label,
       required this.notes,
       required this.timestamp});
   factory _Meal.fromData(Map<String, dynamic> data, GeneratedDatabase db,
@@ -1552,8 +1552,8 @@ class _Meal extends DataClass implements Insertable<_Meal> {
     return _Meal(
       id: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      title: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}title'])!,
+      label: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}label'])!,
       notes: const StringType()
           .mapFromDatabaseResponse(data['${effectivePrefix}notes'])!,
       timestamp: const DateTimeType()
@@ -1564,7 +1564,7 @@ class _Meal extends DataClass implements Insertable<_Meal> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['title'] = Variable<String>(title);
+    map['label'] = Variable<String>(label);
     map['notes'] = Variable<String>(notes);
     map['timestamp'] = Variable<DateTime>(timestamp);
     return map;
@@ -1573,7 +1573,7 @@ class _Meal extends DataClass implements Insertable<_Meal> {
   _MealsCompanion toCompanion(bool nullToAbsent) {
     return _MealsCompanion(
       id: Value(id),
-      title: Value(title),
+      label: Value(label),
       notes: Value(notes),
       timestamp: Value(timestamp),
     );
@@ -1584,7 +1584,7 @@ class _Meal extends DataClass implements Insertable<_Meal> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return _Meal(
       id: serializer.fromJson<String>(json['id']),
-      title: serializer.fromJson<String>(json['title']),
+      label: serializer.fromJson<String>(json['label']),
       notes: serializer.fromJson<String>(json['notes']),
       timestamp: serializer.fromJson<DateTime>(json['timestamp']),
     );
@@ -1594,17 +1594,17 @@ class _Meal extends DataClass implements Insertable<_Meal> {
     serializer ??= moorRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'title': serializer.toJson<String>(title),
+      'label': serializer.toJson<String>(label),
       'notes': serializer.toJson<String>(notes),
       'timestamp': serializer.toJson<DateTime>(timestamp),
     };
   }
 
   _Meal copyWith(
-          {String? id, String? title, String? notes, DateTime? timestamp}) =>
+          {String? id, String? label, String? notes, DateTime? timestamp}) =>
       _Meal(
         id: id ?? this.id,
-        title: title ?? this.title,
+        label: label ?? this.label,
         notes: notes ?? this.notes,
         timestamp: timestamp ?? this.timestamp,
       );
@@ -1612,7 +1612,7 @@ class _Meal extends DataClass implements Insertable<_Meal> {
   String toString() {
     return (StringBuffer('_Meal(')
           ..write('id: $id, ')
-          ..write('title: $title, ')
+          ..write('label: $label, ')
           ..write('notes: $notes, ')
           ..write('timestamp: $timestamp')
           ..write(')'))
@@ -1621,46 +1621,46 @@ class _Meal extends DataClass implements Insertable<_Meal> {
 
   @override
   int get hashCode => $mrjf($mrjc(id.hashCode,
-      $mrjc(title.hashCode, $mrjc(notes.hashCode, timestamp.hashCode))));
+      $mrjc(label.hashCode, $mrjc(notes.hashCode, timestamp.hashCode))));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is _Meal &&
           other.id == this.id &&
-          other.title == this.title &&
+          other.label == this.label &&
           other.notes == this.notes &&
           other.timestamp == this.timestamp);
 }
 
 class _MealsCompanion extends UpdateCompanion<_Meal> {
   final Value<String> id;
-  final Value<String> title;
+  final Value<String> label;
   final Value<String> notes;
   final Value<DateTime> timestamp;
   const _MealsCompanion({
     this.id = const Value.absent(),
-    this.title = const Value.absent(),
+    this.label = const Value.absent(),
     this.notes = const Value.absent(),
     this.timestamp = const Value.absent(),
   });
   _MealsCompanion.insert({
     required String id,
-    required String title,
+    required String label,
     required String notes,
     required DateTime timestamp,
   })  : id = Value(id),
-        title = Value(title),
+        label = Value(label),
         notes = Value(notes),
         timestamp = Value(timestamp);
   static Insertable<_Meal> custom({
     Expression<String>? id,
-    Expression<String>? title,
+    Expression<String>? label,
     Expression<String>? notes,
     Expression<DateTime>? timestamp,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (title != null) 'title': title,
+      if (label != null) 'label': label,
       if (notes != null) 'notes': notes,
       if (timestamp != null) 'timestamp': timestamp,
     });
@@ -1668,12 +1668,12 @@ class _MealsCompanion extends UpdateCompanion<_Meal> {
 
   _MealsCompanion copyWith(
       {Value<String>? id,
-      Value<String>? title,
+      Value<String>? label,
       Value<String>? notes,
       Value<DateTime>? timestamp}) {
     return _MealsCompanion(
       id: id ?? this.id,
-      title: title ?? this.title,
+      label: label ?? this.label,
       notes: notes ?? this.notes,
       timestamp: timestamp ?? this.timestamp,
     );
@@ -1685,8 +1685,8 @@ class _MealsCompanion extends UpdateCompanion<_Meal> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
@@ -1701,7 +1701,7 @@ class _MealsCompanion extends UpdateCompanion<_Meal> {
   String toString() {
     return (StringBuffer('_MealsCompanion(')
           ..write('id: $id, ')
-          ..write('title: $title, ')
+          ..write('label: $label, ')
           ..write('notes: $notes, ')
           ..write('timestamp: $timestamp')
           ..write(')'))
@@ -1721,11 +1721,11 @@ class $_MealsTable extends _Meals with TableInfo<$_MealsTable, _Meal> {
         $customConstraints: 'NOT NULL');
   }
 
-  final VerificationMeta _titleMeta = const VerificationMeta('title');
+  final VerificationMeta _labelMeta = const VerificationMeta('label');
   @override
-  late final GeneratedTextColumn title = _constructTitle();
-  GeneratedTextColumn _constructTitle() {
-    return GeneratedTextColumn('title', $tableName, false,
+  late final GeneratedTextColumn label = _constructLabel();
+  GeneratedTextColumn _constructLabel() {
+    return GeneratedTextColumn('label', $tableName, false,
         $customConstraints: 'NOT NULL');
   }
 
@@ -1746,7 +1746,7 @@ class $_MealsTable extends _Meals with TableInfo<$_MealsTable, _Meal> {
   }
 
   @override
-  List<GeneratedColumn> get $columns => [id, title, notes, timestamp];
+  List<GeneratedColumn> get $columns => [id, label, notes, timestamp];
   @override
   $_MealsTable get asDslTable => this;
   @override
@@ -1763,11 +1763,11 @@ class $_MealsTable extends _Meals with TableInfo<$_MealsTable, _Meal> {
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('title')) {
+    if (data.containsKey('label')) {
       context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+          _labelMeta, label.isAcceptableOrUnknown(data['label']!, _labelMeta));
     } else if (isInserting) {
-      context.missing(_titleMeta);
+      context.missing(_labelMeta);
     }
     if (data.containsKey('notes')) {
       context.handle(

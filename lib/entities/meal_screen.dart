@@ -54,7 +54,7 @@ class _MealState extends State<MealScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(meal.title), actions: <Widget>[
+      appBar: AppBar(title: Text(meal.label), actions: <Widget>[
         IconButton(
           icon: const Icon(Icons.edit),
           tooltip: TL8(#Edit),
@@ -80,7 +80,7 @@ class _MealState extends State<MealScreen> {
             child:  Row(
               children: [
                 Expanded(child: Text(TL8(#MealTitle))),
-                Text(_meal.title),
+                Text(_meal.label),
               ],
             ),
           ),

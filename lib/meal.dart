@@ -16,7 +16,7 @@ class Meal extends CompositeEdible {
   Meal({
     required this.id,
     required this.timestamp,
-    required this.title,
+    required this.label,
     required this.notes,
     required this.contents,
   });
@@ -26,7 +26,7 @@ class Meal extends CompositeEdible {
 
   final DateTime timestamp;
 
-  final String title;
+  final String label;
 
   final String notes;
 
@@ -51,7 +51,7 @@ class Meal extends CompositeEdible {
   int get hashCode => contents.hashCode ^ id.hashCode;
 
   String format() =>
-      "Meal(id: ${symbolToString(id)}, $title, $timestamp, $notes, contents: ${Quantified.formatContents(contents)})";
+      "Meal(id: ${symbolToString(id)}, $label, $timestamp, $notes, contents: ${Quantified.formatContents(contents)})";
 
   @override
   Future<Map<Symbol, Quantity>> invalidContents(Database db, [Map<Symbol, Measurable>? cache]) =>
