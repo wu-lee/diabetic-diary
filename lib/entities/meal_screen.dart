@@ -68,6 +68,16 @@ class _MealState extends State<MealScreen> {
           },
         ),
       ]),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.delete),
+        onPressed: () {
+          setState(() {
+            db.meals.remove(_meal.id);
+          });
+          Navigator.pop(context);
+        },
+        tooltip: TL8(#DeleteFromIndex),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(8),
         children: [
