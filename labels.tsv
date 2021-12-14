@@ -1,0 +1,61 @@
+id	en
+AvailableIngredients	Available Ingredients
+AvailableItems	Available Items
+AvailableStats	Available Statistics
+Cabbage	Cabbage
+Caffeine	Caffeine
+cal	cal
+cal_per_g	cal/g
+Carbs	Carbohydrates
+CompositionStats	Composition Statistics
+Contents	Contents
+DeleteFromIndex	Delete from index
+Dishes	Dishes
+Edit	Edit
+Energy	Energy
+EnergyByMass	Energy by Mass
+ErrorCalculatingStats	Error calculating statistics
+Fat	Fat
+Fibre	Fibre
+FractionalMass	Fractional Mass
+FractionByMass	Fraction by Mass
+g	g
+g_per_cg	g/cg
+g_per_g	g/g
+g_per_hg	g/100g
+g_per_kg	g/kg
+g_per_mg	g/mg
+HomePage	Home Page
+Ingredients	Ingredients
+Items	Items
+J	J
+J_per_g	J/g
+J_per_hg	J/100g
+J_per_kg	J/kg
+kcal	kcal
+kcal_per_g	kcal/g
+kcal_per_hg	kcal/100g
+kg	kg
+kJ	kJ
+kJ_per_g	kJ/g
+Mass	Mass
+MealId	Meal ID
+MealNotes	Meal Notes
+Meals	Meals
+MealTime	Mile Time
+mg	mg
+NewDish	New Dish
+NewIngredient	New Ingredient
+NewMeal	New Meal
+Overview	Overview
+Protein	Protein
+Salad	Salad
+Salt	Salt
+SaturatedFat	Saturated Fat
+Sodium	Sodium
+Sugar	Sugar
+Tahini	Tahini
+ug	µg
+YouHaveNDishes	You have %{n} Dishes
+YouHaveNIngredients	You have %{n} Ingredients
+YouHaveNMacroNutrients	You have %{n} Macronutrients
