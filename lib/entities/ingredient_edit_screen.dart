@@ -7,6 +7,7 @@ import '../basic_ingredient.dart';
 import '../open_food_facts_search_dialog.dart';
 import '../quantity.dart';
 import '../translation.dart';
+import '../units.dart';
 import '../utils.dart';
 
 /// The screen for editing an Ingredient
@@ -81,6 +82,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
   set ingredient(BasicIngredient e) {
     id = e.id;
     contents = e.contents;
+    label = e.label;
   }
 
   Widget _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
@@ -177,24 +179,6 @@ class _IngredientEditState extends State<IngredientEditScreen> {
           ),
           actions: <Widget>[]
         ),
-/*        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.add),
-          onPressed: () {
-            print("add ingredient");
-            setState(() {
-              ingredients
-                  .add(MapEntry(ingredients.get(#Cabbage), Mass.grams(10)));
-              compositionStats = Ingredient.aggregate(ingredients);
-            });
-          / *Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => null,
-            ),
-          );* /
-          },
-          tooltip: 'Add Ingredient',
-        ),*/
         body: Container(
           padding: const EdgeInsets.all(8),
           child: Column(
@@ -253,34 +237,38 @@ class _IngredientEditState extends State<IngredientEditScreen> {
                     Expanded(
                       child: FutureBuilder<Map<Symbol, Measurable>>( // Ingredients
                         future: db.measurables.getAll().then((list) => list..removeWhere((k, v) => k == id)),
-                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Measurable>> snapshot) => ListView(
-                          children: (snapshot.data?.values ?? []).map(
-                            (e) => Container(
-                              child: Row(
-                                children: [
-                                  Expanded(child: Text(TL8(e.id))),
-                                  MaterialButton(
-                                    shape: CircleBorder(),
-                                    textColor: Colors.white,
-                                    child: Icon(Icons.add),
-                                    color: Colors.blue,
-                                    onPressed: () async {
-                                      final gramsPerHectagram = await db.units.fetch(#g_per_hg);
-                                      final newContents = await _pendingContentAmounts;
-                                      final quantity = newContents[e.id] ?? Quantity(0, gramsPerHectagram);
-                                      final aggregated = await db.aggregate(newContents, 1);
-                                      newContents[e.id] = quantity.add(1);
+                        builder: (BuildContext context, AsyncSnapshot<Map<Symbol, Measurable>> snapshot) {
+                          final measurables = snapshot.data?.values ?? [];
+                          return ListView(
+                            children: measurables.map(
+                                  (e) =>
+                                  Container(
+                                    child: Row(
+                                      children: [
+                                        Expanded(child: Text(TL8(e.id))),
+                                        MaterialButton(
+                                          shape: CircleBorder(),
+                                          textColor: Colors.white,
+                                          child: Icon(Icons.add),
+                                          color: Colors.blue,
+                                          onPressed: () async {
+                                            final newContents = await _pendingContentAmounts;
+                                            if (newContents.containsKey(e.id))
+                                              return; // nothing to do, exists already
 
-                                      setState(() {
-                                        contents = newContents;
-                                      });
-                                    },
+                                            newContents[e.id] = Quantity(1, e.defaultUnits);
+
+                                            setState(() {
+                                              contents = newContents;
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          ).toList(),
-                        ),
+                            ).toList(),
+                          );
+                        }
                       ),
                     ),
                   ],

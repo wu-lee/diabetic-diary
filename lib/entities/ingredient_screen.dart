@@ -1,4 +1,5 @@
 import 'package:diabetic_diary/basic_ingredient.dart';
+import 'package:diabetic_diary/utils.dart';
 import 'package:flutter/material.dart';
 
 import '../database.dart';
@@ -24,21 +25,25 @@ class _IngredientState extends State<IngredientScreen> {
   BasicIngredient _ingredient;
   final Database db;
 
-  Future<Map<Symbol, String>> _compositionStats = Future.value({});
-  Future<Map<Symbol, String>> _contentAmounts = Future.value({});
+  Future<Map<Symbol, MapEntry<String, String>>> _compositionStats = Future.value({});
+  Future<Map<Symbol, MapEntry<String, String>>> _contentAmounts = Future.value({});
 
   BasicIngredient get ingredient => _ingredient;
   set ingredient(BasicIngredient e) {
     _ingredient = e;
-    _contentAmounts = _format(ingredient.contents);
-    _compositionStats = db.aggregate(ingredient.contents, 1).then(_format);
+    _contentAmounts = db.retrieveEdibles(ingredient.contents.keys)
+        .then((e) => formatLabelledQuantities(ingredient.contents, e));
+    _compositionStats = db.aggregate(ingredient.contents, 1)
+        .then(formatLocalisedQuantities);
   }
 
   _IngredientState(BasicIngredient ingredient, this.db) :
         this._ingredient = ingredient
   {
-    _contentAmounts = _format(ingredient.contents);
-    _compositionStats = db.aggregate(ingredient.contents, 1).then(_format);
+    _contentAmounts = db.retrieveEdibles(ingredient.contents.keys)
+        .then((e) => formatLabelledQuantities(ingredient.contents, e));
+    _compositionStats = db.aggregate(ingredient.contents, 1)
+        .then(formatLocalisedQuantities);
   }
 
   Future<Map<Symbol, String>> _format(Map<Symbol, Quantity> entities) async {
@@ -70,6 +75,16 @@ class _IngredientState extends State<IngredientScreen> {
           },
         ),
       ]),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.delete),
+        onPressed: () {
+          setState(() {
+            db.ingredients.remove(ingredient.id);
+          });
+          Navigator.pop(context);
+        },
+        tooltip: TL8(#DeleteFromIndex),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(8),
         children: [
@@ -90,7 +105,7 @@ class _IngredientState extends State<IngredientScreen> {
 
   Widget _buildEntityList({
     required String title,
-    required futureEntities,
+    required Future<Map<Symbol, MapEntry<String, String>>> futureEntities,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,11 +117,11 @@ class _IngredientState extends State<IngredientScreen> {
           ),
           height: 50,
         ),
-        FutureBuilder<Map<Symbol, String>>(
+        FutureBuilder<Map<Symbol, MapEntry<String, String>>>(
           future: futureEntities,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              final Map<Symbol, String> entities = snapshot.data ?? {};
+              final Map<Symbol, MapEntry<String, String>> entities = snapshot.data ?? {};
               return Column(
                 // Ingredients
                 children: entities.entries.map((e) =>
@@ -115,8 +130,8 @@ class _IngredientState extends State<IngredientScreen> {
                           vertical: 3, horizontal: 10),
                       child: Row(
                         children: [
-                          Expanded(child: Text(TL8(e.key))),
-                          Text(e.value),
+                          Expanded(child: Text(e.value.key)),
+                          Text(e.value.value),
                         ],
                       ),
                     ),

@@ -194,6 +194,21 @@ abstract class Database {
     return Quantified.aggregate(contents, totalMass, await traverseContents(contents.keys), seen);
   }
 
+
+  /// Temp means to access a lot of edibles.
+  ///
+  /// FIXME Later, could be optimised into the collection classes
+  Future<Map<Symbol, Edible>> retrieveEdibles(Iterable<Symbol> ids) async {
+    final Map<Symbol, Edible> result = {};
+    for(final id in ids) {
+      final edible = await edibles.maybeGet(id);
+      if (edible != null)
+        result[id] = edible;
+    }
+    return result;
+  }
+
+
   /// Sets up an empty database
   static Future<void> initialiseData(Database db) async {
     final int version = await db.version;

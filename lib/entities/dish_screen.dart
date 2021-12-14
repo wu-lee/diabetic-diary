@@ -4,6 +4,7 @@ import '../database.dart';
 import '../dish.dart';
 import '../quantity.dart';
 import '../translation.dart';
+import '../utils.dart';
 import 'dish_edit_screen.dart';
 
 /// The screen for inspecting an Dish
@@ -23,21 +24,25 @@ class _DishState extends State<DishScreen> {
   Dish _dish;
   final Database db;
 
-  Future<Map<Symbol, String>> _compositionStats = Future.value({});
-  Future<Map<Symbol, String>> _contentAmounts = Future.value({});
+  Future<Map<Symbol, MapEntry<String, String>>> _compositionStats = Future.value({});
+  Future<Map<Symbol, MapEntry<String, String>>> _contentAmounts = Future.value({});
 
   Dish get dish => _dish;
   set dish(Dish e) {
     _dish = e;
-    _contentAmounts = _format(dish.contents);
-    _compositionStats = db.aggregate(dish.contents, dish.totalMass).then(_format);
+    _contentAmounts = db.retrieveEdibles(dish.contents.keys)
+        .then((e) => formatLabelledQuantities(dish.contents, e));
+    _compositionStats = db.aggregate(dish.contents, dish.totalMass)
+        .then(formatLocalisedQuantities);
   }
 
   _DishState(Dish dish, this.db) :
         this._dish = dish
   {
-    _contentAmounts = _format(dish.contents);
-    _compositionStats = db.aggregate(dish.contents, dish.totalMass).then(_format);
+    _contentAmounts = db.retrieveEdibles(dish.contents.keys)
+        .then((e) => formatLabelledQuantities(dish.contents, e));
+    _compositionStats = db.aggregate(dish.contents, dish.totalMass)
+        .then(formatLocalisedQuantities);
   }
 
   Future<Map<Symbol, String>> _format(Map<Symbol, Quantity> entities) async {
@@ -69,6 +74,16 @@ class _DishState extends State<DishScreen> {
           },
         ),
       ]),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.delete),
+        onPressed: () {
+          setState(() {
+            db.ingredients.remove(dish.id);
+          });
+          Navigator.pop(context);
+        },
+        tooltip: TL8(#DeleteFromIndex),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(8),
         children: [
@@ -93,7 +108,7 @@ class _DishState extends State<DishScreen> {
 
   Widget _buildEntityList({
     required String title,
-    required futureEntities,
+    required Future<Map<Symbol, MapEntry<String, String>>> futureEntities,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,11 +120,11 @@ class _DishState extends State<DishScreen> {
           ),
           height: 50,
         ),
-        FutureBuilder<Map<Symbol, String>>(
+        FutureBuilder<Map<Symbol, MapEntry<String, String>>>(
           future: futureEntities,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              final Map<Symbol, String> entities = snapshot.data ?? {};
+              final Map<Symbol, MapEntry<String, String>> entities = snapshot.data ?? {};
               return Column(
                 // Ingredients
                 children: entities.entries.map((e) =>
@@ -118,8 +133,8 @@ class _DishState extends State<DishScreen> {
                           vertical: 3, horizontal: 10),
                       child: Row(
                         children: [
-                          Expanded(child: Text(TL8(e.key))),
-                          Text(e.value),
+                          Expanded(child: Text(e.value.key)),
+                          Text(e.value.value),
                         ],
                       ),
                     ),

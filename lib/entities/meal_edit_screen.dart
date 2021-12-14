@@ -1,3 +1,4 @@
+import 'package:diabetic_diary/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinbox/flutter_spinbox.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
@@ -9,6 +10,7 @@ import '../meal.dart';
 import '../edible.dart';
 import '../quantity.dart';
 import '../translation.dart';
+import '../units.dart';
 
 /// The screen for editing an Meal
 class MealEditScreen extends StatefulWidget {
@@ -34,8 +36,8 @@ class _MealEditState extends State<MealEditScreen> {
 
   final Database db;
   Map<Symbol, Quantity> _contents = {};
-  Future<Map<Symbol, Quantity>> _pendingContentAmounts = Future.value({});
-  Future<Map<Symbol, String>> _pendingCompositionStats = Future.value({});
+  Future<Map<Symbol, MapEntry<String, Quantity>>> _pendingContentAmounts = Future.value({});
+  Future<Map<Symbol, MapEntry<String, String>>> _pendingCompositionStats = Future.value({});
   final _format = DateFormat("yyyy-MM-dd HH:mm");
 
   _MealEditState({required this.db, Meal? meal}) :
@@ -64,22 +66,15 @@ class _MealEditState extends State<MealEditScreen> {
 
     // This case doesn't really need to be a future, only to allow code reuse
     // in _buildEntityList
-    _pendingContentAmounts = Future.value(newContents);
+    _pendingContentAmounts = db.retrieveEdibles(newContents.keys)
+        .then((e) => labelledQuantities(newContents, e));
 
     // This does, because the calculation is asynchronous. Add a handler to
     // update our state when it's done.
     final totalMass = CompositeEdible.getTotalMass(contents);
-    _pendingCompositionStats = db.aggregate(newContents, totalMass).then(
-      // Format the quantities into strings
-        (stats) async {
-          final Map<Symbol, String> result = {};
-          for(final entry in stats.entries) {
-            result[entry.key] = entry.value.format();
-          }
-
-          return result;
-        }
-    );
+    _pendingCompositionStats =
+        db.aggregate(newContents, totalMass)
+        .then(formatLocalisedQuantities);
   }
 
   Meal get meal => Meal(
@@ -121,7 +116,7 @@ class _MealEditState extends State<MealEditScreen> {
 
   Widget _buildEntityList<T>({
     required String title,
-    required Future<Map<Symbol, T>> futureEntities,
+    required Future<Map<Symbol, MapEntry<String, T>>> futureEntities,
     required Widget Function(BuildContext, Symbol, T) builder,
     required BuildContext context}) =>
       Column(
@@ -135,7 +130,7 @@ class _MealEditState extends State<MealEditScreen> {
             height: 50,
           ),
           Flexible(
-            child: FutureBuilder<Map<Symbol, T>>( // Entities
+            child: FutureBuilder<Map<Symbol, MapEntry<String, T>>>( // Entities
               future: futureEntities,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
@@ -148,10 +143,10 @@ class _MealEditState extends State<MealEditScreen> {
                           child: Row(
                             children: [
                               Expanded(
-                                child: Text(TL8(e.key)),
+                                child: Text(e.value.key),
                               ),
                               Expanded(
-                                child: builder(context, e.key, e.value),
+                                child: builder(context, e.key, e.value.value),
                               ),
                             ],
                           ),
@@ -210,11 +205,11 @@ class _MealEditState extends State<MealEditScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(TL8(#MealTitle)),
+                          child: Text(TL8(#MealId)),
                         ),
                         Flexible(
                           flex: 1,
-                          child: Text(titleController.text),
+                          child: Text(symbolToString(id)),
                         ),
                      ],
                     ),
@@ -312,17 +307,23 @@ class _MealEditState extends State<MealEditScreen> {
                             (e) => Container(
                               child: Row(
                                 children: [
-                                  Expanded(child: Text(TL8(e.id))),
+                                  Expanded(child: Text(e.label)),
                                   MaterialButton(
                                     shape: CircleBorder(),
                                     textColor: Colors.white,
                                     child: Icon(Icons.add),
                                     color: Colors.blue,
                                     onPressed: () async {
-                                      final gramsPerHectagram = await db.units.fetch(#g_per_hg);
-                                      final newContents = await _pendingContentAmounts;
-                                      final quantity = newContents[e.id] ?? Quantity(0, gramsPerHectagram);
-                                      newContents[e.id] = quantity.add(1);
+                                      final newAmounts = await _pendingContentAmounts;
+                                      final entry = newAmounts[e.id];
+
+                                      if (entry != null)
+                                        return; // Nothing to do, it's there already
+
+                                      // Update the quantity, which we know always has units of g/100g
+                                      // because they're ingredients or dishes
+                                      final newContents = contents;
+                                      newContents[e.id] = Quantity(1, Units.GramsPerHectogram);
 
                                       setState(() {
                                         contents = newContents;

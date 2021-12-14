@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../database.dart';
+import '../edible.dart';
 import '../meal.dart';
 import '../quantity.dart';
 import '../translation.dart';
+import '../utils.dart';
 import 'meal_edit_screen.dart';
 
 /// The screen for inspecting an Meal
@@ -25,30 +27,25 @@ class _MealState extends State<MealScreen> {
   Meal _meal;
   final Database db;
 
-  Future<Map<Symbol, String>> _compositionStats = Future.value({});
-  Future<Map<Symbol, String>> _contentAmounts = Future.value({});
+  Future<Map<Symbol, MapEntry<String, String>>> _compositionStats = Future.value({});
+  Future<Map<Symbol, MapEntry<String, String>>> _contentAmounts = Future.value({});
 
   Meal get meal => _meal;
   set meal(Meal e) {
     _meal = e;
-    _contentAmounts = _format(meal.contents);
-    _compositionStats = db.aggregate(meal.contents, meal.totalMass).then(_format);
+    _contentAmounts = db.retrieveEdibles(meal.contents.keys)
+        .then((e) => formatLabelledQuantities(meal.contents, e));
+    _compositionStats = db.aggregate(meal.contents, meal.totalMass)
+      .then(formatLocalisedQuantities);
   }
 
   _MealState(Meal meal, this.db) :
         this._meal = meal
   {
-    _contentAmounts = _format(meal.contents);
-    _compositionStats = db.aggregate(meal.contents, meal.totalMass).then(_format);
-  }
-
-  Future<Map<Symbol, String>> _format(Map<Symbol, Quantity> entities) async {
-    // Format the quantities into strings
-    final Map<Symbol, String> result = {};
-    for(final entry in entities.entries) {
-      result[entry.key] = entry.value.format();
-    }
-    return result;
+    _contentAmounts = db.retrieveEdibles(meal.contents.keys)
+        .then((e) => formatLabelledQuantities(meal.contents, e));
+    _compositionStats = db.aggregate(meal.contents, meal.totalMass)
+        .then(formatLocalisedQuantities);
   }
 
   @override
@@ -79,8 +76,8 @@ class _MealState extends State<MealScreen> {
                 vertical: 3, horizontal: 10),
             child:  Row(
               children: [
-                Expanded(child: Text(TL8(#MealTitle))),
-                Text(_meal.label),
+                Expanded(child: Text(TL8(#MealId))),
+                Text(symbolToString(_meal.id)),
               ],
             ),
           ),
@@ -128,7 +125,7 @@ class _MealState extends State<MealScreen> {
 
   Widget _buildEntityList({
     required String title,
-    required futureEntities,
+    required Future<Map<Symbol, MapEntry<String, String>>> futureEntities,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,11 +137,11 @@ class _MealState extends State<MealScreen> {
           ),
           height: 50,
         ),
-        FutureBuilder<Map<Symbol, String>>(
+        FutureBuilder<Map<Symbol, MapEntry<String, String>>>(
           future: futureEntities,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              final Map<Symbol, String> entities = snapshot.data ?? {};
+              final Map<Symbol, MapEntry<String, String>> entities = snapshot.data ?? {};
               return Column(
                 // Ingredients
                 children: entities.entries.map((e) =>
@@ -153,8 +150,8 @@ class _MealState extends State<MealScreen> {
                           vertical: 3, horizontal: 10),
                       child: Row(
                         children: [
-                          Expanded(child: Text(TL8(e.key))),
-                          Text(e.value),
+                          Expanded(child: Text(e.value.key)),
+                          Text(e.value.value),
                         ],
                       ),
                     ),
