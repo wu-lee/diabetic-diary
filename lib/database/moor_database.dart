@@ -63,6 +63,7 @@ class _Edibles extends Table {
   TextColumn get id => text().customConstraint('NOT NULL')(); // a BasicIngredient or an Dish
   TextColumn get label => text().customConstraint('NOT NULL')(); // These labels are user-entered, so not localised
   BoolColumn get isBasic => boolean().customConstraint('NOT NULL')(); // True if a BasicIngredient
+  RealColumn get portions => real().customConstraint('NOT NULL')(); // Number of portions from the given contents
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -673,6 +674,7 @@ class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable
     rows.add(_Edible(
       id: symbolToString(value.id),
       label: value.label,
+      portions: value.portions.toDouble(),
       isBasic: value is BasicIngredient,
     ));
     return rows;
@@ -708,15 +710,10 @@ class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable
 
   Map<Symbol, Edible> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
     final Map<Symbol, Map<Symbol, Quantity>> edibles = {};
-    final Map<Symbol, bool> isBasic = {};
-    final Map<Symbol, String> labels = {};
-    edibleRows.forEach((edibleFields) {
-      final id = Symbol(edibleFields.id);
-      final label = edibleFields.label;
-      edibles[id] ??= <Symbol, Quantity>{};
-      isBasic[id] = edibleFields.isBasic;
-      labels[id] = label;
-    });
+    final Map<Symbol, _Edible> rows = Map.fromIterable(
+      edibleRows,
+      key: (it) => Symbol(it.id),
+    );
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.dishContents);
       final id = Symbol(contentFields.id);
@@ -735,9 +732,11 @@ class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable
     });
     return edibles.map((id, contents) => MapEntry(
         id,
-        isBasic[id] == true?
-          BasicIngredient(id: id, label: labels[id] ?? '', contents: contents) :
-          Dish(id: id, label: labels[id] ?? '', contents: contents)
+        rows[id]?.isBasic == true?
+          BasicIngredient(id: id, label: rows[id]?.label ?? '',
+              portions: rows[id]?.portions ?? 1, contents: contents) :
+          Dish(id: id, label: rows[id]?.label ?? '',
+              portions: rows[id]?.portions ?? 0, contents: contents)
     ));
   }
 
@@ -767,6 +766,7 @@ class MoorDishesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable,
     rows.add(_Edible(
       id: symbolToString(value.id),
       label: value.label,
+      portions: value.portions.toDouble(),
       isBasic: false,
     ));
     return rows;
@@ -801,31 +801,37 @@ class MoorDishesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable,
   }
 
   Map<Symbol, Dish> rowsToValues(List<_Edible> dishRows, Iterable<TypedResult> contentRows) {
-    final Map<Symbol, MapEntry<String, Map<Symbol, Quantity>>> dishes = {};
-    dishRows.forEach((dishFields) {
-      final id = Symbol(dishFields.id);
-      dishes[id] ??= MapEntry(dishFields.label, <Symbol, Quantity>{});
-    });
+    final Map<Symbol, _Edible> dishes = Map.fromIterable(
+      dishRows, key: (it) => Symbol(it.id),
+    );
+    final Map<Symbol, Map<Symbol, Quantity>> contents = {};
+
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.dishContents);
       final id = Symbol(contentFields.id);
       final contains = Symbol(contentFields.contains);
-      final dim = dishes[id];
-      if (dim == null)
+      final content = contents[id];
+      if (content == null)
         return; // not present... FIXME signal an error?
       final unitsFields = row.readTableOrNull(db.units);
       final units = unitsFields == null?
       Units.rogueValue :
       Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
-      dim.value[contains] = Quantity(
+      content[contains] = Quantity(
           contentFields.amount,
           units);
     });
-    return dishes.map((id, contents) => MapEntry(
-        id,
-        Dish(id: id, label: contents.key, contents: contents.value)
-    ));
+    return dishes.map((id, dish) {
+      final content = contents[id] ?? {};
+      return MapEntry(
+          id,
+          Dish(id: id,
+              label: dish.label,
+              portions: dish.portions,
+              contents: content)
+      );
+    });
   }
 
 
@@ -853,6 +859,7 @@ class MoorBasicIngredientsCollection extends MoorAbstract1ToNTo1Collection<$_Edi
     rows.add(_Edible(
       id: symbolToString(value.id),
       label: value.label,
+      portions: value.portions.toDouble(),
       isBasic: true,
     ));
     return rows;
@@ -969,26 +976,23 @@ class MoorMealsCollection extends MoorAbstract1ToNTo1Collection<$_MealsTable, _M
   }
 
   Map<Symbol, Meal> rowsToValues(List<_Meal> edibleRows, Iterable<TypedResult> contentRows) {
-    final Map<Symbol, Map<Symbol, Quantity>> mealContents = {};
-    final Map<Symbol, _Meal> meals = {};
-    edibleRows.forEach((edibleFields) {
-      final id = Symbol(edibleFields.id);
-      meals[id] ??= edibleFields;
-      mealContents[id] ??= <Symbol, Quantity>{};
-    });
+    final Map<Symbol, _Meal> meals = Map.fromIterable(
+      edibleRows, key: (it) => Symbol(it.id),
+    );
+    final Map<Symbol, Map<Symbol, Quantity>> contents = {};
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.mealContents);
       final id = Symbol(contentFields.id);
       final contains = Symbol(contentFields.contains);
-      final dim = mealContents[id];
-      if (dim == null)
+      final content = contents[id];
+      if (content == null)
         return; // not present... FIXME signal an error?
       final unitsFields = row.readTableOrNull(db.units);
       final units = unitsFields == null?
       Units.rogueValue :
       Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
-      dim[contains] = Quantity(
+      content[contains] = Quantity(
           contentFields.amount,
           units);
     });
@@ -999,7 +1003,7 @@ class MoorMealsCollection extends MoorAbstract1ToNTo1Collection<$_MealsTable, _M
             label: meal.label,
             notes: meal.notes,
             timestamp: meal.timestamp,
-            contents: mealContents[id] ?? {},
+            contents: contents[id] ?? {},
         )
     ));
   }

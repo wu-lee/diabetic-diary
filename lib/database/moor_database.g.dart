@@ -1096,7 +1096,12 @@ class _Edible extends DataClass implements Insertable<_Edible> {
   final String id;
   final String label;
   final bool isBasic;
-  _Edible({required this.id, required this.label, required this.isBasic});
+  final double portions;
+  _Edible(
+      {required this.id,
+      required this.label,
+      required this.isBasic,
+      required this.portions});
   factory _Edible.fromData(Map<String, dynamic> data, GeneratedDatabase db,
       {String? prefix}) {
     final effectivePrefix = prefix ?? '';
@@ -1107,6 +1112,8 @@ class _Edible extends DataClass implements Insertable<_Edible> {
           .mapFromDatabaseResponse(data['${effectivePrefix}label'])!,
       isBasic: const BoolType()
           .mapFromDatabaseResponse(data['${effectivePrefix}is_basic'])!,
+      portions: const RealType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}portions'])!,
     );
   }
   @override
@@ -1115,6 +1122,7 @@ class _Edible extends DataClass implements Insertable<_Edible> {
     map['id'] = Variable<String>(id);
     map['label'] = Variable<String>(label);
     map['is_basic'] = Variable<bool>(isBasic);
+    map['portions'] = Variable<double>(portions);
     return map;
   }
 
@@ -1123,6 +1131,7 @@ class _Edible extends DataClass implements Insertable<_Edible> {
       id: Value(id),
       label: Value(label),
       isBasic: Value(isBasic),
+      portions: Value(portions),
     );
   }
 
@@ -1133,6 +1142,7 @@ class _Edible extends DataClass implements Insertable<_Edible> {
       id: serializer.fromJson<String>(json['id']),
       label: serializer.fromJson<String>(json['label']),
       isBasic: serializer.fromJson<bool>(json['isBasic']),
+      portions: serializer.fromJson<double>(json['portions']),
     );
   }
   @override
@@ -1142,70 +1152,86 @@ class _Edible extends DataClass implements Insertable<_Edible> {
       'id': serializer.toJson<String>(id),
       'label': serializer.toJson<String>(label),
       'isBasic': serializer.toJson<bool>(isBasic),
+      'portions': serializer.toJson<double>(portions),
     };
   }
 
-  _Edible copyWith({String? id, String? label, bool? isBasic}) => _Edible(
+  _Edible copyWith(
+          {String? id, String? label, bool? isBasic, double? portions}) =>
+      _Edible(
         id: id ?? this.id,
         label: label ?? this.label,
         isBasic: isBasic ?? this.isBasic,
+        portions: portions ?? this.portions,
       );
   @override
   String toString() {
     return (StringBuffer('_Edible(')
           ..write('id: $id, ')
           ..write('label: $label, ')
-          ..write('isBasic: $isBasic')
+          ..write('isBasic: $isBasic, ')
+          ..write('portions: $portions')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      $mrjf($mrjc(id.hashCode, $mrjc(label.hashCode, isBasic.hashCode)));
+  int get hashCode => $mrjf($mrjc(id.hashCode,
+      $mrjc(label.hashCode, $mrjc(isBasic.hashCode, portions.hashCode))));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is _Edible &&
           other.id == this.id &&
           other.label == this.label &&
-          other.isBasic == this.isBasic);
+          other.isBasic == this.isBasic &&
+          other.portions == this.portions);
 }
 
 class _EdiblesCompanion extends UpdateCompanion<_Edible> {
   final Value<String> id;
   final Value<String> label;
   final Value<bool> isBasic;
+  final Value<double> portions;
   const _EdiblesCompanion({
     this.id = const Value.absent(),
     this.label = const Value.absent(),
     this.isBasic = const Value.absent(),
+    this.portions = const Value.absent(),
   });
   _EdiblesCompanion.insert({
     required String id,
     required String label,
     required bool isBasic,
+    required double portions,
   })  : id = Value(id),
         label = Value(label),
-        isBasic = Value(isBasic);
+        isBasic = Value(isBasic),
+        portions = Value(portions);
   static Insertable<_Edible> custom({
     Expression<String>? id,
     Expression<String>? label,
     Expression<bool>? isBasic,
+    Expression<double>? portions,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (label != null) 'label': label,
       if (isBasic != null) 'is_basic': isBasic,
+      if (portions != null) 'portions': portions,
     });
   }
 
   _EdiblesCompanion copyWith(
-      {Value<String>? id, Value<String>? label, Value<bool>? isBasic}) {
+      {Value<String>? id,
+      Value<String>? label,
+      Value<bool>? isBasic,
+      Value<double>? portions}) {
     return _EdiblesCompanion(
       id: id ?? this.id,
       label: label ?? this.label,
       isBasic: isBasic ?? this.isBasic,
+      portions: portions ?? this.portions,
     );
   }
 
@@ -1221,6 +1247,9 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
     if (isBasic.present) {
       map['is_basic'] = Variable<bool>(isBasic.value);
     }
+    if (portions.present) {
+      map['portions'] = Variable<double>(portions.value);
+    }
     return map;
   }
 
@@ -1229,7 +1258,8 @@ class _EdiblesCompanion extends UpdateCompanion<_Edible> {
     return (StringBuffer('_EdiblesCompanion(')
           ..write('id: $id, ')
           ..write('label: $label, ')
-          ..write('isBasic: $isBasic')
+          ..write('isBasic: $isBasic, ')
+          ..write('portions: $portions')
           ..write(')'))
         .toString();
   }
@@ -1263,8 +1293,16 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
         $customConstraints: 'NOT NULL');
   }
 
+  final VerificationMeta _portionsMeta = const VerificationMeta('portions');
   @override
-  List<GeneratedColumn> get $columns => [id, label, isBasic];
+  late final GeneratedRealColumn portions = _constructPortions();
+  GeneratedRealColumn _constructPortions() {
+    return GeneratedRealColumn('portions', $tableName, false,
+        $customConstraints: 'NOT NULL');
+  }
+
+  @override
+  List<GeneratedColumn> get $columns => [id, label, isBasic, portions];
   @override
   $_EdiblesTable get asDslTable => this;
   @override
@@ -1292,6 +1330,12 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
           isBasic.isAcceptableOrUnknown(data['is_basic']!, _isBasicMeta));
     } else if (isInserting) {
       context.missing(_isBasicMeta);
+    }
+    if (data.containsKey('portions')) {
+      context.handle(_portionsMeta,
+          portions.isAcceptableOrUnknown(data['portions']!, _portionsMeta));
+    } else if (isInserting) {
+      context.missing(_portionsMeta);
     }
     return context;
   }
