@@ -6,6 +6,7 @@ import '../database.dart';
 import '../basic_ingredient.dart';
 import '../quantity.dart';
 import '../translation.dart';
+import '../units.dart';
 import 'ingredient_edit_screen.dart';
 
 /// The screen for inspecting an Ingredient
@@ -93,6 +94,12 @@ class _IngredientState extends State<IngredientScreen> {
               symbolToString(ingredient.id),
             ),
             height: 20,
+          ),
+          Row(
+            children: [
+              Text(TL8(#PortionSize)),
+              Expanded(child: Text(Quantity(ingredient.portionSize, Units.Grams).format())),
+            ],
           ),
           _buildEntityList(
             title: TL8(#CompositionStats),

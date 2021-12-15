@@ -12,13 +12,14 @@ import 'quantity.dart';
 abstract class Edible extends Quantified implements Labelled {
   const Edible();
 
-  Quantity? get portionSize;
+  /// Portion size in grams, 100g is the default if not known.
+  num get portionSize;
 
   Future<Map<Symbol, Quantity>> invalidContents(Database db, [Map<Symbol, Measurable>? cache]);
 
   /// Checks for contents with inconsistent units.
   ///
-  /// Specifically, this expects all contents to have contents with units of #Mass.
+  /// Specifically, this expects all contents to have contents with units of #FractionByMass.
   ///
   /// If [cache] is supplied, uses this for keeping a shared cache of measurables
   /// for a little added speed.

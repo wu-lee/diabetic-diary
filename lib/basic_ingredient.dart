@@ -1,13 +1,13 @@
 import 'package:diabetic_diary/quantified.dart';
 import 'package:flutter/foundation.dart';
-import 'composite_edible.dart';
 import 'database.dart';
+import 'edible.dart';
 import 'measureable.dart';
 import 'quantity.dart';
 import 'translation.dart';
 
 
-class BasicIngredient extends CompositeEdible {
+class BasicIngredient extends Edible {
 
   @override
   final Symbol id;
@@ -15,8 +15,9 @@ class BasicIngredient extends CompositeEdible {
   @override
   final String label;
 
+  /// Portion size in grams
   @override
-  final num portions;
+  final num portionSize;
 
   @override
   final Map<Symbol, Quantity> contents;
@@ -27,7 +28,7 @@ class BasicIngredient extends CompositeEdible {
   /// which should be fractional by mass (#FractionalMass, #EnergyByMass, etc.).
   const BasicIngredient({
     required this.id, required this.contents,
-    required this.label, this.portions = 1,
+    required this.label, this.portionSize = 100,
   });
 
   @override

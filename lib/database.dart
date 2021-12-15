@@ -243,6 +243,7 @@ abstract class Database {
           tahini = BasicIngredient(
             id: #Tahini,
             label: "Tahini",
+            portionSize: 50,
             contents: {
               Measurable.Carbs.id: Units.GramsPerHectogram.times(1),
               Measurable.Fat.id: Units.GramsPerHectogram.times(2),
@@ -250,6 +251,7 @@ abstract class Database {
           ),
           cabbage = BasicIngredient(
             id: #Cabbage, label: "Cabbage",
+            portionSize: 200,
             contents: {
               Measurable.Carbs.id: Units.GramsPerHectogram.times(1),
               Measurable.Fibre.id: Units.GramsPerHectogram.times(1),
@@ -257,6 +259,7 @@ abstract class Database {
           ),
           salad = Dish(
             id: #Salad, label: "Salad",
+            portions: 1,
             contents: {
               tahini.id: Units.Grams.times(1),
               cabbage.id: Units.Grams.times(2),

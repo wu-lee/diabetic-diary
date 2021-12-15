@@ -4,6 +4,7 @@ import '../database.dart';
 import '../dish.dart';
 import '../quantity.dart';
 import '../translation.dart';
+import '../units.dart';
 import '../utils.dart';
 import 'dish_edit_screen.dart';
 
@@ -92,6 +93,18 @@ class _DishState extends State<DishScreen> {
               symbolToString(dish.id),
             ),
             height: 20,
+          ),
+          Row(
+            children: [
+              Text(TL8(#NumPortions)),
+              Expanded(child: Text(dish.portions.toString())),
+            ],
+          ),
+          Row(
+            children: [
+              Text(TL8(#PortionSize)),
+              Expanded(child: Text(Quantity(dish.portionSize, Units.Grams).format())),
+            ],
           ),
           _buildEntityList(
             title: TL8(#CompositionStats),

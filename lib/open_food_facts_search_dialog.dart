@@ -85,7 +85,9 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
       const PageSize(size: 50),
       const SortBy(option: SortOption.POPULARITY),
       const TagFilter(
-          tagType: "states", contains: true, tagName: "en:nutrition-facts-completed")
+          tagType: "states", contains: true, tagName: "en:nutrition-facts-completed"),
+      const TagFilter(
+          tagType: "states", contains: true, tagName: "en:quantity-completed"),
     ];
 
     ProductSearchQueryConfiguration configuration =
@@ -95,6 +97,7 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
           ProductField.NAME,
           ProductField.BARCODE,
           ProductField.QUANTITY,
+          ProductField.SERVING_SIZE,
           ProductField.PACKAGING_QUANTITY,
           ProductField.INGREDIENTS,
           ProductField.NUTRIMENTS,
@@ -128,8 +131,10 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
     final nutriments = product.nutriments;
     final Map<String, OffNutrimentInfo> info = {};
     final label = product.productName ?? product.barcode.toString();
+    final num? packagingSize = num.tryParse(product.packagingQuantity.toString());
+    final num servingSize = product.servingQuantity ?? packagingSize ?? 100;
     if (nutriments == null) {
-      return BasicIngredient(id: id, label: label, contents: {});
+      return BasicIngredient(id: id, label: label, portionSize: servingSize, contents: {});
     }
 
     nutriments.toJson().forEach((key, value) {
@@ -175,7 +180,11 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
         .map((elem) => MapEntry(elem.key.id, Quantity(elem.value!, elem.key.defaultUnits)));
 
 
-    return BasicIngredient(id: id, label: label, contents: Map.fromEntries(contents));
+    return BasicIngredient(
+        id: id, label: label,
+        portionSize: servingSize,
+        contents: Map.fromEntries(contents),
+    );
   }
 
   @override

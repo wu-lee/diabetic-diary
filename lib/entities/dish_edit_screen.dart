@@ -33,6 +33,7 @@ class _DishEditState extends State<DishEditScreen> {
 
   bool isDish = false;
   final labelController = new TextEditingController();
+  final portionsController = new TextEditingController();
   final Database db;
   Map<Symbol, Quantity> _contents = {};
   Future<Map<Symbol, MapEntry<String, Quantity>>> _pendingContentAmounts = Future.value({});
@@ -45,6 +46,11 @@ class _DishEditState extends State<DishEditScreen> {
   }
 
   Symbol id = newId();
+
+  num get portions => num.tryParse(portionsController.text) ?? 0;
+  set portions(num value) {
+    portionsController.text = value.toString();
+  }
 
   String get label => labelController.text;
   set label(String newLabel) {
@@ -81,12 +87,14 @@ class _DishEditState extends State<DishEditScreen> {
       ..removeWhere((id, quantity) => quantity.amount == 0),
     id: id,
     label: label,
+    portions: portions,
   );
 
   set dish(Dish e) {
     id = e.id;
     label = e.label;
     contents = e.contents;
+    portions = e.portions;
   }
 
   Widget _buildCompositionStat(BuildContext context, Symbol id, String quantity) {
@@ -192,6 +200,24 @@ class _DishEditState extends State<DishEditScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                  children: [
+                    Text(TL8(#NumPortions)),
+                    Expanded(
+                        child: SpinBox(
+                          min: 0,
+                          max: double.maxFinite,
+                          decimals: 1,
+                          value: portions.toDouble(),
+                          onChanged: (value) {
+                            setState(() {
+                              portions = value;
+                            });
+                          },
+                        )
+                    )
+                  ]
+              ),
               Flexible( // Composition Stats
               flex: 6,
                 fit: FlexFit.tight,

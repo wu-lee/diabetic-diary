@@ -12,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
 
+import '../composite_edible.dart';
 import '../dimensions.dart';
 import '../dish.dart';
 import '../edible.dart';
@@ -671,11 +672,15 @@ class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable
 
   Iterable<Insertable<_Edible>> contentToPrimaryRows(Edible value) {
     List<Insertable<_Edible>> rows = [];
+    final isComposite = value is CompositeEdible;
+    final num portions = isComposite?
+      (value as CompositeEdible).portions : // #portions
+      value.portionSize; // portions size in g
     rows.add(_Edible(
       id: symbolToString(value.id),
       label: value.label,
-      portions: value.portions.toDouble(),
-      isBasic: value is BasicIngredient,
+      portions: portions.toDouble(),
+      isBasic: !isComposite,
     ));
     return rows;
   }
@@ -709,34 +714,38 @@ class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable
   }
 
   Map<Symbol, Edible> rowsToValues(List<_Edible> edibleRows, Iterable<TypedResult> contentRows) {
-    final Map<Symbol, Map<Symbol, Quantity>> edibles = {};
-    final Map<Symbol, _Edible> rows = Map.fromIterable(
+    final Map<Symbol, _Edible> edibles = Map.fromIterable(
       edibleRows,
       key: (it) => Symbol(it.id),
     );
+    final Map<Symbol, Map<Symbol, Quantity>> allContents = {};
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.dishContents);
       final id = Symbol(contentFields.id);
       final contains = Symbol(contentFields.contains);
-      final dim = edibles[id];
-      if (dim == null)
+      final edible = edibles[id];
+      if (edible == null)
         return; // not present... FIXME signal an error?
       final unitsFields = row.readTableOrNull(db.units);
       final units = unitsFields == null?
       Units.rogueValue :
       Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
-      dim[contains] = Quantity(
+      final contents = allContents.putIfAbsent(id, () => {});
+      contents[contains] = Quantity(
           contentFields.amount,
-          units);
+          units
+      );
     });
-    return edibles.map((id, contents) => MapEntry(
+    return edibles.map((id, edible) => MapEntry(
         id,
-        rows[id]?.isBasic == true?
-          BasicIngredient(id: id, label: rows[id]?.label ?? '',
-              portions: rows[id]?.portions ?? 1, contents: contents) :
-          Dish(id: id, label: rows[id]?.label ?? '',
-              portions: rows[id]?.portions ?? 0, contents: contents)
+        edibles[id]?.isBasic == true?
+          BasicIngredient(id: id, label: edibles[id]?.label ?? '',
+              portionSize: edibles[id]?.portions as num,
+              contents: allContents[id] ?? {}) :
+          Dish(id: id, label: edibles[id]?.label ?? '',
+              portions: edibles[id]?.portions as num,
+              contents: allContents[id] ?? {})
     ));
   }
 
@@ -804,26 +813,28 @@ class MoorDishesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable,
     final Map<Symbol, _Edible> dishes = Map.fromIterable(
       dishRows, key: (it) => Symbol(it.id),
     );
-    final Map<Symbol, Map<Symbol, Quantity>> contents = {};
+    final Map<Symbol, Map<Symbol, Quantity>> allContents = {};
 
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.dishContents);
       final id = Symbol(contentFields.id);
       final contains = Symbol(contentFields.contains);
-      final content = contents[id];
-      if (content == null)
+      final dish = dishes[id];
+      if (dish == null)
         return; // not present... FIXME signal an error?
       final unitsFields = row.readTableOrNull(db.units);
       final units = unitsFields == null?
       Units.rogueValue :
       Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
-      content[contains] = Quantity(
+      final contents = allContents.putIfAbsent(id, () => {});
+      contents[contains] = Quantity(
           contentFields.amount,
-          units);
+          units
+      );
     });
     return dishes.map((id, dish) {
-      final content = contents[id] ?? {};
+      final content = allContents[id] ?? {};
       return MapEntry(
           id,
           Dish(id: id,
@@ -859,7 +870,7 @@ class MoorBasicIngredientsCollection extends MoorAbstract1ToNTo1Collection<$_Edi
     rows.add(_Edible(
       id: symbolToString(value.id),
       label: value.label,
-      portions: value.portions.toDouble(),
+      portions: value.portionSize.toDouble(),
       isBasic: true,
     ));
     return rows;
@@ -894,30 +905,36 @@ class MoorBasicIngredientsCollection extends MoorAbstract1ToNTo1Collection<$_Edi
   }
 
   Map<Symbol, BasicIngredient> rowsToValues(List<_Edible> dishRows, Iterable<TypedResult> contentRows) {
-    final Map<Symbol, MapEntry<String, Map<Symbol, Quantity>>> ingredients = {};
-    dishRows.forEach((dishFields) {
-      final id = Symbol(dishFields.id);
-      ingredients[id] ??= MapEntry(dishFields.label, <Symbol, Quantity>{});
-    });
+    final Map<Symbol, _Edible> edibles = Map.fromIterable(
+      dishRows,
+      key: (k) => Symbol(k.id),
+    );
+    final Map<Symbol, Map<Symbol, Quantity>> allContents = {};
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.basicIngredientContents);
       final id = Symbol(contentFields.id);
       final contains = Symbol(contentFields.contains);
-      final dim = ingredients[id];
-      if (dim == null)
+      final edible = edibles[id];
+      if (edible == null)
         return; // not present... FIXME signal an error?
       final unitsFields = row.readTableOrNull(db.units);
       final units = unitsFields == null?
       Units.rogueValue :
       Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
-      dim.value[contains] = Quantity(
+      final contents = allContents.putIfAbsent(id, () => {});
+      contents[contains] = Quantity(
           contentFields.amount,
-          units);
+          units,
+      );
     });
-    return ingredients.map((id, contents) => MapEntry(
+    return edibles.map((id, edible) => MapEntry(
         id,
-        BasicIngredient(id: id, label: contents.key, contents: contents.value)
+        BasicIngredient(
+            id: id, label: edible.label,
+            portionSize: edible.portions,
+            contents: allContents[id] ?? {},
+        )
     ));
   }
 }
@@ -979,22 +996,24 @@ class MoorMealsCollection extends MoorAbstract1ToNTo1Collection<$_MealsTable, _M
     final Map<Symbol, _Meal> meals = Map.fromIterable(
       edibleRows, key: (it) => Symbol(it.id),
     );
-    final Map<Symbol, Map<Symbol, Quantity>> contents = {};
+    final Map<Symbol, Map<Symbol, Quantity>> allContents = {};
     contentRows.forEach((row) {
       final contentFields = row.readTable(db.mealContents);
       final id = Symbol(contentFields.id);
       final contains = Symbol(contentFields.contains);
-      final content = contents[id];
-      if (content == null)
+      final meal = meals[id];
+      if (meal == null)
         return; // not present... FIXME signal an error?
       final unitsFields = row.readTableOrNull(db.units);
       final units = unitsFields == null?
       Units.rogueValue :
       Units(Symbol(contentFields.unitsId), Symbol(unitsFields.dimensionsId), unitsFields.multiplier);
 
-      content[contains] = Quantity(
+      final contents = allContents.putIfAbsent(id, () => {});
+      contents[contains] = Quantity(
           contentFields.amount,
-          units);
+          units
+      );
     });
     return meals.map((id, meal) => MapEntry(
         id,
@@ -1003,7 +1022,7 @@ class MoorMealsCollection extends MoorAbstract1ToNTo1Collection<$_MealsTable, _M
             label: meal.label,
             notes: meal.notes,
             timestamp: meal.timestamp,
-            contents: contents[id] ?? {},
+            contents: allContents[id] ?? {},
         )
     ));
   }

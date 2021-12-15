@@ -32,6 +32,8 @@ class _IngredientEditState extends State<IngredientEditScreen> {
   static Symbol newId() => Symbol(ID('ingr:').toString());
 
   final labelController = new TextEditingController();
+  final portionSizeController = new TextEditingController();
+
   final Database db;
   // This flag indicates whether the search button should be disabled
   bool isSearchDisabled = true;
@@ -58,6 +60,11 @@ class _IngredientEditState extends State<IngredientEditScreen> {
 
   Symbol id = newId();
 
+  num get portionSize => num.tryParse(portionSizeController.text) ?? 0;
+  set portionSize(num value) {
+    portionSizeController.text = value.toString();
+  }
+
   String get label => labelController.text;
   set label(String newLabel) {
     labelController.text = newLabel;
@@ -77,12 +84,14 @@ class _IngredientEditState extends State<IngredientEditScreen> {
       ..removeWhere((id, quantity) => quantity.amount == 0),
     id: id,
     label: label,
+    portionSize: portionSize,
   );
 
   set ingredient(BasicIngredient e) {
     id = e.id;
     contents = e.contents;
     label = e.label;
+    portionSize = e.portionSize;
   }
 
   Widget _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
@@ -164,6 +173,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
       id = ingredient.id;
       contents = ingredient.contents;
       label = ingredient.label;
+      portionSize = ingredient.portionSize;
     });
   }
 
@@ -211,6 +221,24 @@ class _IngredientEditState extends State<IngredientEditScreen> {
                     icon: const Icon(Icons.search),
                   )
                 ],
+              ),
+              Row(
+                children: [
+                  Text(TL8(#PortionsSize)),
+                  Expanded(
+                    child: SpinBox(
+                      min: 0,
+                      max: double.maxFinite,
+                      decimals: 1,
+                      value: portionSize.toDouble(),
+                      onChanged: (value) {
+                        setState(() {
+                          portionSize = value;
+                        });
+                      },
+                    )
+                  )
+                ]
               ),
               Flexible( // Contents
                 flex: 6,
