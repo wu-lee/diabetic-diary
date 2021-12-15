@@ -19,11 +19,7 @@ abstract class CompositeEdible extends Edible {
   ///
   /// Assumes that the contents all have units of mass and do not overlap!
   /// In other words, only works on Dishes, Meals
-  num get totalMass =>
-      contents.values.fold(
-          0,
-              (sum, quantity) => sum + quantity.units.multiplier*quantity.amount
-      );
+  num get totalMass => getTotalMass(contents);
 
   /// The mass of one portion, in grams.
   ///
@@ -39,8 +35,7 @@ abstract class CompositeEdible extends Edible {
   /// In other words, only works on Dishes, Meals
   static num getTotalMass(Map<Symbol, Quantity> contents) =>
       contents.values.fold(
-          0,
-              (sum, quantity) => sum + quantity.units.multiplier*quantity.amount
+          0, (sum, quantity) => sum + quantity.units.multiplier*quantity.amount
       );
 }
 
