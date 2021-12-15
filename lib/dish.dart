@@ -18,11 +18,17 @@ class Dish extends CompositeEdible {
   @override
   final Map<Symbol, Quantity> contents;
 
+  @override
+  final num portions;
+
   /// Constant, therefore non-validating constructor.
   ///
   /// Make sure you only put IDs of [Edibles] in, and use the appropriate units,
   /// which should be mass.
-  const Dish({required this.id, required this.label, required this.contents});
+  const Dish({
+    required this.id, required this.label,
+    required this.contents, this.portions = 1,
+  });
 
   @override
   bool operator== (Object that) {

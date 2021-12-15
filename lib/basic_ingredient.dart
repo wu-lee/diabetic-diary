@@ -16,13 +16,19 @@ class BasicIngredient extends CompositeEdible {
   final String label;
 
   @override
+  final num portions;
+
+  @override
   final Map<Symbol, Quantity> contents;
 
   /// Constant, therefore non-validating constructor.
   ///
   /// Make sure you only put IDs of [Measurables] in, and use the appropriate units,
   /// which should be fractional by mass (#FractionalMass, #EnergyByMass, etc.).
-  const BasicIngredient({required this.id, required this.contents, required this.label});
+  const BasicIngredient({
+    required this.id, required this.contents,
+    required this.label, this.portions = 1,
+  });
 
   @override
   Map<Symbol, Quantity> aggregateContents(Map<Symbol, Quantified> index, bool Function(Symbol) seen) =>

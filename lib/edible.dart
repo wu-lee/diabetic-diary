@@ -12,6 +12,8 @@ import 'quantity.dart';
 abstract class Edible extends Quantified implements Labelled {
   const Edible();
 
+  Quantity? get portionSize;
+
   Future<Map<Symbol, Quantity>> invalidContents(Database db, [Map<Symbol, Measurable>? cache]);
 
   /// Checks for contents with inconsistent units.

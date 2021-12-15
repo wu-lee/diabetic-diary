@@ -19,10 +19,14 @@ class Meal extends CompositeEdible {
     required this.label,
     required this.notes,
     required this.contents,
+    this.portions = 1,
   });
 
   @override
   final Symbol id;
+
+  @override
+  final num portions;
 
   final DateTime timestamp;
 

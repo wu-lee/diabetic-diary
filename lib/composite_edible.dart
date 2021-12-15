@@ -1,9 +1,7 @@
-import 'database.dart';
-import 'dimensions.dart';
 import 'edible.dart';
-import 'measureable.dart';
 import 'quantified.dart';
 import 'quantity.dart';
+import 'units.dart';
 
 /// Represents something edible, which contains a [Quantified] list of nutrient statistics
 ///
@@ -11,6 +9,11 @@ import 'quantity.dart';
 /// specifically see [Dish]
 abstract class CompositeEdible extends Edible {
   const CompositeEdible();
+
+  /// Defines the number of portions the listed contents represents
+  ///
+  /// [portionSize] is calculated from this
+  num get portions;
 
   /// Get the total mass of the contents in grams
   ///
@@ -21,6 +24,14 @@ abstract class CompositeEdible extends Edible {
           0,
               (sum, quantity) => sum + quantity.units.multiplier*quantity.amount
       );
+
+  /// The mass of one portion, in grams.
+  ///
+  /// Calculated from [totalMass] and [portions].
+  @override
+  Quantity get portionSize => Quantity(totalMass / portions, Units.Grams);
+
+
 
   /// Get the total mass of the contents in grams
   ///
