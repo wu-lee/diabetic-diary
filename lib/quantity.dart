@@ -85,6 +85,6 @@ class Quantity {
   static String _format(num amount, Symbol unitsId) {
     final abs = amount.abs();
     final formatted = amount.toStringAsFixed(abs < 1? 2 : abs < 10? 1 : 0);
-    return "$formatted ${symbolToString(unitsId)}";
+    return "$formatted ${TL8(unitsId)}";
   }
 }
