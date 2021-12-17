@@ -91,20 +91,22 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
     ];
 
     ProductSearchQueryConfiguration configuration =
-    ProductSearchQueryConfiguration(
-        parametersList: parameters,
-        fields: [
-          ProductField.NAME,
-          ProductField.BARCODE,
-          ProductField.QUANTITY,
-          ProductField.SERVING_SIZE,
-          ProductField.PACKAGING_QUANTITY,
-          ProductField.INGREDIENTS,
-          ProductField.NUTRIMENTS,
-          ProductField.COUNTRIES_TAGS,
-          ProductField.IMAGE_FRONT_SMALL_URL,
-        ],
-        language: OpenFoodFactsLanguage.ENGLISH);
+      _Workaround(
+        ProductSearchQueryConfiguration(
+          parametersList: parameters,
+          fields: [
+            ProductField.NAME,
+            ProductField.BARCODE,
+            ProductField.QUANTITY,
+            ProductField.SERVING_SIZE,
+            ProductField.PACKAGING_QUANTITY,
+            ProductField.INGREDIENTS,
+            ProductField.NUTRIMENTS,
+            ProductField.COUNTRIES_TAGS,
+            ProductField.IMAGE_FRONT_SMALL_URL,
+          ],
+          language: OpenFoodFactsLanguage.ENGLISH)
+      );
 
     return OpenFoodAPIClient.searchProducts(null, configuration);
   }
@@ -261,4 +263,60 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
       ],
     );
   }
+}
+
+/// This is a hack to work around lack of a [ProductField] value for `serving_quantity`
+///
+/// See https://github.com/openfoodfacts/openfoodfacts-dart/issues/326
+class WorkaroundProductSearchQueryConfiguration implements ProductSearchQueryConfiguration {
+  final ProductSearchQueryConfiguration delegate;
+
+  WorkaroundProductSearchQueryConfiguration(this.delegate);
+
+
+  Map<String, String> getParametersMap() {
+    final params = delegate.getParametersMap();
+    params["fields"] = params["fields"]! + ",serving_quantity";
+    print(">>> $params");
+    return params;
+  }
+
+  @override
+  List<Parameter> get additionalParameters => delegate.additionalParameters;
+  set additionalParameters(List<Parameter> val) {
+    delegate.additionalParameters = val;
+  }
+
+  @override
+  String? get cc => delegate.cc;
+  set cc(String? val) {
+    delegate.cc = val;
+  }
+
+  @override
+  List<ProductField>? get fields => delegate.fields;
+  set fields(List<ProductField>? val) {
+    delegate.fields = val;
+  }
+
+  @override
+  OpenFoodFactsLanguage? get language => delegate.language;
+  set language(OpenFoodFactsLanguage? val) {
+    delegate.language = val;
+  }
+
+  @override
+  List<OpenFoodFactsLanguage>? get languages => delegate.languages;
+  set languages(List<OpenFoodFactsLanguage>? val) {
+    delegate.languages = val;
+  }
+
+  @override
+  String? get lc => delegate.lc;
+  set lc(String? val) {
+    delegate.lc = val;
+  }
+
+  @override
+  List<String> getFieldsKeys() => delegate.getFieldsKeys();
 }
