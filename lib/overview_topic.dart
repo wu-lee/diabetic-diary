@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'database.dart';
+import 'dish.dart';
 import 'topic.dart';
 import 'translation.dart';
 
@@ -17,10 +18,9 @@ class OverviewTopic extends Topic {
   Widget buildTabContent(BuildContext context, StateSetter setBuilderState) {
     return FutureBuilder(
       future:  Future(() async {
-        final dishes = await db.dishes.getAll();
-        dishes.forEach((key, value) async {print("${value.format()}"); });
-        final numDishes = dishes.values.where((e) => !(e is BasicIngredient)).length;
-        final numIngredients = dishes.length - numDishes;
+        final edibles = await db.edibles.getAll();
+        final numDishes = edibles.values.whereType<Dish>().length;
+        final numIngredients = edibles.values.whereType<BasicIngredient>().length;
         final measurables = await db.measurables.getAll();
         final numMeasurables = measurables.length;
         return  [numDishes, numIngredients, numMeasurables];
