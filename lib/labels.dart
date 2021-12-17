@@ -144,8 +144,14 @@ const LABELS = {
   #NewMeal: {
     #en: 'New Meal',
   },
+  #NumPortions: {
+    #en: 'Number of Portions',
+  },
   #Overview: {
     #en: 'Overview',
+  },
+  #PortionSize: {
+    #en: 'Portion Size',
   },
   #Protein: {
     #en: 'Protein',
