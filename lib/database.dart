@@ -275,11 +275,12 @@ abstract class Database {
           }
         );
         db.dimensions..add(Dimensions.Mass)..add(Dimensions.FractionByMass)
-          ..add(Dimensions.Energy)..add(Dimensions.EnergyByMass);
+          ..add(Dimensions.Energy)..add(Dimensions.EnergyByMass)..add(Dimensions.NumPortions);
         db.units..add(Units.Grams)..add(Units.Kilograms)..add(Units.Milligrams)
           ..add(Units.GramsPerHectogram)..add(Units.GramsPerKilogram)..add(Units.GramsPerGram)
           ..add(Units.CaloriesPerGram)..add(Units.KilocaloriesPerHectogram)
-          ..add(Units.JoulesPerGram)..add(Units.JoulesPerHectogram)..add(Units.JoulesPerKilogram);
+          ..add(Units.JoulesPerGram)..add(Units.JoulesPerHectogram)..add(Units.JoulesPerKilogram)
+          ..add(Units.NumPortions);
         db.measurables..add(Measurable.Carbs)..add(Measurable.Fat)..add(Measurable.Fibre)..add(
             Measurable.Protein)..add(Measurable.Sugar)..add(Measurable.Salt)..add(Measurable.Energy)
             ..add(Measurable.Sodium)..add(Measurable.SaturatedFat)..add(Measurable.Caffeine);

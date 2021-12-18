@@ -33,6 +33,7 @@ class Units extends Indexable {
   static const CaloriesPerGram = Units(#cal_per_g, #EnergyByMass, 4.184);
   static const KilocaloriesPerGram = Units(#kcal_per_g, #EnergyByMass, 4184);
   static const KilocaloriesPerHectogram = Units(#kcal_per_hg, #EnergyByMass, 41.84);
+  static const NumPortions = Units(#num_portions, #NumPortions, 1);
 
   const Units(this.id, this.dimensionsId, this.multiplier) : super(id: id);
 

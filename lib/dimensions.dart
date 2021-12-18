@@ -23,6 +23,7 @@ class Dimensions implements Indexable {
   static const FractionByMass = Dimensions(id: #FractionByMass, components: {});
   static const Energy = Dimensions(id: #Energy, components: {#Energy:1});
   static const EnergyByMass = Dimensions(id: #EnergyByMass, components: {#Energy:1,#Mass:-1});
+  static const NumPortions = Dimensions(id: #NumPortions, components: {});
 
 
   const Dimensions({required this.id, required this.components});
