@@ -269,10 +269,10 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
 /// This is a hack to work around lack of a [ProductField] value for `serving_quantity`
 ///
 /// See https://github.com/openfoodfacts/openfoodfacts-dart/issues/326
-class WorkaroundProductSearchQueryConfiguration implements ProductSearchQueryConfiguration {
+class _Workaround implements ProductSearchQueryConfiguration {
   final ProductSearchQueryConfiguration delegate;
 
-  WorkaroundProductSearchQueryConfiguration(this.delegate);
+  _Workaround(this.delegate);
 
 
   Map<String, String> getParametersMap() {
