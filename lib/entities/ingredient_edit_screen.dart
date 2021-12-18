@@ -224,7 +224,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
               ),
               Row(
                 children: [
-                  Expanded(child: Text(TL8(#PortionsSize))),
+                  Expanded(child: Text("${TL8(#PortionSize)} (${TL8(Units.Grams.id)})")),
                   Container(
                     width: 150,
                     child: SpinBox(
