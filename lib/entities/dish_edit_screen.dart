@@ -312,7 +312,7 @@ class _DishEditState extends State<DishEditScreen> {
                                       // Update the quantity, which we know always has units of g/100g
                                       // because they're ingredients
                                       final newContents = contents;
-                                      newContents[e.id] = Quantity(1, Units.GramsPerHectogram);
+                                      newContents[e.id] = Quantity(1, Units.Grams);
 
                                       setState(() {
                                         contents = newContents;
