@@ -133,6 +133,7 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
     final nutriments = product.nutriments;
     final Map<String, OffNutrimentInfo> info = {};
     final label = product.productName ?? product.barcode.toString();
+    // this field is untyped for some reason
     final num? packagingSize = num.tryParse(product.packagingQuantity.toString());
     final num servingSize = product.servingQuantity ?? packagingSize ?? 100;
     if (nutriments == null) {
