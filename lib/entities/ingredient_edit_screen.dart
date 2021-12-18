@@ -224,8 +224,9 @@ class _IngredientEditState extends State<IngredientEditScreen> {
               ),
               Row(
                 children: [
-                  Text(TL8(#PortionsSize)),
-                  Expanded(
+                  Expanded(child: Text(TL8(#PortionsSize))),
+                  Container(
+                    width: 150,
                     child: SpinBox(
                       min: 0,
                       max: double.maxFinite,

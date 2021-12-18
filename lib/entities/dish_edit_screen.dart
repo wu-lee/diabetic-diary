@@ -239,21 +239,30 @@ class _DishEditState extends State<DishEditScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                children: [
+                  Expanded(child: Text(TL8(#TotalMass))),
+                  Text("${dish.totalMass.toStringAsFixed(1)}g"),
+                ],
+              ),
+              Row(
                   children: [
-                    Text(TL8(#NumPortions)),
                     Expanded(
-                        child: SpinBox(
-                          min: 0,
-                          max: double.maxFinite,
-                          decimals: 1,
-                          value: portions.toDouble(),
-                          onChanged: (value) {
-                            setState(() {
-                              portions = value;
-                            });
-                          },
-                        )
-                    )
+                        child: Text(TL8(#NumPortions)),
+                    ),
+                    Container(
+                      width: 150,
+                      child: SpinBox(
+                        min: 0,
+                        max: double.maxFinite,
+                        decimals: 1,
+                        value: portions.toDouble(),
+                        onChanged: (value) {
+                          setState(() {
+                            portions = value;
+                          });
+                        },
+                      ),
+                    ),
                   ]
               ),
               Flexible( // Composition Stats

@@ -88,28 +88,28 @@ class _DishState extends State<DishScreen> {
       body: ListView(
         padding: const EdgeInsets.all(8),
         children: [
-          Container(
-            child: Text(
-              symbolToString(dish.id),
-            ),
-            height: 20,
-          ),
           Row(
             children: [
-              Text(TL8(#TotalMass)),
-              Expanded(child: Text("${dish.totalMass}g")),
+              Expanded(child: Text(TL8(#ID))),
+              Text(symbolToString(dish.id)),
             ],
           ),
           Row(
             children: [
-              Text(TL8(#NumPortions)),
-              Expanded(child: Text(dish.portions.toString())),
+              Expanded(child: Text(TL8(#TotalMass))),
+              Text("${dish.totalMass.toStringAsFixed(1)}g"),
             ],
           ),
           Row(
             children: [
-              Text(TL8(#PortionSize)),
-              Expanded(child: Text(Quantity(dish.portionSize, Units.Grams).format())),
+              Expanded(child: Text(TL8(#NumPortions))),
+              Text(dish.portions.toString())
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(child: Text(TL8(#PortionSize))),
+              Text(Quantity(dish.portionSize, Units.Grams).format())
             ],
           ),
           _buildEntityList(

@@ -81,6 +81,9 @@ const LABELS = {
   #HomePage: {
     #en: 'Home Page',
   },
+  #ID: {
+    #en: 'ID',
+  },
   #Ingredients: {
     #en: 'Ingredients',
   },

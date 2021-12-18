@@ -89,16 +89,18 @@ class _IngredientState extends State<IngredientScreen> {
       body: ListView(
         padding: const EdgeInsets.all(8),
         children: [
-          Container(
-            child: Text(
-              symbolToString(ingredient.id),
-            ),
-            height: 20,
+          Row(
+            children: [
+              Expanded(child: Text(TL8(#ID))),
+              Text(
+                symbolToString(ingredient.id),
+              ),
+            ],
           ),
           Row(
             children: [
-              Text(TL8(#PortionSize)),
-              Expanded(child: Text(Quantity(ingredient.portionSize, Units.Grams).format())),
+              Expanded(child: Text(TL8(#PortionSize))),
+              Text(Quantity(ingredient.portionSize, Units.Grams).format()),
             ],
           ),
           _buildEntityList(
