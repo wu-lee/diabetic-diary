@@ -276,7 +276,7 @@ abstract class Database {
         );
         db.dimensions..add(Dimensions.Mass)..add(Dimensions.FractionByMass)
           ..add(Dimensions.Energy)..add(Dimensions.EnergyByMass);
-        db.units..add(Units.Grams)..add(Units.Kilograms)
+        db.units..add(Units.Grams)..add(Units.Kilograms)..add(Units.Milligrams)
           ..add(Units.GramsPerHectogram)..add(Units.GramsPerKilogram)..add(Units.GramsPerGram)
           ..add(Units.CaloriesPerGram)..add(Units.KilocaloriesPerHectogram)
           ..add(Units.JoulesPerGram)..add(Units.JoulesPerHectogram)..add(Units.JoulesPerKilogram);
