@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'edible.dart';
 import 'quantity.dart';
 import 'translation.dart';
+import 'units.dart';
 
 abstract class Functions {
   //static void noop0() {}
@@ -46,6 +47,47 @@ Map<Symbol, MapEntry<String, String>> formatLocalisedQuantities(
 ) {
   return quantities.map((id, q) => MapEntry(id, MapEntry(TL8(id), q.format())));
 }
+
+Widget unitsDropDown({
+  required Units units,
+  required Future<Map<Symbol, Units>> unitsList,
+  required Symbol dimensionsId,
+  required void onChanged(Units newUnits)
+}) {
+  return FutureBuilder<Map<Symbol, Units>>(
+      future: unitsList,
+      builder: (context, snapshot) {
+        final List<Units> unitsList = [];
+        if (snapshot.hasData) {
+          final Map<Symbol, Units> data = snapshot.data ?? {};
+          final massUnits = data.values.where((it) => it.dimensionsId == dimensionsId);
+          unitsList.addAll(massUnits);
+          unitsList.sort((a, b) => a.multiplier.compareTo(b.multiplier));
+        }
+        if (snapshot.hasError) {
+          debugPrint("error querying database for units: ${snapshot
+              .stackTrace}");
+        }
+        final items = unitsList.map((e) =>
+            DropdownMenuItem<Units>(
+              child: Text(TL8(e.id)),
+              value: e,
+            )
+        ).toList();
+        return DropdownButton<Units>(
+          items: items,
+          value: units,
+          onChanged: (newUnits) {
+            if (newUnits == null || newUnits == units)
+              return;
+            onChanged(newUnits);
+          },
+        );
+      }
+  );
+}
+
+
 
 /// Rudimentary ID generator
 class ID {

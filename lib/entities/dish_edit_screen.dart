@@ -119,41 +119,17 @@ class _DishEditState extends State<DishEditScreen> {
         },
       )
       ),
-      FutureBuilder<Map<Symbol, Units>>(
-          future: db.units.getAll(),
-          builder: (context, snapshot) {
-            final List<Units> units = [];
-            if (snapshot.hasData) {
-              final Map<Symbol, Units> data = snapshot.data ?? {};
-              final massUnits = data.values.where((it) => it.dimensionsId == Dimensions.Mass.id);
-              massUnits.forEach((it) {print("dims: $it - ${it.dimensionsId == Dimensions.Mass.id}");});
-              units.addAll(massUnits);
-              units.sort((a, b) => a.multiplier.compareTo(b.multiplier));
-            }
-            if (snapshot.hasError) {
-              debugPrint("error querying database for units: ${snapshot
-                  .stackTrace}");
-            }
-            final items = units.map((e) =>
-                DropdownMenuItem<Units>(
-                  child: Text(TL8(e.id)),
-                  value: e,
-                )
-            ).toList();
-            return DropdownButton<Units>(
-              items: items,
-              value: quantity.units,
-              onChanged: (units) {
-                if (units == null || units == quantity.units)
-                  return;
-                setState(() {
-                  _contents[id] = Quantity(quantity.amount, units);
-                  this.contents = _contents; // updates the stats too
-                });
-              },
-            );
-          }
-      )
+      unitsDropDown(
+        units: quantity.units,
+        unitsList: db.units.getAll(),
+        dimensionsId: Dimensions.Mass.id,
+        onChanged: (units) {
+          setState(() {
+            _contents[id] = Quantity(quantity.amount, units);
+            this.contents = _contents; // updates the stats too
+          });
+        },
+      ),
     ];
   }
 
