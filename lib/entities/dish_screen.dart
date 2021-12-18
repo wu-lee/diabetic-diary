@@ -96,6 +96,12 @@ class _DishState extends State<DishScreen> {
           ),
           Row(
             children: [
+              Text(TL8(#TotalMass)),
+              Expanded(child: Text("${dish.totalMass}g")),
+            ],
+          ),
+          Row(
+            children: [
               Text(TL8(#NumPortions)),
               Expanded(child: Text(dish.portions.toString())),
             ],
