@@ -1,3 +1,4 @@
+import 'package:diabetic_diary/dimensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinbox/flutter_spinbox.dart';
 
@@ -97,30 +98,69 @@ class _DishEditState extends State<DishEditScreen> {
     portions = e.portions;
   }
 
-  Widget _buildCompositionStat(BuildContext context, Symbol id, String quantity) {
-    return Text(quantity);
+  Iterable<Widget> _buildCompositionStat(BuildContext context, Symbol id, String quantity) {
+    return [Text(quantity)];
   }
 
-  Widget _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
-    return SpinBox(
-      min: 0,
-      max: double.maxFinite,
-      decimals: 1,
-      value: quantity.amount.toDouble(),
-      onChanged: (value) {
-        setState(() {
-          _contents[id] = Quantity(value, quantity.units);
-          this.contents = _contents; // updates the stats too
-        });
-      },
-
-    );
+  Iterable<Widget> _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
+    return [
+      Container(
+        width: 150,
+        child: SpinBox(
+        min: 0,
+        max: double.maxFinite,
+        decimals: 1,
+        value: quantity.amount.toDouble(),
+        onChanged: (value) {
+          setState(() {
+            _contents[id] = Quantity(value, quantity.units);
+            this.contents = _contents; // updates the stats too
+          });
+        },
+      )
+      ),
+      FutureBuilder<Map<Symbol, Units>>(
+          future: db.units.getAll(),
+          builder: (context, snapshot) {
+            final List<Units> units = [];
+            if (snapshot.hasData) {
+              final Map<Symbol, Units> data = snapshot.data ?? {};
+              final massUnits = data.values.where((it) => it.dimensionsId == Dimensions.Mass.id);
+              massUnits.forEach((it) {print("dims: $it - ${it.dimensionsId == Dimensions.Mass.id}");});
+              units.addAll(massUnits);
+              units.sort((a, b) => a.multiplier.compareTo(b.multiplier));
+            }
+            if (snapshot.hasError) {
+              debugPrint("error querying database for units: ${snapshot
+                  .stackTrace}");
+            }
+            final items = units.map((e) =>
+                DropdownMenuItem<Units>(
+                  child: Text(TL8(e.id)),
+                  value: e,
+                )
+            ).toList();
+            return DropdownButton<Units>(
+              items: items,
+              value: quantity.units,
+              onChanged: (units) {
+                if (units == null || units == quantity.units)
+                  return;
+                setState(() {
+                  _contents[id] = Quantity(quantity.amount, units);
+                  this.contents = _contents; // updates the stats too
+                });
+              },
+            );
+          }
+      )
+    ];
   }
 
   Widget _buildEntityList<T>({
     required String title,
     required Future<Map<Symbol, MapEntry<String, T>>> futureEntities,
-    required Widget Function(BuildContext, Symbol, T) builder,
+    required Iterable<Widget> Function(BuildContext, Symbol, T) builder,
     required BuildContext context}) =>
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,9 +188,7 @@ class _DishEditState extends State<DishEditScreen> {
                               Expanded(
                                 child: Text(e.value.key),
                               ),
-                              Expanded(
-                                child: builder(context, e.key, e.value.value),
-                              ),
+                              ... builder(context, e.key, e.value.value),
                             ],
                           ),
                         ),
