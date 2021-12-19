@@ -39,7 +39,7 @@ abstract class Edible extends Quantified implements Labelled {
 
   /// Checks for contents with inconsistent units.
   ///
-  /// Specifically, this expects all contents to have contents with units of #Mass.
+  /// Specifically, this expects all contents to have contents with units of #Mass or #NumPortions.
   ///
   /// If [cache] is supplied, uses this for keeping a shared cache of measurables
   /// for a little added speed.
@@ -50,7 +50,8 @@ abstract class Edible extends Quantified implements Labelled {
     cache ??= {};
     final invalids = <Symbol, Quantity>{};
     for(final item in contents.entries) {
-      if (item.value.units.dimensionsId != Dimensions.Mass.id)
+      if (item.value.units.dimensionsId != Dimensions.Mass.id &&
+          item.value.units.dimensionsId != Dimensions.NumPortions.id)
         invalids[item.key] = item.value;
     }
     return invalids;
