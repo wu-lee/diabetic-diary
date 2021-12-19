@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:diabetic_diary/basic_ingredient.dart';
 import 'package:diabetic_diary/composite_edible.dart';
 import 'package:diabetic_diary/database.dart';
@@ -8,14 +10,21 @@ import 'package:diabetic_diary/quantity.dart';
 import 'package:test/test.dart';
 import 'package:diabetic_diary/units.dart';
 
+Map<Symbol, Quantity> trunc(Map<Symbol, Quantity> contents, [int zeros = 3]) {
+  final mult = pow(10, zeros);
+  return contents.map((id, q) => MapEntry(id, Quantity((q.amount * mult).floor()/mult, q.units)));
+}
+
 void main() async {
   Database mdb = MockDatabase(version: 1, deployedVersion: 1);
-  Database.initialiseData(mdb);
+  await mdb.clear();
+  await Database.initialiseData(mdb);
 
   // Define common database
   await mdb.clear();
   final ingredient1 = BasicIngredient(
       id: #Ingredient1, label: "Ingredient1",
+      portionSize: 50,
       contents: {
         Measurable.Carbs.id: Quantity(1, Units.GramsPerHectogram),
         Measurable.Fat.id: Quantity(3, Units.GramsPerHectogram),
@@ -25,6 +34,7 @@ void main() async {
   );
   final ingredient2 = BasicIngredient(
       id: #Ingredient2, label: "Ingredient2",
+      portionSize: 70,
       contents: {
         Measurable.Carbs.id: Quantity(1, Units.GramsPerHectogram),
         Measurable.Protein.id: Quantity(3, Units.GramsPerHectogram),
@@ -34,6 +44,7 @@ void main() async {
   );
   final ingredient3 = BasicIngredient(
       id: #Ingredient3, label: "Ingredient3",
+      portionSize: 190,
       contents: {
         Measurable.Carbs.id: Quantity(500, Units.GramsPerKilogram),
         Measurable.Protein.id: Quantity(2, Units.GramsPerKilogram),
@@ -56,28 +67,32 @@ void main() async {
     final contents = {
       #Ingredient1: Quantity(1, Units.Grams),
     };
-    final aggregateStats = await mdb.aggregate(contents);
-    print(Quantified.formatContents(aggregateStats));
-    expect(aggregateStats, {
+    final expectedStats = {
       Measurable.Carbs.id: Quantity(1, Units.GramsPerHectogram),
       Measurable.Fat.id: Quantity(3, Units.GramsPerHectogram),
       Measurable.Protein.id: Quantity(1, Units.GramsPerHectogram),
       Measurable.Energy.id: Quantity(300, Units.KilocaloriesPerHectogram),
-    });
+    };
+    final aggregateStats = await mdb.aggregate(contents);
+    print("expected "+Quantified.formatContents(expectedStats));
+    print("actual "+Quantified.formatContents(aggregateStats));
+    expect(aggregateStats, expectedStats);
   });
 
   test('Aggregate #Ingredients1 * 2g', () async {
     final contents = {
       #Ingredient1: Quantity(2, Units.Grams),
     };
-    final aggregateStats = await mdb.aggregate(contents);
-    print(Quantified.formatContents(aggregateStats));
-    expect(aggregateStats, {
+    final expectedStats = {
       Measurable.Carbs.id: Quantity(1, Units.GramsPerHectogram),
       Measurable.Fat.id: Quantity(3, Units.GramsPerHectogram),
       Measurable.Protein.id: Quantity(1, Units.GramsPerHectogram),
       Measurable.Energy.id: Quantity(300, Units.KilocaloriesPerHectogram),
-    });
+    };
+    final aggregateStats = await mdb.aggregate(contents);
+    print("expected "+Quantified.formatContents(expectedStats));
+    print("actual "+Quantified.formatContents(aggregateStats));
+    expect(aggregateStats, expectedStats);
   });
 
   test('Aggregate #Ingredients1 * 2g + #Ingredients2 * .003kg', () async {
@@ -88,8 +103,7 @@ void main() async {
     final totalMass = await mdb.getTotalMass(contents);
     print("total mass $totalMass g");
     final aggregateStats = await mdb.aggregate(contents);
-    print(Quantified.formatContents(aggregateStats));
-    expect(aggregateStats, {
+    final expectedStats = {
       // Aggregated amounts are essentially averaged values
       // - so f.e. if they are the same in both ingredients, it stays put.
       // In other cases, for measurable A in ingredient X and Y,
@@ -100,7 +114,10 @@ void main() async {
       Measurable.Protein.id: Quantity((2*1 + 3*3)/totalMass, Units.GramsPerHectogram),
       Measurable.Fibre.id: Quantity((0 + 3*4)/totalMass, Units.GramsPerHectogram),
       Measurable.Energy.id: Quantity((2*300 + 3*100)/totalMass, Units.KilocaloriesPerHectogram),
-    });
+    };
+    print("expected "+Quantified.formatContents(expectedStats));
+    print("actual "+Quantified.formatContents(aggregateStats));
+    expect(aggregateStats, expectedStats);
   });
 
   test('Aggregate #Ingredients1 * 2g + #Ingredients3 * 5g', () async {
@@ -110,6 +127,8 @@ void main() async {
     };
     final totalMass = await mdb.getTotalMass(contents); // In grams
     print("total mass $totalMass g");
+    expect(totalMass, 2+5);
+
     final aggregateStats = await mdb.aggregate(contents);
     final expectedStats = {
       // Aggregated amounts - see comment above. Although
@@ -139,5 +158,49 @@ void main() async {
     print("expected ${Quantified.formatContents(expectedStats)}");
     print("actual ${Quantified.formatContents(aggregateStats)}");
     expect(aggregateStats, expectedStats);
+  });
+
+
+  test('Aggregate #Ingredients1 * 2portions + #Ingredients3 * 5g', () async {
+    final contents = {
+      #Ingredient1: Quantity(2, Units.NumPortions),
+      #Ingredient3: Quantity(5, Units.Grams),
+    };
+    final totalMass = await mdb.getTotalMass(contents); // In grams
+    print("total mass $totalMass g");
+    expect(totalMass, 2*50 + 5);
+
+    final aggregateStats = await mdb.aggregate(contents);
+    final amountIng1 = 50*2; // grams
+    final amountIng2 = 5; // grams
+    final expectedStats = {
+      // Aggregated amounts - see comment above. Although
+      // here we have to be more careful to multiply out the amounts
+      // when in different units, and also factor in the portionSize where applicable
+      Measurable.Carbs.id: Quantity(
+          (amountIng1*1*Units.GramsPerHectogram.multiplier  +
+           amountIng2*500*Units.GramsPerKilogram.multiplier)
+              /(totalMass*Units.GramsPerHectogram.multiplier),
+          Units.GramsPerHectogram),
+      Measurable.Fat.id: Quantity(
+          (amountIng1*3*Units.GramsPerHectogram.multiplier +
+           0)
+              /(totalMass*Units.GramsPerHectogram.multiplier),
+          Units.GramsPerHectogram),
+      Measurable.Protein.id: Quantity(
+          (amountIng1*1*Units.GramsPerHectogram.multiplier +
+           amountIng2*2*Units.GramsPerKilogram.multiplier)
+              /(totalMass*Units.GramsPerHectogram.multiplier),
+          Units.GramsPerHectogram),
+      Measurable.Energy.id: Quantity(
+          (amountIng1*300*Units.KilocaloriesPerHectogram.multiplier +
+           amountIng2*500*Units.CaloriesPerGram.multiplier)
+              /(totalMass*Units.KilocaloriesPerHectogram.multiplier),
+          Units.KilocaloriesPerHectogram),
+    };
+    print("expected ${Quantified.formatContents(expectedStats)}");
+    print("actual ${Quantified.formatContents(aggregateStats)}");
+
+    expect(trunc(aggregateStats), trunc(expectedStats));
   });
 }
