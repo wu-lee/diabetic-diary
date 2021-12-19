@@ -13,6 +13,7 @@ import 'package:sqflite/sqflite.dart' show getDatabasesPath;
 
 void main() async {
   Database mdb = MoorDatabase.create();
+  await mdb.clear();
   await Database.initialiseData(mdb);
 
   group('Quantity operations', () {
