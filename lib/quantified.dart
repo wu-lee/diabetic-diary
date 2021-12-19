@@ -111,6 +111,7 @@ abstract class Quantified implements Indexable {
         }
         if (item is CompositeEdible) {
           final totalMass = CompositeEdible.getTotalMass(item.contents, index);
+          assert(item.portions > 0);
           multiplier *= totalMass / item.portions;
           debugPrint("multiplier = "
               "${quantity.amount} * ${quantity.units.multiplier} ${symbolToString(quantity.units.id)}"
