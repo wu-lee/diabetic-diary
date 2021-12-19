@@ -228,7 +228,7 @@ class _IngredientEditState extends State<IngredientEditScreen> {
                   Container(
                     width: 150,
                     child: SpinBox(
-                      min: 0,
+                      min: 1,
                       max: double.maxFinite,
                       decimals: 1,
                       value: portionSize.toDouble(),

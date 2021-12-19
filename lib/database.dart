@@ -125,6 +125,11 @@ abstract class Database {
   Future<void> validateEdibles(List<Edible> edibles) async {
     final cache = <Symbol, Measurable>{};
     for(final edible in edibles) {
+      if (edible is CompositeEdible && edible.portions <= 0)
+        throw StateError("Zero or negative portion count in edible ${edible.id}");
+      else
+        if (edible is BasicIngredient && edible.portionSize <= 0)
+          throw StateError("Zero or negative portionSize in edible ${edible.id}");
       final invalids = await edible.invalidContents(this, cache);
       if (invalids.isNotEmpty)
         throw StateError("invalid units in contents ${Quantified.formatContents(invalids)}");
