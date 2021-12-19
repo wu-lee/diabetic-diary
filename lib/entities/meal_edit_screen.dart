@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../composite_edible.dart';
 import '../database.dart';
+import '../dimensions.dart';
 import '../meal.dart';
 import '../edible.dart';
 import '../quantity.dart';
@@ -71,9 +72,8 @@ class _MealEditState extends State<MealEditScreen> {
 
     // This does, because the calculation is asynchronous. Add a handler to
     // update our state when it's done.
-    final totalMass = CompositeEdible.getTotalMass(contents);
     _pendingCompositionStats =
-        db.aggregate(newContents, totalMass)
+        db.aggregate(newContents)
         .then(formatLocalisedQuantities);
   }
 
@@ -94,30 +94,48 @@ class _MealEditState extends State<MealEditScreen> {
     contents = e.contents;
   }
 
-  Widget _buildCompositionStat(BuildContext context, Symbol id, String quantity) {
-    return Text(quantity);
+  Iterable<Widget> _buildCompositionStat(BuildContext context, Symbol id, String quantity) {
+    return [Text(quantity)];
   }
 
-  Widget _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
-    return SpinBox(
-      min: 0,
-      max: double.maxFinite,
-      decimals: 1,
-      value: quantity.amount.toDouble(),
-      onChanged: (value) {
-        setState(() {
-          _contents[id] = Quantity(value, quantity.units);
-          this.contents = _contents; // updates the stats too
-        });
-      },
-
-    );
+  Iterable<Widget> _buildContentAmount(BuildContext context, Symbol id, Quantity quantity) {
+    return [
+      Container(
+        width: 150,
+        child: SpinBox(
+            min: 0,
+            max: double.maxFinite,
+            decimals: 1,
+            value: quantity.amount.toDouble(),
+            onChanged: (value) {
+              setState(() {
+                _contents[id] = Quantity(value, quantity.units);
+                this.contents = _contents; // updates the stats too
+              });
+            },
+          ),
+        ),
+      unitsDropDown(
+        units: quantity.units,
+        unitsList: db.units.getAll()
+            .then((result) => result.values.where(
+                (it) => it.dimensionsId == Dimensions.Mass.id ||
+                it.id == Units.NumPortions.id
+        )),
+        onChanged: (units) {
+          setState(() {
+            _contents[id] = Quantity(quantity.amount, units);
+            this.contents = _contents; // updates the stats too
+          });
+        },
+      )
+    ];
   }
 
   Widget _buildEntityList<T>({
     required String title,
     required Future<Map<Symbol, MapEntry<String, T>>> futureEntities,
-    required Widget Function(BuildContext, Symbol, T) builder,
+    required Iterable<Widget> Function(BuildContext, Symbol, T) builder,
     required BuildContext context}) =>
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,9 +163,7 @@ class _MealEditState extends State<MealEditScreen> {
                               Expanded(
                                 child: Text(e.value.key),
                               ),
-                              Expanded(
-                                child: builder(context, e.key, e.value.value),
-                              ),
+                              ...builder(context, e.key, e.value.value),
                             ],
                           ),
                         ),
@@ -264,6 +280,14 @@ class _MealEditState extends State<MealEditScreen> {
                         ),
                       ],
                     ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(TL8(#TotalMass)),
+                        ),
+                        totalMassText(db, id, contents),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -323,7 +347,7 @@ class _MealEditState extends State<MealEditScreen> {
                                       // Update the quantity, which we know always has units of g/100g
                                       // because they're ingredients or dishes
                                       final newContents = contents;
-                                      newContents[e.id] = Quantity(1, Units.GramsPerHectogram);
+                                      newContents[e.id] = Quantity(1, Units.NumPortions);
 
                                       setState(() {
                                         contents = newContents;

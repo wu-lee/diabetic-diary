@@ -69,8 +69,7 @@ class _DishEditState extends State<DishEditScreen> {
 
     // This does, because the calculation is asynchronous. Add a handler to
     // update our state when it's done.
-    final totalMass = CompositeEdible.getTotalMass(contents);
-    _pendingCompositionStats = db.aggregate(newContents, totalMass, id).then(
+    _pendingCompositionStats = db.aggregate(newContents, id).then(
       // Format the quantities into strings
         (stats) async {
           final Map<Symbol, MapEntry<String, String>> result = {};
@@ -121,8 +120,11 @@ class _DishEditState extends State<DishEditScreen> {
       ),
       unitsDropDown(
         units: quantity.units,
-        unitsList: db.units.getAll(),
-        dimensionsId: Dimensions.Mass.id,
+        unitsList: db.units.getAll()
+          .then((result) => result.values.where(
+                (it) => it.dimensionsId == Dimensions.Mass.id ||
+                  it.id == Units.NumPortions.id
+          )),
         onChanged: (units) {
           setState(() {
             _contents[id] = Quantity(quantity.amount, units);
@@ -217,7 +219,7 @@ class _DishEditState extends State<DishEditScreen> {
               Row(
                 children: [
                   Expanded(child: Text(TL8(#TotalMass))),
-                  Text("${dish.totalMass.toStringAsFixed(1)}g"),
+                  totalMassText(db, dish.id, dish.contents),
                 ],
               ),
               Row(

@@ -33,7 +33,7 @@ class _DishState extends State<DishScreen> {
     _dish = e;
     _contentAmounts = db.retrieveEdibles(dish.contents.keys)
         .then((e) => formatLabelledQuantities(dish.contents, e));
-    _compositionStats = db.aggregate(dish.contents, dish.totalMass)
+    _compositionStats = db.aggregate(dish.contents)
         .then(formatLocalisedQuantities);
   }
 
@@ -42,7 +42,7 @@ class _DishState extends State<DishScreen> {
   {
     _contentAmounts = db.retrieveEdibles(dish.contents.keys)
         .then((e) => formatLabelledQuantities(dish.contents, e));
-    _compositionStats = db.aggregate(dish.contents, dish.totalMass)
+    _compositionStats = db.aggregate(dish.contents)
         .then(formatLocalisedQuantities);
   }
 
@@ -97,7 +97,7 @@ class _DishState extends State<DishScreen> {
           Row(
             children: [
               Expanded(child: Text(TL8(#TotalMass))),
-              Text("${dish.totalMass.toStringAsFixed(1)}g"),
+              totalMassText(db, dish.id, dish.contents),
             ],
           ),
           Row(
@@ -109,7 +109,7 @@ class _DishState extends State<DishScreen> {
           Row(
             children: [
               Expanded(child: Text(TL8(#PortionSize))),
-              Text(Quantity(dish.portionSize, Units.Grams).format())
+              portionSizeText(db, dish),
             ],
           ),
           _buildEntityList(

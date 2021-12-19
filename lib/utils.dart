@@ -1,8 +1,10 @@
 
 
+import 'package:diabetic_diary/composite_edible.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'database.dart';
 import 'edible.dart';
 import 'quantity.dart';
 import 'translation.dart';
@@ -48,20 +50,54 @@ Map<Symbol, MapEntry<String, String>> formatLocalisedQuantities(
   return quantities.map((id, q) => MapEntry(id, MapEntry(TL8(id), q.format())));
 }
 
+Widget totalMassText(Database db, Symbol id, Map<Symbol, Quantity> contents) {
+  return FutureBuilder<num>(
+    future: db.getTotalMass(contents),
+    builder: (context, snapshot) {
+      String text = "calculating...";
+      if (snapshot.hasData) {
+        final totalMass = snapshot.data ?? 0;
+        text = "${totalMass.toStringAsFixed(1)}g";
+      }
+      if (snapshot.hasError) {
+        text = "error!";
+        debugPrint("error calculating totalMass of $id:@ ${snapshot.stackTrace}");
+      }
+      return Text(text);
+    }
+  );
+}
+
+Widget portionSizeText(Database db, CompositeEdible edible) {
+  return FutureBuilder<num>(
+    future: db.getTotalMass(edible.contents),
+    builder: (context, snapshot) {
+      String text = "calculating...";
+      if (snapshot.hasData) {
+        final totalMass = snapshot.data ?? 0;
+        final portionSize = totalMass/edible.portions;
+        text = "${portionSize.toStringAsFixed(1)}g";
+      }
+      if (snapshot.hasError) {
+        text = "error!";
+        debugPrint("error calculating totalMass of ${edible.id}:@ ${snapshot.stackTrace}");
+      }
+      return Text(text);
+    }
+  );
+}
+
 Widget unitsDropDown({
   required Units units,
-  required Future<Map<Symbol, Units>> unitsList,
-  required Symbol dimensionsId,
+  required Future<Iterable<Units>> unitsList,
   required void onChanged(Units newUnits)
 }) {
-  return FutureBuilder<Map<Symbol, Units>>(
+  return FutureBuilder<Iterable<Units>>(
       future: unitsList,
       builder: (context, snapshot) {
         final List<Units> unitsList = [];
         if (snapshot.hasData) {
-          final Map<Symbol, Units> data = snapshot.data ?? {};
-          final massUnits = data.values.where((it) => it.dimensionsId == dimensionsId);
-          unitsList.addAll(massUnits);
+          unitsList.addAll(snapshot.data ?? {});
           unitsList.sort((a, b) => a.multiplier.compareTo(b.multiplier));
         }
         if (snapshot.hasError) {

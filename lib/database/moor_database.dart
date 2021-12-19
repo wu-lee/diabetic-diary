@@ -673,9 +673,13 @@ class MoorEdiblesCollection extends MoorAbstract1ToNTo1Collection<$_EdiblesTable
   Iterable<Insertable<_Edible>> contentToPrimaryRows(Edible value) {
     List<Insertable<_Edible>> rows = [];
     final isComposite = value is CompositeEdible;
-    final num portions = isComposite?
-      (value as CompositeEdible).portions : // #portions
-      value.portionSize; // portions size in g
+    num portions = 1;
+    if (value is CompositeEdible) {
+      portions = value.portions;
+    }
+    if (value is BasicIngredient) {
+      portions = value.portionSize; // portions size in g
+    }
     rows.add(_Edible(
       id: symbolToString(value.id),
       label: value.label,

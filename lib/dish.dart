@@ -42,7 +42,7 @@ class Dish extends CompositeEdible {
 
   @override
   Map<Symbol, Quantity> aggregateContents(Map<Symbol, Quantified> index, SeenChecker seen) =>
-      Quantified.aggregate(contents, totalMass, index, chainSeenChecker(id, seen));
+      Quantified.aggregate(contents, index, chainSeenChecker(id, seen));
 
   @override
   int get hashCode => contents.hashCode ^ id.hashCode;

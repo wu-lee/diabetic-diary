@@ -39,7 +39,7 @@ class Meal extends CompositeEdible {
 
   @override
   Map<Symbol, Quantity> aggregateContents(Map<Symbol, Quantified> index, bool Function(Symbol) seen) =>
-      Quantified.aggregate(contents, totalMass, index, chainSeenChecker(id, seen));
+      Quantified.aggregate(contents, index, chainSeenChecker(id, seen));
 
 
   @override

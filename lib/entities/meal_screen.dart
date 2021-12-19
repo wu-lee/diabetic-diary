@@ -35,7 +35,7 @@ class _MealState extends State<MealScreen> {
     _meal = e;
     _contentAmounts = db.retrieveEdibles(meal.contents.keys)
         .then((e) => formatLabelledQuantities(meal.contents, e));
-    _compositionStats = db.aggregate(meal.contents, meal.totalMass)
+    _compositionStats = db.aggregate(meal.contents)
       .then(formatLocalisedQuantities);
   }
 
@@ -44,7 +44,7 @@ class _MealState extends State<MealScreen> {
   {
     _contentAmounts = db.retrieveEdibles(meal.contents.keys)
         .then((e) => formatLabelledQuantities(meal.contents, e));
-    _compositionStats = db.aggregate(meal.contents, meal.totalMass)
+    _compositionStats = db.aggregate(meal.contents)
         .then(formatLocalisedQuantities);
   }
 

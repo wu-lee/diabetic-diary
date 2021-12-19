@@ -13,7 +13,7 @@ abstract class Edible extends Quantified implements Labelled {
   const Edible();
 
   /// Portion size in grams, 100g is the default if not known.
-  num get portionSize;
+//  num get portionSize;
 
   Future<Map<Symbol, Quantity>> invalidContents(Database db, [Map<Symbol, Measurable>? cache]);
 

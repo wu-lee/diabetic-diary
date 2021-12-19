@@ -34,7 +34,7 @@ class _IngredientState extends State<IngredientScreen> {
     _ingredient = e;
     _contentAmounts = db.retrieveEdibles(ingredient.contents.keys)
         .then((e) => formatLabelledQuantities(ingredient.contents, e));
-    _compositionStats = db.aggregate(ingredient.contents, 1)
+    _compositionStats = db.aggregate(ingredient.contents)
         .then(formatLocalisedQuantities);
   }
 
@@ -43,7 +43,7 @@ class _IngredientState extends State<IngredientScreen> {
   {
     _contentAmounts = db.retrieveEdibles(ingredient.contents.keys)
         .then((e) => formatLabelledQuantities(ingredient.contents, e));
-    _compositionStats = db.aggregate(ingredient.contents, 1)
+    _compositionStats = db.aggregate(ingredient.contents)
         .then(formatLocalisedQuantities);
   }
 

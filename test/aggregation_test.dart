@@ -56,7 +56,7 @@ void main() async {
     final contents = {
       #Ingredient1: Quantity(1, Units.Grams),
     };
-    final aggregateStats = await mdb.aggregate(contents, CompositeEdible.getTotalMass(contents));
+    final aggregateStats = await mdb.aggregate(contents);
     print(Quantified.formatContents(aggregateStats));
     expect(aggregateStats, {
       Measurable.Carbs.id: Quantity(1, Units.GramsPerHectogram),
@@ -70,7 +70,7 @@ void main() async {
     final contents = {
       #Ingredient1: Quantity(2, Units.Grams),
     };
-    final aggregateStats = await mdb.aggregate(contents, CompositeEdible.getTotalMass(contents));
+    final aggregateStats = await mdb.aggregate(contents);
     print(Quantified.formatContents(aggregateStats));
     expect(aggregateStats, {
       Measurable.Carbs.id: Quantity(1, Units.GramsPerHectogram),
@@ -85,9 +85,9 @@ void main() async {
       #Ingredient1: Quantity(2, Units.Grams),
       #Ingredient2: Quantity(0.003, Units.Kilograms),
     };
-    final totalMass = CompositeEdible.getTotalMass(contents); // In grams
+    final totalMass = await mdb.getTotalMass(contents);
     print("total mass $totalMass g");
-    final aggregateStats = await mdb.aggregate(contents, totalMass);
+    final aggregateStats = await mdb.aggregate(contents);
     print(Quantified.formatContents(aggregateStats));
     expect(aggregateStats, {
       // Aggregated amounts are essentially averaged values
@@ -108,9 +108,9 @@ void main() async {
       #Ingredient1: Quantity(2, Units.Grams),
       #Ingredient3: Quantity(5, Units.Grams),
     };
-    final totalMass = CompositeEdible.getTotalMass(contents); // In grams
+    final totalMass = await mdb.getTotalMass(contents); // In grams
     print("total mass $totalMass g");
-    final aggregateStats = await mdb.aggregate(contents, totalMass);
+    final aggregateStats = await mdb.aggregate(contents);
     final expectedStats = {
       // Aggregated amounts - see comment above. Although
       // here we have to be more careful to multiply out the amounts

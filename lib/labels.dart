@@ -33,6 +33,9 @@ const LABELS = {
   #DeleteFromIndex: {
     #en: 'Delete from index',
   },
+  #Dimensionless: {
+    #en: 'Dimensionless',
+  },
   #Dishes: {
     #en: 'Dishes',
   },
@@ -146,6 +149,9 @@ const LABELS = {
   },
   #NewMeal: {
     #en: 'New Meal',
+  },
+  #num_portions: {
+    #en: '#ptns',
   },
   #NumPortions: {
     #en: 'Number of Portions',

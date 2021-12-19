@@ -89,8 +89,7 @@ void main() async {
         cabbage.id: Quantity(50, gramsPerHectagram),
         tahini.id: Quantity(50, gramsPerHectagram),
       };
-      final totalMass = CompositeEdible.getTotalMass(ingredients);
-      final aggregateStats = await db.aggregate(ingredients, totalMass);
+      final aggregateStats = await db.aggregate(ingredients);
 
       print("cabbage: "+cabbage.format());
       print("tahini: "+tahini.format());

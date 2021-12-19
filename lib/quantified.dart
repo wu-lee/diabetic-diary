@@ -1,5 +1,10 @@
 
 
+import 'package:diabetic_diary/basic_ingredient.dart';
+import 'package:diabetic_diary/composite_edible.dart';
+import 'package:diabetic_diary/dimensions.dart';
+import 'package:diabetic_diary/dish.dart';
+import 'package:diabetic_diary/edible.dart';
 import 'package:flutter/foundation.dart';
 
 import 'indexable.dart';
@@ -59,7 +64,8 @@ abstract class Quantified implements Indexable {
   /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
   ///
   /// May throw a [StateError] if a cycle is detected.
-  static Map<Symbol, Quantity> aggregate(Map<Symbol, Quantity> contents, num totalMass, Map<Symbol, Quantified> index, bool Function(Symbol) seen) {
+  static Map<Symbol, Quantity> aggregate(Map<Symbol, Quantity> contents, Map<Symbol, Quantified> index, bool Function(Symbol) seen) {
+    num totalMass = CompositeEdible.getTotalMass(contents, index);
     final expanded = contents.entries.expand((elem) {
       final id = elem.key;
       final quantity = elem.value;
@@ -93,19 +99,36 @@ abstract class Quantified implements Indexable {
       // (which must be a mass quantity), divided by the parent's net total contents mass.
       // The multiplier has no dimension, since the mass dimensions cancel,
       // which means the sub-quantity's dimensions will be preserved.
-      final multiplier = quantity.amount * quantity.units.multiplier / totalMass;
+      num multiplier = quantity.units.multiplier;
 
-      debugPrint("multiplier = ${quantity.amount} * ${quantity.units.multiplier} / $totalMass = $multiplier");
+      // Deal with units of portions
+      if (quantity.units.dimensionsId == Dimensions.NumPortions.id) {
+        if (item is BasicIngredient) {
+          multiplier *= item.portionSize;
+          debugPrint("multiplier = "
+              "${quantity.amount} * ${quantity.units.multiplier} ${symbolToString(quantity.units.id)}"
+              " * portionSize ${item.portionSize} = $multiplier");
+        }
+        if (item is CompositeEdible) {
+          final totalMass = CompositeEdible.getTotalMass(item.contents, index);
+          multiplier *= totalMass / item.portions;
+          debugPrint("multiplier = "
+              "${quantity.amount} * ${quantity.units.multiplier} ${symbolToString(quantity.units.id)}"
+              " * portion size ($totalMass / ${item.portions}) = $multiplier");
+        }
+      }
+      final fractionByMass = quantity.amount * multiplier/totalMass;
+
       return aggregated.entries.map((elem) {
         final measurable = index[elem.key] as Measurable; // something is wrong if not a Measurable!
         final subQuantity = elem.value.toUnits(measurable.defaultUnits);
-        debugPrint("multiply ${subQuantity.format()} by $multiplier");
-        return MapEntry(elem.key, subQuantity.multiply(multiplier));
+        debugPrint("multiply ${subQuantity.format()} by $fractionByMass");
+        return MapEntry(elem.key, subQuantity.multiply(fractionByMass));
       });
     });
 
     final result = expanded.fold<Map<Symbol, Quantity>>({}, (map, entry) =>
-    map..update(entry.key, (value) => entry.value.addQuantity(value), ifAbsent: () => entry.value)
+      map..update(entry.key, (value) => entry.value.addQuantity(value), ifAbsent: () => entry.value)
     );
     return result;
   }

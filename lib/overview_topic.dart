@@ -61,6 +61,17 @@ class OverviewTopic extends Topic {
                           alignment: Alignment.center,
                           child: Text(TL8(#YouHaveNMacroNutrients, {#n: numMeasurables})),
                         ),
+                        Flexible(
+                          child: TextButton(
+                            onPressed: () {
+                              setBuilderState(() async {
+                                await db.clear();
+                                await Database.initialiseData(db);
+                              });
+                            },
+                            child: Text(TL8(#ResetDatabase)),
+                          )
+                        )
 
                       ],
                     ),

@@ -1,5 +1,6 @@
 
 import 'package:diabetic_diary/basic_ingredient.dart';
+import 'package:diabetic_diary/composite_edible.dart';
 import 'package:diabetic_diary/measureable.dart';
 import 'package:diabetic_diary/translation.dart';
 import 'package:flutter/foundation.dart';
@@ -177,23 +178,40 @@ abstract class Database {
     return index;
   }
 
-  /// Convert an Dish's content list into a content list of nutritional components
+  /// Convert a content list into a content list of nutritional components
   ///
-  /// [contents] should be a map defining [Quantities] of [Edible] instances named by their ID.
+  /// [contents] should be a map defining [Quantities] of [Quantified] instances named by their ID.
   /// There should be no null keys or values. Nor should there be any cycles, where an dish
   /// contains itself, directly or indirectly.
   ///
-  /// Optionally, [edibleId] can identify an [Dish] which includes this content list,
-  /// in case it needs to be excluded from cycles (i.e. when aggregating an [Dish] existing in the database).
+  /// Optionally, [seenId] can identify a [Quantified] which includes this content list,
+  /// in case it needs to be excluded from cycles (i.e. when aggregating a
+  /// [Quantified] existing in the database).
   ///
   /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
   ///
   /// May throw a [StateError] if a cycle is detected.
-  Future<Map<Symbol, Quantity>> aggregate(Map<Symbol, Quantity> contents, num totalMass, [Symbol? edibleId]) async {
-    final seen = edibleId == null? (id) => false : (id) => id == edibleId;
-    return Quantified.aggregate(contents, totalMass, await traverseContents(contents.keys), seen);
+  Future<Map<Symbol, Quantity>> aggregate(Map<Symbol, Quantity> contents, [Symbol? seenId]) async {
+    final seen = seenId == null? (id) => false : (id) => id == seenId;
+    return Quantified.aggregate(contents, await traverseContents(contents.keys), seen);
   }
 
+  /// Convert a content list into a mass of the total.
+  ///
+  /// [contents] should be a map defining [Quantities] of [Quantified] instances named by their ID.
+  /// There should be no null keys or values. Nor should there be any cycles, where an dish
+  /// contains itself, directly or indirectly.
+  ///
+  /// Optionally, [seenId] can identify a [Quantified] which includes this content list,
+  /// in case it needs to be excluded from cycles (i.e. when aggregating a
+  /// [Quantified] existing in the database).
+  ///
+  /// Returns a map of [Measurable] identifiers and the appropriate total quantities thereof.
+  ///
+  /// May throw a [StateError] if a cycle is detected.
+  Future<num> getTotalMass(Map<Symbol, Quantity> contents, [Symbol? edibleId]) async {
+    return CompositeEdible.getTotalMass(contents, await traverseContents(contents.keys));
+  }
 
   /// Temp means to access a lot of edibles.
   ///
