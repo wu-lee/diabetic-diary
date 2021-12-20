@@ -14,11 +14,11 @@ class Units extends Indexable {
   static const MilliGrams = Units(#mg, #Mass, 0.001);
   static const Grams = Units(#g, #Mass, 1);
   static const KiloGrams = Units(#kg, #Mass, 1000);
-  static const GramsPerMilligram = Units(#g_per_mg, #FractionByMass, 0.001);
-  static const GramsPerCentigram = Units(#g_per_cg, #FractionByMass, 0.01);
+  static const GramsPerMilligram = Units(#g_per_mg, #FractionByMass, 1000);
+  static const GramsPerCentigram = Units(#g_per_cg, #FractionByMass, 100);
   static const GramsPerGram = Units(#g_per_g, #FractionByMass, 1);
-  static const GramsPerHectogram = Units(#g_per_hg, #FractionByMass, 100);
-  static const GramsPerKiloGram = Units(#g_per_kg, #FractionByMass, 1000);
+  static const GramsPerHectogram = Units(#g_per_hg, #FractionByMass, 0.01);
+  static const GramsPerKiloGram = Units(#g_per_kg, #FractionByMass, 0.001);
 
   const Units(this.id, this.dimensionsId, this.multiplier) : super(id: id);
 
