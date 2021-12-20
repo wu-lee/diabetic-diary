@@ -33,7 +33,7 @@ dependencies:
   sqlite3_flutter_libs: # Also use the latest version.
   path_provider:
   path:
-  flutter_spinbox: ^0.5.4
+  flutter_spinbox: ^0.8.0
   datetime_picker_formfield: ^2.0.0
   flutter_calendar_carousel: ^2.0.3
   intl: ^0.17.0
