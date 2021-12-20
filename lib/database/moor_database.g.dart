@@ -67,7 +67,7 @@ class _ConfigData extends DataClass implements Insertable<_ConfigData> {
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode, value.hashCode));
+  int get hashCode => Object.hash(id, value);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -133,31 +133,22 @@ class $_ConfigTable extends _Config with TableInfo<$_ConfigTable, _ConfigData> {
   $_ConfigTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _valueMeta = const VerificationMeta('value');
   @override
-  late final GeneratedTextColumn value = _constructValue();
-  GeneratedTextColumn _constructValue() {
-    return GeneratedTextColumn(
-      'value',
-      $tableName,
-      false,
-    );
-  }
-
+  late final GeneratedColumn<String?> value = GeneratedColumn<String?>(
+      'value', aliasedName, false,
+      type: const StringType(), requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [id, value];
   @override
-  $_ConfigTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'config';
   @override
-  String get $tableName => _alias ?? 'config';
-  @override
-  final String actualTableName = 'config';
+  String get actualTableName => 'config';
   @override
   VerificationContext validateIntegrity(Insertable<_ConfigData> instance,
       {bool isInserting = false}) {
@@ -262,8 +253,7 @@ class _Unit extends DataClass implements Insertable<_Unit> {
   }
 
   @override
-  int get hashCode => $mrjf(
-      $mrjc(id.hashCode, $mrjc(dimensionsId.hashCode, multiplier.hashCode)));
+  int get hashCode => Object.hash(id, dimensionsId, multiplier);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -344,37 +334,32 @@ class $_UnitsTable extends _Units with TableInfo<$_UnitsTable, _Unit> {
   $_UnitsTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _dimensionsIdMeta =
       const VerificationMeta('dimensionsId');
   @override
-  late final GeneratedTextColumn dimensionsId = _constructDimensionsId();
-  GeneratedTextColumn _constructDimensionsId() {
-    return GeneratedTextColumn('dimensions_id', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES dimensions(id)');
-  }
-
+  late final GeneratedColumn<String?> dimensionsId = GeneratedColumn<String?>(
+      'dimensions_id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES dimensions(id)');
   final VerificationMeta _multiplierMeta = const VerificationMeta('multiplier');
   @override
-  late final GeneratedRealColumn multiplier = _constructMultiplier();
-  GeneratedRealColumn _constructMultiplier() {
-    return GeneratedRealColumn('multiplier', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<double?> multiplier = GeneratedColumn<double?>(
+      'multiplier', aliasedName, false,
+      type: const RealType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns => [id, dimensionsId, multiplier];
   @override
-  $_UnitsTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'units';
   @override
-  String get $tableName => _alias ?? 'units';
-  @override
-  final String actualTableName = 'units';
+  String get actualTableName => 'units';
   @override
   VerificationContext validateIntegrity(Insertable<_Unit> instance,
       {bool isInserting = false}) {
@@ -489,8 +474,7 @@ class _Dimension extends DataClass implements Insertable<_Dimension> {
   }
 
   @override
-  int get hashCode =>
-      $mrjf($mrjc(id.hashCode, $mrjc(componentId.hashCode, exponent.hashCode)));
+  int get hashCode => Object.hash(id, componentId, exponent);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -570,37 +554,32 @@ class $_DimensionsTable extends _Dimensions
   $_DimensionsTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _componentIdMeta =
       const VerificationMeta('componentId');
   @override
-  late final GeneratedTextColumn componentId = _constructComponentId();
-  GeneratedTextColumn _constructComponentId() {
-    return GeneratedTextColumn('component_id', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> componentId = GeneratedColumn<String?>(
+      'component_id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _exponentMeta = const VerificationMeta('exponent');
   @override
-  late final GeneratedIntColumn exponent = _constructExponent();
-  GeneratedIntColumn _constructExponent() {
-    return GeneratedIntColumn('exponent', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<int?> exponent = GeneratedColumn<int?>(
+      'exponent', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns => [id, componentId, exponent];
   @override
-  $_DimensionsTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'dimensions';
   @override
-  String get $tableName => _alias ?? 'dimensions';
-  @override
-  final String actualTableName = 'dimensions';
+  String get actualTableName => 'dimensions';
   @override
   VerificationContext validateIntegrity(Insertable<_Dimension> instance,
       {bool isInserting = false}) {
@@ -702,7 +681,7 @@ class _Measurable extends DataClass implements Insertable<_Measurable> {
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode, unitsId.hashCode));
+  int get hashCode => Object.hash(id, unitsId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -769,28 +748,24 @@ class $_MeasurablesTable extends _Measurables
   $_MeasurablesTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
   @override
-  late final GeneratedTextColumn unitsId = _constructUnitsId();
-  GeneratedTextColumn _constructUnitsId() {
-    return GeneratedTextColumn('units_id', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES units(id)');
-  }
-
+  late final GeneratedColumn<String?> unitsId = GeneratedColumn<String?>(
+      'units_id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES units(id)');
   @override
   List<GeneratedColumn> get $columns => [id, unitsId];
   @override
-  $_MeasurablesTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'measurables';
   @override
-  String get $tableName => _alias ?? 'measurables';
-  @override
-  final String actualTableName = 'measurables';
+  String get actualTableName => 'measurables';
   @override
   VerificationContext validateIntegrity(Insertable<_Measurable> instance,
       {bool isInserting = false}) {
@@ -910,8 +885,7 @@ class _BasicIngredientContent extends DataClass
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode,
-      $mrjc(contains.hashCode, $mrjc(amount.hashCode, unitsId.hashCode))));
+  int get hashCode => Object.hash(id, contains, amount, unitsId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1007,44 +981,38 @@ class $_BasicIngredientContentsTable extends _BasicIngredientContents
   $_BasicIngredientContentsTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES edibles(id)');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES edibles(id)');
   final VerificationMeta _containsMeta = const VerificationMeta('contains');
   @override
-  late final GeneratedTextColumn contains = _constructContains();
-  GeneratedTextColumn _constructContains() {
-    return GeneratedTextColumn('contains', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES measurables(id)');
-  }
-
+  late final GeneratedColumn<String?> contains = GeneratedColumn<String?>(
+      'contains', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES measurables(id)');
   final VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
-  late final GeneratedRealColumn amount = _constructAmount();
-  GeneratedRealColumn _constructAmount() {
-    return GeneratedRealColumn('amount', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<double?> amount = GeneratedColumn<double?>(
+      'amount', aliasedName, false,
+      type: const RealType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
   @override
-  late final GeneratedTextColumn unitsId = _constructUnitsId();
-  GeneratedTextColumn _constructUnitsId() {
-    return GeneratedTextColumn('units_id', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES units(id)');
-  }
-
+  late final GeneratedColumn<String?> unitsId = GeneratedColumn<String?>(
+      'units_id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES units(id)');
   @override
   List<GeneratedColumn> get $columns => [id, contains, amount, unitsId];
   @override
-  $_BasicIngredientContentsTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'basic_ingredient_contents';
   @override
-  String get $tableName => _alias ?? 'basic_ingredient_contents';
-  @override
-  final String actualTableName = 'basic_ingredient_contents';
+  String get actualTableName => 'basic_ingredient_contents';
   @override
   VerificationContext validateIntegrity(
       Insertable<_BasicIngredientContent> instance,
@@ -1176,8 +1144,7 @@ class _Edible extends DataClass implements Insertable<_Edible> {
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode,
-      $mrjc(label.hashCode, $mrjc(isBasic.hashCode, portions.hashCode))));
+  int get hashCode => Object.hash(id, label, isBasic, portions);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1271,44 +1238,38 @@ class $_EdiblesTable extends _Edibles with TableInfo<$_EdiblesTable, _Edible> {
   $_EdiblesTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _labelMeta = const VerificationMeta('label');
   @override
-  late final GeneratedTextColumn label = _constructLabel();
-  GeneratedTextColumn _constructLabel() {
-    return GeneratedTextColumn('label', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> label = GeneratedColumn<String?>(
+      'label', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _isBasicMeta = const VerificationMeta('isBasic');
   @override
-  late final GeneratedBoolColumn isBasic = _constructIsBasic();
-  GeneratedBoolColumn _constructIsBasic() {
-    return GeneratedBoolColumn('is_basic', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<bool?> isBasic = GeneratedColumn<bool?>(
+      'is_basic', aliasedName, false,
+      type: const BoolType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _portionsMeta = const VerificationMeta('portions');
   @override
-  late final GeneratedRealColumn portions = _constructPortions();
-  GeneratedRealColumn _constructPortions() {
-    return GeneratedRealColumn('portions', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<double?> portions = GeneratedColumn<double?>(
+      'portions', aliasedName, false,
+      type: const RealType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns => [id, label, isBasic, portions];
   @override
-  $_EdiblesTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'edibles';
   @override
-  String get $tableName => _alias ?? 'edibles';
-  @override
-  final String actualTableName = 'edibles';
+  String get actualTableName => 'edibles';
   @override
   VerificationContext validateIntegrity(Insertable<_Edible> instance,
       {bool isInserting = false}) {
@@ -1438,8 +1399,7 @@ class _DishContent extends DataClass implements Insertable<_DishContent> {
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode,
-      $mrjc(contains.hashCode, $mrjc(amount.hashCode, unitsId.hashCode))));
+  int get hashCode => Object.hash(id, contains, amount, unitsId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1534,44 +1494,38 @@ class $_DishContentsTable extends _DishContents
   $_DishContentsTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES edibles(id)');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES edibles(id)');
   final VerificationMeta _containsMeta = const VerificationMeta('contains');
   @override
-  late final GeneratedTextColumn contains = _constructContains();
-  GeneratedTextColumn _constructContains() {
-    return GeneratedTextColumn('contains', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES edibles(id)');
-  }
-
+  late final GeneratedColumn<String?> contains = GeneratedColumn<String?>(
+      'contains', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES edibles(id)');
   final VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
-  late final GeneratedRealColumn amount = _constructAmount();
-  GeneratedRealColumn _constructAmount() {
-    return GeneratedRealColumn('amount', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<double?> amount = GeneratedColumn<double?>(
+      'amount', aliasedName, false,
+      type: const RealType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
   @override
-  late final GeneratedTextColumn unitsId = _constructUnitsId();
-  GeneratedTextColumn _constructUnitsId() {
-    return GeneratedTextColumn('units_id', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES units(id)');
-  }
-
+  late final GeneratedColumn<String?> unitsId = GeneratedColumn<String?>(
+      'units_id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES units(id)');
   @override
   List<GeneratedColumn> get $columns => [id, contains, amount, unitsId];
   @override
-  $_DishContentsTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'dish_contents';
   @override
-  String get $tableName => _alias ?? 'dish_contents';
-  @override
-  final String actualTableName = 'dish_contents';
+  String get actualTableName => 'dish_contents';
   @override
   VerificationContext validateIntegrity(Insertable<_DishContent> instance,
       {bool isInserting = false}) {
@@ -1701,8 +1655,7 @@ class _Meal extends DataClass implements Insertable<_Meal> {
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode,
-      $mrjc(label.hashCode, $mrjc(notes.hashCode, timestamp.hashCode))));
+  int get hashCode => Object.hash(id, label, notes, timestamp);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1796,44 +1749,38 @@ class $_MealsTable extends _Meals with TableInfo<$_MealsTable, _Meal> {
   $_MealsTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _labelMeta = const VerificationMeta('label');
   @override
-  late final GeneratedTextColumn label = _constructLabel();
-  GeneratedTextColumn _constructLabel() {
-    return GeneratedTextColumn('label', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> label = GeneratedColumn<String?>(
+      'label', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
-  late final GeneratedTextColumn notes = _constructNotes();
-  GeneratedTextColumn _constructNotes() {
-    return GeneratedTextColumn('notes', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> notes = GeneratedColumn<String?>(
+      'notes', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _timestampMeta = const VerificationMeta('timestamp');
   @override
-  late final GeneratedDateTimeColumn timestamp = _constructTimestamp();
-  GeneratedDateTimeColumn _constructTimestamp() {
-    return GeneratedDateTimeColumn('timestamp', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<DateTime?> timestamp = GeneratedColumn<DateTime?>(
+      'timestamp', aliasedName, false,
+      type: const IntType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns => [id, label, notes, timestamp];
   @override
-  $_MealsTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'meals';
   @override
-  String get $tableName => _alias ?? 'meals';
-  @override
-  final String actualTableName = 'meals';
+  String get actualTableName => 'meals';
   @override
   VerificationContext validateIntegrity(Insertable<_Meal> instance,
       {bool isInserting = false}) {
@@ -1963,8 +1910,7 @@ class _MealContent extends DataClass implements Insertable<_MealContent> {
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode,
-      $mrjc(contains.hashCode, $mrjc(amount.hashCode, unitsId.hashCode))));
+  int get hashCode => Object.hash(id, contains, amount, unitsId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2059,44 +2005,38 @@ class $_MealContentsTable extends _MealContents
   $_MealContentsTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES meals(id)');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES meals(id)');
   final VerificationMeta _containsMeta = const VerificationMeta('contains');
   @override
-  late final GeneratedTextColumn contains = _constructContains();
-  GeneratedTextColumn _constructContains() {
-    return GeneratedTextColumn('contains', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES edibles(id)');
-  }
-
+  late final GeneratedColumn<String?> contains = GeneratedColumn<String?>(
+      'contains', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES edibles(id)');
   final VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
-  late final GeneratedRealColumn amount = _constructAmount();
-  GeneratedRealColumn _constructAmount() {
-    return GeneratedRealColumn('amount', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<double?> amount = GeneratedColumn<double?>(
+      'amount', aliasedName, false,
+      type: const RealType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _unitsIdMeta = const VerificationMeta('unitsId');
   @override
-  late final GeneratedTextColumn unitsId = _constructUnitsId();
-  GeneratedTextColumn _constructUnitsId() {
-    return GeneratedTextColumn('units_id', $tableName, false,
-        $customConstraints: 'NOT NULL REFERENCES units(id)');
-  }
-
+  late final GeneratedColumn<String?> unitsId = GeneratedColumn<String?>(
+      'units_id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL REFERENCES units(id)');
   @override
   List<GeneratedColumn> get $columns => [id, contains, amount, unitsId];
   @override
-  $_MealContentsTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'meal_contents';
   @override
-  String get $tableName => _alias ?? 'meal_contents';
-  @override
-  final String actualTableName = 'meal_contents';
+  String get actualTableName => 'meal_contents';
   @override
   VerificationContext validateIntegrity(Insertable<_MealContent> instance,
       {bool isInserting = false}) {
@@ -2202,7 +2142,7 @@ class _Label extends DataClass implements Insertable<_Label> {
   }
 
   @override
-  int get hashCode => $mrjf($mrjc(id.hashCode, label.hashCode));
+  int get hashCode => Object.hash(id, label);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2266,28 +2206,24 @@ class $_LabelsTable extends _Labels with TableInfo<$_LabelsTable, _Label> {
   $_LabelsTable(this._db, [this._alias]);
   final VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedTextColumn id = _constructId();
-  GeneratedTextColumn _constructId() {
-    return GeneratedTextColumn('id', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> id = GeneratedColumn<String?>(
+      'id', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   final VerificationMeta _labelMeta = const VerificationMeta('label');
   @override
-  late final GeneratedTextColumn label = _constructLabel();
-  GeneratedTextColumn _constructLabel() {
-    return GeneratedTextColumn('label', $tableName, false,
-        $customConstraints: 'NOT NULL');
-  }
-
+  late final GeneratedColumn<String?> label = GeneratedColumn<String?>(
+      'label', aliasedName, false,
+      type: const StringType(),
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns => [id, label];
   @override
-  $_LabelsTable get asDslTable => this;
+  String get aliasedName => _alias ?? 'labels';
   @override
-  String get $tableName => _alias ?? 'labels';
-  @override
-  final String actualTableName = 'labels';
+  String get actualTableName => 'labels';
   @override
   VerificationContext validateIntegrity(Insertable<_Label> instance,
       {bool isInserting = false}) {

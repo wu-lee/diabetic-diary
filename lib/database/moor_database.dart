@@ -228,11 +228,11 @@ class MoorDatabase extends Database {
 abstract class MoorAbstractDataCollection<T extends Table, D extends DataClass, X extends Indexable> implements AsyncDataCollection<X> {
   final _MoorDatabase db;
   final TableInfo<T, D> tableInfo;
-  final GeneratedTextColumn idCol;
+  final Expression idCol;
 
   MoorAbstractDataCollection(this.db, this.tableInfo, this.idCol);
 
-  JoinedSelectStatement<Table, dynamic> get _query =>
+  JoinedSelectStatement<HasResultSet, dynamic> get _query =>
   // We use .addColumns to ensure we get a JoinedSelectStatement
   // instead of a SimpleSelectStatement. This allows us to be more
   // flexible by overriding this method to join in extra columns when needed.
@@ -327,7 +327,7 @@ abstract class MoorAbstractDataCollection<T extends Table, D extends DataClass, 
 class MoorDimensionsCollection implements AsyncDataCollection<Dimensions> {
   final _MoorDatabase db;
   final $_DimensionsTable table;
-  final GeneratedTextColumn idCol;
+  final GeneratedColumn<String?> idCol;
   SimpleSelectStatement<Table, dynamic> get commonQuery => db.select(db.dimensions);
 
   MoorDimensionsCollection(this.db) :
@@ -472,7 +472,7 @@ class MoorMeasurablesCollection extends MoorAbstractDataCollection<$_Measurables
   MoorMeasurablesCollection(_MoorDatabase db) : super(db, db.measurables, db.measurables.id);
 
   @override
-  JoinedSelectStatement<Table, dynamic> get _query =>
+  JoinedSelectStatement<HasResultSet, dynamic> get _query =>
       db.select(tableInfo)
       .join([
         leftOuterJoin(db.units, db.measurables.unitsId.equalsExp(db.units.id))
@@ -517,10 +517,10 @@ abstract class MoorAbstract1ToNTo1Collection<Tx extends Table, Dx extends DataCl
   final TableInfo<Tx, Dx> table;
   final TableInfo<Ty, Dy> joinedTable;
   final TableInfo<Tz, Dz> farJoinedTable;
-  final GeneratedTextColumn idCol;
-  final GeneratedTextColumn joinedIdCol;
-  final GeneratedTextColumn joinedIdCol2;
-  final GeneratedTextColumn farJoinedIdCol;
+  final GeneratedColumn<String?> idCol;
+  final GeneratedColumn<String?> joinedIdCol;
+  final GeneratedColumn<String?> joinedIdCol2;
+  final GeneratedColumn<String?> farJoinedIdCol;
 
   MoorAbstract1ToNTo1Collection({
     required this.db,
@@ -541,7 +541,7 @@ abstract class MoorAbstract1ToNTo1Collection<Tx extends Table, Dx extends DataCl
   SimpleSelectStatement<Tx, Dx> get primaryQuery =>
       db.select(table);
 
-  JoinedSelectStatement<Table, dynamic> get joinedQuery =>
+  JoinedSelectStatement<HasResultSet, dynamic> get joinedQuery =>
       db.select(joinedTable)
           .join([
         leftOuterJoin(farJoinedTable, joinedIdCol2.equalsExp(farJoinedIdCol))
@@ -552,7 +552,7 @@ abstract class MoorAbstract1ToNTo1Collection<Tx extends Table, Dx extends DataCl
       ..where((a) => idCol.equals(symbolToString(index)));
   }
 
-  JoinedSelectStatement<Table, dynamic> _joinedRowsFor(Symbol index) {
+  JoinedSelectStatement<HasResultSet, dynamic> _joinedRowsFor(Symbol index) {
     return joinedQuery
       ..where(joinedIdCol.equals(symbolToString(index)));
   }

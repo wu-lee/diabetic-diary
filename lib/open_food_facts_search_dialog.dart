@@ -5,6 +5,7 @@ import 'package:openfoodfacts/model/parameter/SearchTerms.dart';
 import 'package:openfoodfacts/model/parameter/TagFilter.dart';
 import 'package:openfoodfacts/model/UserAgent.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
+import 'package:openfoodfacts/utils/CountryHelper.dart';
 import 'package:openfoodfacts/utils/OpenFoodAPIConfiguration.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -320,4 +321,10 @@ class _Workaround implements ProductSearchQueryConfiguration {
 
   @override
   List<String> getFieldsKeys() => delegate.getFieldsKeys();
+
+  @override
+  String? computeCountryCode() => delegate.computeCountryCode();
+
+  @override
+  OpenFoodFactsCountry? get country => delegate.country;
 }
