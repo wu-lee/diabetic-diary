@@ -1,6 +1,7 @@
 import 'package:diabetic_diary/measureable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinbox/flutter_spinbox.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 import '../database.dart';
 import '../basic_ingredient.dart';
@@ -177,6 +178,25 @@ class _IngredientEditState extends State<IngredientEditScreen> {
     });
   }
 
+   void doOffScan(BuildContext context) async {
+     String barcode = await FlutterBarcodeScanner.scanBarcode(
+         "#ffffff",
+         "Cancel",
+         false,
+         ScanMode.BARCODE);
+
+     final product = await OpenFoodFactsSearchDialog.getOfn(barcode);
+     if (product == null)
+       return; // Nothing to do
+
+     setState(() {
+       id = product.id;
+       contents = product.contents;
+       label = product.label;
+       portionSize = product.portionSize;
+     });
+   }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -196,6 +216,10 @@ class _IngredientEditState extends State<IngredientEditScreen> {
             children: [
               Row(
                 children: [
+                  IconButton(
+                    onPressed: () => doOffScan(context),
+                    icon: const Icon(Icons.speaker_phone),
+                  ),
                   Expanded(
                     child: TextField(
                       controller: labelController,

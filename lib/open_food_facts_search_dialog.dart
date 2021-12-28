@@ -79,6 +79,27 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
     required this.searchTerms,
   });
 
+  static Future<BasicIngredient?> getOfn(String barcode) async {
+    ProductQueryConfiguration configurations = ProductQueryConfiguration(
+        barcode,
+        language: _Language,
+        fields: _ResponseFieldList,
+    );
+
+    final result = await OpenFoodAPIClient.getProduct(
+        configurations,
+    );
+
+    if (result.status != 1 || result.product == null) {
+      //print("Error retrieiving the product : ${result.statusVerbose}");
+      return null;
+    }
+
+    return convertOfnIngredient(result.product!);
+  }
+
+
+
   Future<SearchResult> searchOfn() {
     var parameters = <Parameter>[
       SearchTerms(terms: searchTerms.split(r'\s+')),
@@ -99,18 +120,8 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
       _Workaround(
         ProductSearchQueryConfiguration(
           parametersList: parameters,
-          fields: [
-            ProductField.NAME,
-            ProductField.BARCODE,
-            ProductField.QUANTITY,
-            ProductField.SERVING_SIZE,
-            ProductField.PACKAGING_QUANTITY,
-            ProductField.INGREDIENTS,
-            ProductField.NUTRIMENTS,
-            ProductField.COUNTRIES_TAGS,
-            ProductField.IMAGE_FRONT_SMALL_URL,
-          ],
-          language: OpenFoodFactsLanguage.ENGLISH)
+          fields: _ResponseFieldList,
+          language: _Language)
       );
 
     return OpenFoodAPIClient.searchProducts(null, configuration);
@@ -130,7 +141,7 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
       return products;
   }
 
-  BasicIngredient convertOfnIngredient(Product product) {
+  static BasicIngredient convertOfnIngredient(Product product) {
     final id = Symbol(
         product.barcode == null? ID('ingr:').toString() : "off:${product.barcode}"
     );
@@ -269,6 +280,21 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
       ],
     );
   }
+
+
+  static const _ResponseFieldList = [
+    ProductField.NAME,
+    ProductField.BARCODE,
+    ProductField.QUANTITY,
+    ProductField.SERVING_SIZE,
+    ProductField.PACKAGING_QUANTITY,
+    ProductField.INGREDIENTS,
+    ProductField.NUTRIMENTS,
+    ProductField.COUNTRIES_TAGS,
+    ProductField.IMAGE_FRONT_SMALL_URL,
+  ];
+
+  static const _Language = OpenFoodFactsLanguage.ENGLISH;
 }
 
 /// This is a hack to work around lack of a [ProductField] value for `serving_quantity`
