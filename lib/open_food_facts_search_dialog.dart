@@ -85,10 +85,14 @@ class OpenFoodFactsSearchDialog extends StatelessWidget {
       const OFF.Page(page: 1),
       const PageSize(size: 50),
       const SortBy(option: SortOption.POPULARITY),
-      const TagFilter(
-          tagType: "states", contains: true, tagName: "en:nutrition-facts-completed"),
-      const TagFilter(
-          tagType: "states", contains: true, tagName: "en:quantity-completed"),
+      TagFilter.fromType(
+          tagFilterType: TagFilterType.STATES,
+          tagName: "en:nutrition-facts-completed"
+      ),
+      TagFilter.fromType(
+          tagFilterType: TagFilterType.STATES,
+          tagName: "en:quantity-completed"
+      ),
     ];
 
     ProductSearchQueryConfiguration configuration =
